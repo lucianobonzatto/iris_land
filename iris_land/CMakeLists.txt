@@ -208,12 +208,12 @@ catkin_install_python(PROGRAMS
 
 add_executable( iris_mng
                 src/manager_node.cpp
-                # include/iris_land/manager.cpp
-                # include/iris_land/state_machine.cpp
-                # include/iris_land/follow_controller.cpp
-                # include/iris_land/land_controller.cpp
-                # include/iris_land/rosClient.cpp
-                # include/iris_land/PIDlib.cpp
+                include/iris_land/manager.cpp
+                include/iris_land/state_machine.cpp
+                include/iris_land/follow_controller.cpp
+                include/iris_land/land_controller.cpp
+                include/iris_land/rosClient.cpp
+                include/iris_land/PIDlib.cpp
 )
 target_link_libraries(iris_mng ${catkin_LIBRARIES})
 add_dependencies(iris_mng iris_land_generate_messages_cpp)
