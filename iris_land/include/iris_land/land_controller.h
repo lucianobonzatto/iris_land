@@ -2,7 +2,7 @@
 #define LAND_CONTROLLER_H
 
 #include "general.h"
-#include "tello_controllers.h"
+#include "controllers.h"
 
 class Land_Controller
 {
@@ -17,10 +17,10 @@ public:
     bool completed_approach();
 
 private:
-    TelloPDController pdController;
-    TelloCascadePDPIController cascadeController;
-    TelloParallelPDPIController parallelController;
-    TelloPIDController pidController;
+    PD_velocity_ctl pdController;
+    cascade_velocity_ctl cascadeController;
+    parallel_velocity_ctl parallelController;
+    PID_velocity_ctl pidController;
     Pose setpoint;
     int controller_mode;
     double distance_threshold;

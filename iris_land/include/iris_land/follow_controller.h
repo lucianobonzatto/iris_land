@@ -2,7 +2,7 @@
 #define FOLLOW_CONTROLLER_H
 
 #include "general.h"
-#include "tello_controllers.h"
+#include "controllers.h"
 
 class Follow_Controller
 {
@@ -15,10 +15,10 @@ public:
     void update_parameters(iris_land::controllers_gain newParameters);
 
 private:
-    TelloPDController pdController;
-    TelloCascadePDPIController cascadeController;
-    TelloParallelPDPIController parallelController;
-    TelloPIDController pidController;
+    PD_velocity_ctl pdController;
+    cascade_velocity_ctl cascadeController;
+    parallel_velocity_ctl parallelController;
+    PID_velocity_ctl pidController;
     Pose setpoint;
     int controller_mode;
 

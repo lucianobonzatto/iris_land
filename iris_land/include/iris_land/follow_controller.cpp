@@ -13,28 +13,28 @@ Follow_Controller::Follow_Controller()
     builder.setOutMax(1);
     builder.setConditionalIntegration(true);
 
-    TelloPDController pd_controller(
+    PD_velocity_ctl pd_controller(
         builder,
         builder,
         builder,
         builder);
     pdController = pd_controller;
 
-    TelloCascadePDPIController cascade_controller(
+    cascade_velocity_ctl cascade_controller(
         builder, builder,
         builder, builder,
         builder, builder,
         builder, builder);
     cascadeController = cascade_controller;
 
-    TelloParallelPDPIController parallel_controller(
+    parallel_velocity_ctl parallel_controller(
         builder, builder,
         builder, builder,
         builder, builder,
         builder, builder);
     parallelController = parallel_controller;
 
-    TelloPIDController pid_Controller(
+    PID_velocity_ctl pid_Controller(
         builder,
         builder,
         builder,

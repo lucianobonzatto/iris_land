@@ -13,7 +13,7 @@ struct Speed
     double vx, vy, vz, vtheta;
 };
 
-class TelloPIDController
+class PID_velocity_ctl
 {
 private:
     PIDController controller_x;
@@ -22,9 +22,9 @@ private:
     PIDController controller_theta;
 
 public:
-    TelloPIDController() {}
+    PID_velocity_ctl() {}
 
-    TelloPIDController(PID::Builder builder_x, PID::Builder builder_y, PID::Builder builder_z, PID::Builder builder_theta)
+    PID_velocity_ctl(PID::Builder builder_x, PID::Builder builder_y, PID::Builder builder_z, PID::Builder builder_theta)
         : controller_x(builder_x),
           controller_y(builder_y),
           controller_z(builder_z),
@@ -53,7 +53,7 @@ public:
     }
 };
 
-class TelloPDController
+class PD_velocity_ctl
 {
 private:
     PDController controller_x;
@@ -62,9 +62,9 @@ private:
     PDController controller_theta;
 
 public:
-    TelloPDController() {}
+    PD_velocity_ctl() {}
 
-    TelloPDController(PID::Builder builder_x, PID::Builder builder_y, PID::Builder builder_z, PID::Builder builder_theta)
+    PD_velocity_ctl(PID::Builder builder_x, PID::Builder builder_y, PID::Builder builder_z, PID::Builder builder_theta)
         : controller_x(builder_x),
           controller_y(builder_y),
           controller_z(builder_z),
@@ -93,7 +93,7 @@ public:
     }
 };
 
-class TelloCascadePDPIController
+class cascade_velocity_ctl
 {
 private:
     CascadePDPIController controller_x;
@@ -102,8 +102,8 @@ private:
     CascadePDPIController controller_theta;
 
 public:
-    TelloCascadePDPIController() {}
-    TelloCascadePDPIController(PID::Builder builder_x_pd, PID::Builder builder_x_pi, PID::Builder builder_y_pd, PID::Builder builder_y_pi,
+    cascade_velocity_ctl() {}
+    cascade_velocity_ctl(PID::Builder builder_x_pd, PID::Builder builder_x_pi, PID::Builder builder_y_pd, PID::Builder builder_y_pi,
                                PID::Builder builder_z_pd, PID::Builder builder_z_pi, PID::Builder builder_theta_pd, PID::Builder builder_theta_pi)
         : controller_x(builder_x_pd, builder_x_pi),
           controller_y(builder_y_pd, builder_y_pi),
@@ -157,7 +157,7 @@ public:
     }
 };
 
-class TelloParallelPDPIController
+class parallel_velocity_ctl
 {
 private:
     ParallelPDPIController controller_x;
@@ -166,8 +166,8 @@ private:
     ParallelPDPIController controller_theta;
 
 public:
-    TelloParallelPDPIController() {}
-    TelloParallelPDPIController(PID::Builder builder_x_pd, PID::Builder builder_x_pi,
+    parallel_velocity_ctl() {}
+    parallel_velocity_ctl(PID::Builder builder_x_pd, PID::Builder builder_x_pi,
                                 PID::Builder builder_y_pd, PID::Builder builder_y_pi,
                                 PID::Builder builder_z_pd, PID::Builder builder_z_pi,
                                 PID::Builder builder_theta_pd, PID::Builder builder_theta_pi)
