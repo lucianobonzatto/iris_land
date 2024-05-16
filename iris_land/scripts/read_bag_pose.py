@@ -8,7 +8,7 @@ import datetime
 import subprocess
 import tkinter as tk
 from tkinter import Label, Entry, Button, Radiobutton, StringVar
-from uav_land.msg import controllers_gain
+from iris_land.msg import controllers_gain
 
 
 class BagReader:
@@ -128,7 +128,7 @@ class BagReader:
 
     def save_csv_uav(self):
         filename = self.bags[self.index]
-        filename = filename.replace(self.dir_name, "~/tello_ws/src/uav_land/log/csv/pose")
+        filename = filename.replace(self.dir_name, "~/tello_ws/src/iris_land/log/csv/pose")
         filename = filename.replace(".bag", "/uav_vel.csv")
         filename = os.path.expanduser(filename)
         size = len(self.out_uav["Time"])
@@ -154,7 +154,7 @@ class BagReader:
 
     def save_csv_magni(self):
         filename = self.bags[self.index]
-        filename = filename.replace(self.dir_name, "~/tello_ws/src/uav_land/log/csv/pose")
+        filename = filename.replace(self.dir_name, "~/tello_ws/src/iris_land/log/csv/pose")
         filename = filename.replace(".bag", "/magni.csv")
         filename = os.path.expanduser(filename)
         size = len(self.out_uav["Time"])

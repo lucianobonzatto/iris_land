@@ -9,7 +9,7 @@ import subprocess
 import pandas as pd
 import tkinter as tk
 from tkinter import Label, Entry, Button, Radiobutton, StringVar
-from uav_land.msg import controllers_gain
+from iris_land.msg import controllers_gain
 from tf.transformations import euler_from_quaternion
 import genpy
 
@@ -21,7 +21,7 @@ class BagReader:
         print(originals_folder, ": ", data.__len__(), " bags")
         self.time_list = []
 
-        self.output_folder = os.path.join("/home/lukn23/tello_ws/src/uav_land/log/csv/PID")
+        self.output_folder = os.path.join("/home/lukn23/tello_ws/src/iris_land/log/csv/PID")
 
         for bag_name in data:
             try:

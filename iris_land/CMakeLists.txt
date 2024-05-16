@@ -206,20 +206,14 @@ catkin_install_python(PROGRAMS
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
 
-
-
-
-
-
-
-# add_executable( manager_node
-#                 src/manager_node.cpp
-#                 include/uav_land/manager.cpp
-#                 include/uav_land/state_machine.cpp
-#                 include/uav_land/follow_controller.cpp
-#                 include/uav_land/land_controller.cpp
-#                 include/uav_land/rosClient.cpp
-#                 include/uav_land/PIDlib.cpp
-# )
-# target_link_libraries(manager_node ${catkin_LIBRARIES})
-# add_dependencies(manager_node uav_land_generate_messages_cpp)
+add_executable( iris_mng
+                src/manager_node.cpp
+                # include/iris_land/manager.cpp
+                # include/iris_land/state_machine.cpp
+                # include/iris_land/follow_controller.cpp
+                # include/iris_land/land_controller.cpp
+                # include/iris_land/rosClient.cpp
+                # include/iris_land/PIDlib.cpp
+)
+target_link_libraries(iris_mng ${catkin_LIBRARIES})
+add_dependencies(iris_mng iris_land_generate_messages_cpp)

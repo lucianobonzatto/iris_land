@@ -5,7 +5,7 @@ import datetime
 import subprocess
 import tkinter as tk
 from tkinter import Label, Entry, Button, Radiobutton, StringVar, Scale
-from uav_land.msg import controllers_gain
+from iris_land.msg import controllers_gain
 
 class ControllerGUI:
     def __init__(self, root):
@@ -14,7 +14,7 @@ class ControllerGUI:
         self.entries = {}
         self.par_pub = rospy.Publisher('/PID/parameters', controllers_gain, queue_size=10)
         self.gains = controllers_gain()
-        self.package_path = rospkg.RosPack().get_path("uav_land")
+        self.package_path = rospkg.RosPack().get_path("iris_land")
 
         self.controller_mode = StringVar()
         self.controller_mode.set("PD")
