@@ -210,7 +210,7 @@ add_executable( iris_mng
                 include/iris_land/state_machine.cpp
                 include/iris_land/follow_controller.cpp
                 include/iris_land/land_controller.cpp
-                include/iris_land/rosClient.cpp
+                include/iris_land/ros_client.cpp
                 include/iris_land/PIDlib.cpp
 )
 target_link_libraries(iris_mng ${catkin_LIBRARIES})
