@@ -38,7 +38,6 @@
 
 #include <geographic_msgs/GeoPoseStamped.h>
 
-#include <tello_driver/TelloStatus.h>
 #include <iris_land/controllers_gain.h>
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>

@@ -257,8 +257,3 @@ void Manager::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
 {
   imu = *msg;
 }
-
-void Manager::statusCallback(const tello_driver::TelloStatus::ConstPtr &msg)
-{
-  status = *msg;
-}

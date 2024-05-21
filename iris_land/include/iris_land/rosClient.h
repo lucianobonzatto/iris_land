@@ -21,7 +21,6 @@ public:
   ros::Subscriber joy_sub;
   ros::Subscriber parameters_sub;
   ros::Subscriber imu_sub;
-  ros::Subscriber status_sub;
 
 private:
   ros::NodeHandle *nh;

@@ -16,7 +16,6 @@ void ROSClient::init(Manager *const manager)
   joy_sub = nh->subscribe<sensor_msgs::Joy>("/joy_control", 1, &Manager::joyCallback, manager);
   odom_sub = nh->subscribe<nav_msgs::Odometry>("/tello/odom", 1, &Manager::odomCallback, manager);
   pose_sub = nh->subscribe<geometry_msgs::PoseStamped>("/aruco/pose", 10, &Manager::poseCallback, manager);
-  status_sub = nh->subscribe<tello_driver::TelloStatus>("/tello/status", 1, &Manager::statusCallback, manager);
   parameters_sub = nh->subscribe<iris_land::controllers_gain>("/PID/parameters", 1, &Manager::parametersCallback, manager);
 }
 
