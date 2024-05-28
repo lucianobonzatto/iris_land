@@ -1,0 +1,25 @@
+name: iris_sim
+root: ./
+startup_window: iris_sim
+windows:
+  - simulation:
+      layout: tiled
+      panes:
+        - cd ~/src/Firmware/; make px4_sitl gazebo_iris
+        - sleep 5; roslaunch mavros px4.launch fcu_url:='udp://:14550@127.0.0.1:14555'
+  # - magni:
+  #     layout: tiled
+  #     panes:
+  #       - roslaunch magni_gazebo teste.launch
+  # - image_transport:
+  #     layout: tiled
+  #     panes:
+  #       - sleep 7; rqt_image_view
+  #       - sleep 7; rosrun iris_followup udp_image.py
+  #       - sleep 8; rosrun iris_followup aruco_node.py
+  #       # - sleep 8; roslaunch iris_followup ar_track.launch
+        
+  # - manager:
+  #     layout: tiled
+  #     panes:
+  #       - sleep 10; roslaunch iris_followup manager.launch
