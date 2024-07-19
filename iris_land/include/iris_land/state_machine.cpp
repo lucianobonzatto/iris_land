@@ -39,15 +39,15 @@ void State_Machine::land()
 bool State_Machine::STOPPED_update(sensor_msgs::Joy newJoy)
 {
     if(newJoy.header.stamp.isZero()){return false;}
-    else if(newJoy.buttons[JOY_BUTTONS::B]){swap_state(STATES::LAND); return true;}
-    else if(newJoy.buttons[JOY_BUTTONS::A]){swap_state(STATES::TAKE_OFF); return true;}
+    else if(newJoy.buttons[BUTTON_B]){swap_state(STATES::LAND); return true;}
+    else if(newJoy.buttons[BUTTON_A]){swap_state(STATES::TAKE_OFF); return true;}
     return false;
 }
 
 bool State_Machine::TAKE_OFF_update(sensor_msgs::Joy newJoy)
 {
     if(newJoy.header.stamp.isZero()){return false;}
-    else if(newJoy.buttons[JOY_BUTTONS::B]){swap_state(STATES::LAND); return true;}
+    else if(newJoy.buttons[BUTTON_B]){swap_state(STATES::LAND); return true;}
     else{swap_state(STATES::JOY_CONTROL); return true;}
     return false;
 }
@@ -55,7 +55,7 @@ bool State_Machine::TAKE_OFF_update(sensor_msgs::Joy newJoy)
 bool State_Machine::LAND_update(sensor_msgs::Joy newJoy)
 {
     if(newJoy.header.stamp.isZero()){return false;}
-    else if(newJoy.buttons[JOY_BUTTONS::B]){swap_state(STATES::LAND); return true;}
+    else if(newJoy.buttons[BUTTON_B]){swap_state(STATES::LAND); return true;}
     else{swap_state(STATES::STOPPED); return true;}
     return false;
 }
@@ -63,30 +63,30 @@ bool State_Machine::LAND_update(sensor_msgs::Joy newJoy)
 bool State_Machine::JOY_CONTROL_update(sensor_msgs::Joy newJoy)
 {
     if(newJoy.header.stamp.isZero()){return false;}
-    else if(newJoy.buttons[JOY_BUTTONS::A]){swap_state(STATES::JOY_CONTROL); return true;}
-    else if(newJoy.buttons[JOY_BUTTONS::B]){swap_state(STATES::LAND); return true;}
-    else if(newJoy.buttons[JOY_BUTTONS::X]){swap_state(STATES::FOLLOW_CONTROL); return true;}
-    else if(newJoy.buttons[JOY_BUTTONS::Y]){swap_state(STATES::LAND_CONTROL); return true;}
+    else if(newJoy.buttons[BUTTON_A]){swap_state(STATES::JOY_CONTROL); return true;}
+    else if(newJoy.buttons[BUTTON_B]){swap_state(STATES::LAND); return true;}
+    else if(newJoy.buttons[BUTTON_X]){swap_state(STATES::FOLLOW_CONTROL); return true;}
+    else if(newJoy.buttons[BUTTON_Y]){swap_state(STATES::LAND_CONTROL); return true;}
     return false;
 }
 
 bool State_Machine::LAND_CONTROL_update(sensor_msgs::Joy newJoy)
 {
     if(newJoy.header.stamp.isZero()){return false;}
-    else if(newJoy.buttons[JOY_BUTTONS::A]){swap_state(STATES::JOY_CONTROL); return true;}
-    else if(newJoy.buttons[JOY_BUTTONS::B]){swap_state(STATES::LAND); return true;}
-    else if(newJoy.buttons[JOY_BUTTONS::X]){swap_state(STATES::FOLLOW_CONTROL); return true;}
-    else if(newJoy.buttons[JOY_BUTTONS::Y]){swap_state(STATES::LAND_CONTROL); return true;}
+    else if(newJoy.buttons[BUTTON_A]){swap_state(STATES::JOY_CONTROL); return true;}
+    else if(newJoy.buttons[BUTTON_B]){swap_state(STATES::LAND); return true;}
+    else if(newJoy.buttons[BUTTON_X]){swap_state(STATES::FOLLOW_CONTROL); return true;}
+    else if(newJoy.buttons[BUTTON_Y]){swap_state(STATES::LAND_CONTROL); return true;}
     return false;
 }
 
 bool State_Machine::FOLLOW_CONTROL_update(sensor_msgs::Joy newJoy)
 {
     if(newJoy.header.stamp.isZero()){return false;}
-    else if(newJoy.buttons[JOY_BUTTONS::A]){swap_state(STATES::JOY_CONTROL); return true;}
-    else if(newJoy.buttons[JOY_BUTTONS::B]){swap_state(STATES::LAND); return true;}
-    else if(newJoy.buttons[JOY_BUTTONS::X]){swap_state(STATES::FOLLOW_CONTROL); return true;}
-    else if(newJoy.buttons[JOY_BUTTONS::Y]){swap_state(STATES::LAND_CONTROL); return true;}
+    else if(newJoy.buttons[BUTTON_A]){swap_state(STATES::JOY_CONTROL); return true;}
+    else if(newJoy.buttons[BUTTON_B]){swap_state(STATES::LAND); return true;}
+    else if(newJoy.buttons[BUTTON_X]){swap_state(STATES::FOLLOW_CONTROL); return true;}
+    else if(newJoy.buttons[BUTTON_Y]){swap_state(STATES::LAND_CONTROL); return true;}
     return false;
 }
 
