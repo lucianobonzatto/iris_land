@@ -12,8 +12,7 @@ class Manager
 public:
     Manager();
     ~Manager();
-
-    void Init(ROSClient *drone_control);
+    void Init(ROSClient *rosClient, DroneControl *droneControl);
 
     void print_parameters();
     void update();
@@ -32,6 +31,8 @@ private:
     iris_land::controllers_gain parameters;
 
     ROSClient *ROS_client;
+    DroneControl *drone_control;
+    
     State_Machine state_machine;
     Land_Controller land_controller;
     Follow_Controller follow_controller;

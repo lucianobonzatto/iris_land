@@ -8,12 +8,12 @@ Manager::~Manager()
 {
 }
 
-void Manager::Init(ROSClient *drone_control)
+void Manager::Init(ROSClient *rosClient, DroneControl *droneControl)
 {
     parameters.linear_vel = 0.1;
     parameters.angular_vel = 0.1;
 
-    ROS_client = drone_control;
+    ROS_client = rosClient;
 }
 
 void Manager::print_parameters()

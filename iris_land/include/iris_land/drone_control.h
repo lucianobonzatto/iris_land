@@ -9,7 +9,6 @@ class DroneControl
 public:
     DroneControl();
     ~DroneControl();
-
     void Init(ROSClient *drone_control);
 
 private:
