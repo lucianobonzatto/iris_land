@@ -16,6 +16,23 @@ public:
     ros::Subscriber joy_sub;
     ros::Subscriber parameters_sub;
 
+    ros::Subscriber state_sub_;
+    ros::Subscriber extended_state_sub_;
+    ros::Subscriber local_pos_sub_;
+    ros::Subscriber global_pos_sub_;
+    //     ros::Subscriber setpoint_pos_sub_;
+    
+    //     ros::Publisher global_setpoint_pos_pub_;
+    //     ros::Publisher setpoint_pos_pub_;
+    // //    ros::Publisher vision_pos_pub_;
+    //     ros::Publisher velocity_pub;
+    //     ros::Publisher velocity_unstamped_pub;
+
+    //     ros::ServiceClient arming_client_;
+    //     ros::ServiceClient land_client_;
+    //     ros::ServiceClient takeoff_client_;
+    //     ros::ServiceClient set_mode_client_;
+
 private:
     ros::NodeHandle *nh;
 };
