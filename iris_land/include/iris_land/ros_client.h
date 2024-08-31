@@ -28,10 +28,10 @@ public:
     //     ros::Publisher velocity_pub;
     //     ros::Publisher velocity_unstamped_pub;
 
-    //     ros::ServiceClient arming_client_;
-    //     ros::ServiceClient land_client_;
-    //     ros::ServiceClient takeoff_client_;
-    //     ros::ServiceClient set_mode_client_;
+    ros::ServiceClient arming_client_;
+    ros::ServiceClient land_client_;
+    ros::ServiceClient takeoff_client_;
+    ros::ServiceClient set_mode_client_;
 
 private:
     ros::NodeHandle *nh;

@@ -24,10 +24,10 @@ void ROSClient::Init(Manager *const manager, DroneControl *const drone_control)
     //   velocity_pub = nh->advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 10);
     //   velocity_unstamped_pub = nh->advertise<geometry_msgs::Twist>("/mavros/setpoint_velocity/cmd_vel_unstamped", 10);
 
-    //   arming_client_ = nh->serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
-    //   land_client_ = nh->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
-    //   takeoff_client_ = nh->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
-    //   set_mode_client_ = nh->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+    arming_client_ = nh->serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
+    land_client_ = nh->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
+    takeoff_client_ = nh->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
+    set_mode_client_ = nh->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
 }
 
 void ROSClient::setParam(const std::string &key, double d)
