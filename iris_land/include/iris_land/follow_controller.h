@@ -11,7 +11,7 @@ public:
     ~Follow_Controller();
 
     void print_parameters();
-    geometry_msgs::Twist get_velocity(geometry_msgs::PoseStamped poseStamped, Speed drone_vel);    
+    geometry_msgs::Twist get_velocity(geometry_msgs::PoseStamped poseStamped);    
     void update_parameters(iris_land::controllers_gain newParameters);
 
 private:

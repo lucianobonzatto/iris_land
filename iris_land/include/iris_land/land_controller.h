@@ -11,7 +11,7 @@ public:
     ~Land_Controller();
 
     void print_parameters();
-    geometry_msgs::Twist get_velocity(geometry_msgs::PoseStamped poseStamped, Speed drone_vel);
+    geometry_msgs::Twist get_velocity(geometry_msgs::PoseStamped poseStamped);
     void update_parameters(iris_land::controllers_gain newParameters);
     void reset_altitude(double altitude);
     bool completed_approach();
@@ -26,7 +26,7 @@ private:
     double distance_threshold;
     double angular_threshold;
 
-    Speed get_align_velocity(Pose poseMeasurement, Speed drone_vel);
+    Speed get_align_velocity(Pose poseMeasurement);
     double calc_vel(double valor_in);
     double calculate_distance(const Pose& point1, const Pose& point2);
     double update_altitude(double altitude);

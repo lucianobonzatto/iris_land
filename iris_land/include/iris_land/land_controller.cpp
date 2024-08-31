@@ -201,7 +201,7 @@ bool Land_Controller::completed_approach()
     return false;
 }
 
-geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped poseStamped, Speed drone_vel)
+geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped poseStamped)
 {
     geometry_msgs::Twist velocity;
 
@@ -231,7 +231,7 @@ geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped po
         cout << setpoint.z << ": " << update_altitude(setpoint.z) << endl;
     }
 
-    Speed vel = get_align_velocity(measurement, drone_vel);
+    Speed vel = get_align_velocity(measurement);
 
     velocity.linear.x = vel.vx;
     velocity.linear.y = vel.vy;
@@ -240,7 +240,7 @@ geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped po
     return velocity;
 }
 
-Speed Land_Controller::get_align_velocity(Pose poseMeasurement, Speed drone_vel)
+Speed Land_Controller::get_align_velocity(Pose poseMeasurement)
 {
     Speed vel;
 
@@ -251,23 +251,6 @@ Speed Land_Controller::get_align_velocity(Pose poseMeasurement, Speed drone_vel)
     else if (controller_mode == CONTROLERS::_PID)
     {
         vel = pidController.control(setpoint, poseMeasurement);
-    }
-    else if (controller_mode == CONTROLERS::_CASCADE)
-    {
-        vel = cascadeController.control(setpoint, poseMeasurement, drone_vel);
-    }
-    else if (controller_mode == CONTROLERS::_PARALLEL)
-    {
-        Speed vel_setpoint;
-
-        vel_setpoint.vx = calc_vel(poseMeasurement.x - setpoint.x);
-        vel_setpoint.vy = calc_vel(poseMeasurement.y - setpoint.y);
-        vel_setpoint.vz = calc_vel(poseMeasurement.z - setpoint.z);
-        vel_setpoint.vtheta = calc_vel(poseMeasurement.theta - setpoint.theta);
-        cout << "measurement: (" << poseMeasurement.x << ", " << poseMeasurement.y << ", " << poseMeasurement.z << ", " << poseMeasurement.theta << ")" << endl;
-        cout << "vel_setpoint: (" << vel_setpoint.vx << ", " << vel_setpoint.vy << ", " << vel_setpoint.vz << ", " << vel_setpoint.vtheta << ")" << endl;
-
-        Speed vel = parallelController.control(setpoint, poseMeasurement, vel_setpoint, drone_vel);
     }
     else
     {

@@ -188,7 +188,7 @@ void Follow_Controller::update_parameters(iris_land::controllers_gain newParamet
     setpoint.z = newParameters.altitude;
 }
 
-geometry_msgs::Twist Follow_Controller::get_velocity(geometry_msgs::PoseStamped poseStamped, Speed drone_vel)
+geometry_msgs::Twist Follow_Controller::get_velocity(geometry_msgs::PoseStamped poseStamped)
 {
     geometry_msgs::Twist velocity;
 
@@ -210,24 +210,7 @@ geometry_msgs::Twist Follow_Controller::get_velocity(geometry_msgs::PoseStamped 
     }
     else if (controller_mode == CONTROLERS::_PID)
     {
-                vel = pidController.control(setpoint, measurement);
-            }
-    else if (controller_mode == CONTROLERS::_CASCADE)
-    {
-        vel = cascadeController.control(setpoint, measurement, drone_vel);
-    }
-    else if (controller_mode == CONTROLERS::_PARALLEL)
-    {
-        Speed vel_setpoint;
-
-        vel_setpoint.vx = calc_vel(measurement.x - setpoint.x);
-        vel_setpoint.vy = calc_vel(measurement.y - setpoint.y);
-        vel_setpoint.vz = calc_vel(measurement.z - setpoint.z);
-        vel_setpoint.vtheta = calc_vel(measurement.theta - setpoint.theta);
-cout << "measurement: (" << measurement.x << ", " << measurement.y << ", " << measurement.z << ", " << measurement.theta << ")" << endl;
-        cout << "vel_setpoint: (" << vel_setpoint.vx << ", " << vel_setpoint.vy << ", " << vel_setpoint.vz << ", " << vel_setpoint.vtheta << ")" << endl;
-
-        Speed vel = parallelController.control(setpoint, measurement, vel_setpoint, drone_vel);
+        vel = pidController.control(setpoint, measurement);
     }
     else
     {

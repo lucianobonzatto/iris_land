@@ -151,10 +151,8 @@ void Manager::LAND_CONTROL_action()
 {
     cout << "**********************" << endl;
     geometry_msgs::Twist velocity;
-    Speed drone_vel;
-    // TODO: pegar velocidade da droneControl
 
-    velocity = land_controller.get_velocity(aruco_pose, drone_vel);
+    velocity = land_controller.get_velocity(aruco_pose);
     send_velocity(velocity.linear.x,
                   velocity.linear.y,
                   velocity.linear.z,
@@ -174,10 +172,8 @@ void Manager::LAND_CONTROL_action()
 void Manager::FOLLOW_CONTROL_action()
 {
     geometry_msgs::Twist velocity;
-    Speed drone_vel;
-    // TODO: pegar velocidade da droneControl
 
-    velocity = follow_controller.get_velocity(aruco_pose, drone_vel);
+    velocity = follow_controller.get_velocity(aruco_pose);
     send_velocity(velocity.linear.x,
                   velocity.linear.y,
                   velocity.linear.z,
