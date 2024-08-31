@@ -18,11 +18,10 @@ void ROSClient::Init(Manager *const manager, DroneControl *const drone_control)
     local_pos_sub_ = nh->subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, &DroneControl::local_position_cb, drone_control);
     global_pos_sub_ = nh->subscribe<sensor_msgs::NavSatFix>("/mavros/global_position/global", 10, &DroneControl::global_position_cb, drone_control);
 
-    //   global_setpoint_pos_pub_ = nh->advertise<geographic_msgs::GeoPoseStamped>("/mavros/setpoint_position/global", 10);
-    //   setpoint_pos_pub_ = nh->advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);
-    //  // vision_pos_pub_ = nh->advertise<geometry_msgs::PoseStamped>("/mavros/vision_pose/pose", 10);
-    //   velocity_pub = nh->advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 10);
-    //   velocity_unstamped_pub = nh->advertise<geometry_msgs::Twist>("/mavros/setpoint_velocity/cmd_vel_unstamped", 10);
+    global_setpoint_pos_pub_ = nh->advertise<geographic_msgs::GeoPoseStamped>("/mavros/setpoint_position/global", 10);
+    setpoint_pos_pub_ = nh->advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);
+    velocity_pub = nh->advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 10);
+    velocity_unstamped_pub = nh->advertise<geometry_msgs::Twist>("/mavros/setpoint_velocity/cmd_vel_unstamped", 10);
 
     arming_client_ = nh->serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
     land_client_ = nh->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
