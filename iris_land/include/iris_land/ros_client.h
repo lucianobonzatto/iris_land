@@ -17,10 +17,8 @@ public:
     ros::Publisher cmd_vel_pub;
 
     ros::Subscriber pose_sub;
-    ros::Subscriber odom_sub;
     ros::Subscriber joy_sub;
     ros::Subscriber parameters_sub;
-    ros::Subscriber imu_sub;
 
 private:
     ros::NodeHandle *nh;

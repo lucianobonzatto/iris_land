@@ -17,17 +17,13 @@ public:
     void print_parameters();
     void update();
 
-    void poseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
-    void odomCallback(const nav_msgs::Odometry::ConstPtr &msg);
+    void arucoPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
     void joyCallback(const sensor_msgs::Joy::ConstPtr &msg);
     void parametersCallback(const iris_land::controllers_gain::ConstPtr &msg);
-    void imuCallback(const sensor_msgs::Imu::ConstPtr &msg);
 
 private:
     sensor_msgs::Joy joy;
-    sensor_msgs::Imu imu;
-    nav_msgs::Odometry odom;
-    geometry_msgs::PoseStamped pose;
+    geometry_msgs::PoseStamped aruco_pose;
     iris_land::controllers_gain parameters;
 
     ROSClient *ROS_client;
