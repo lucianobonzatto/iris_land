@@ -9,10 +9,12 @@ ROSClient::ROSClient(ros::NodeHandle *handle)
 
 void ROSClient::Init(Manager *const manager, DroneControl *const drone_control)
 {
+// Manager parameters
     joy_sub = nh->subscribe<sensor_msgs::Joy>("/joy_control", 1, &Manager::joyCallback, manager);
     pose_sub = nh->subscribe<geometry_msgs::PoseStamped>("/aruco/pose", 10, &Manager::arucoPoseCallback, manager);
     parameters_sub = nh->subscribe<iris_land::controllers_gain>("/PID/parameters", 1, &Manager::parametersCallback, manager);
 
+// DroneControl parameters
     state_sub_ = nh->subscribe<mavros_msgs::State>("/mavros/state", 10, &DroneControl::state_cb, drone_control);
     extended_state_sub_ = nh->subscribe<mavros_msgs::ExtendedState>("/mavros/extended_state", 10, &DroneControl::extended_state_cb, drone_control);
     local_pos_sub_ = nh->subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, &DroneControl::local_position_cb, drone_control);
