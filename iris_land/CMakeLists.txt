@@ -15,11 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  tf2_ros
 )
-
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -115,7 +112,7 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES iris_land
- CATKIN_DEPENDS geometry_msgs roscpp roslib rospy sensor_msgs std_msgs
+ CATKIN_DEPENDS geometry_msgs roscpp roslib rospy sensor_msgs std_msgs tf2_ros
  DEPENDS system_lib
 )
 
