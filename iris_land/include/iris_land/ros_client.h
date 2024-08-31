@@ -12,10 +12,6 @@ public:
     void Init(Manager *const manager, DroneControl *const drone_control);
     void setParam(const std::string &key, double d);
 
-    ros::Publisher takeoff_pub;
-    ros::Publisher land_pub;
-    ros::Publisher cmd_vel_pub;
-
     ros::Subscriber pose_sub;
     ros::Subscriber joy_sub;
     ros::Subscriber parameters_sub;

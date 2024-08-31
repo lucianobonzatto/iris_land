@@ -214,4 +214,3 @@ void Manager::parametersCallback(const iris_land::controllers_gain::ConstPtr &ms
 {
     parameters = *msg;
 }
-
