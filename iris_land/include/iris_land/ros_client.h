@@ -13,7 +13,7 @@ public:
     void setParam(const std::string &key, double d);
 
     ros::Subscriber pose_sub;
-    ros::Subscriber joy_sub;
+    ros::Subscriber rc_sub;
     ros::Subscriber parameters_sub;
 
     ros::Subscriber state_sub_;

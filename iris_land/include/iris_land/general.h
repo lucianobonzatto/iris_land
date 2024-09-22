@@ -35,6 +35,7 @@
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/ExtendedState.h>
 #include <mavros_msgs/GlobalPositionTarget.h>
+#include <mavros_msgs/RCIn.h>
 
 #include <geographic_msgs/GeoPoseStamped.h>
 

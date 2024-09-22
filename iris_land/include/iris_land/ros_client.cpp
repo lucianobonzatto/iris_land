@@ -10,7 +10,7 @@ ROSClient::ROSClient(ros::NodeHandle *handle)
 void ROSClient::Init(Manager *const manager, DroneControl *const drone_control)
 {
 // Manager parameters
-    joy_sub = nh->subscribe<sensor_msgs::Joy>("/joy_control", 1, &Manager::joyCallback, manager);
+    rc_sub = nh->subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 1, &Manager::rcCallback, manager);
     pose_sub = nh->subscribe<geometry_msgs::PoseStamped>("/aruco/pose", 10, &Manager::arucoPoseCallback, manager);
     parameters_sub = nh->subscribe<iris_land::controllers_gain>("/PID/parameters", 1, &Manager::parametersCallback, manager);
 

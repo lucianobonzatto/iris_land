@@ -28,7 +28,7 @@ void Manager::print_parameters()
     cout << "\tlinear_vel: " << parameters.linear_vel
          << "\tangular_vel: " << parameters.angular_vel << endl;
 
-    cout << "\tjoy: " << joy.header.stamp << endl;
+    cout << "\trc: " << rc_status.header.stamp << endl;
     cout << "\tstate: " << states_name[state_machine.get_state()] << endl;
 
     follow_controller.print_parameters();
@@ -66,11 +66,11 @@ void Manager::update()
     land_controller.update_parameters(parameters);
     joy_linear_velocity = parameters.linear_vel;
     joy_angular_velocity = parameters.angular_vel;
-    if (state_machine.update_state(joy))
-    {
-        send_velocity(0, 0, 0, 0);
-        land_controller.reset_altitude(1);
-    }
+    // if (state_machine.update_state(joy))
+    // {
+    //     send_velocity(0, 0, 0, 0);
+    //     land_controller.reset_altitude(1);
+    // }
 }
 
 void Manager::STOPPED_action()
@@ -142,9 +142,9 @@ void Manager::arucoPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
     aruco_pose = *msg;
 }
 
-void Manager::joyCallback(const sensor_msgs::Joy::ConstPtr &msg)
+void Manager::rcCallback(const mavros_msgs::RCIn::ConstPtr &msg)
 {
-    joy = *msg;
+    rc_status = *msg;
 }
 
 void Manager::parametersCallback(const iris_land::controllers_gain::ConstPtr &msg)

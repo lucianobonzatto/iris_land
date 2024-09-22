@@ -18,11 +18,11 @@ public:
     void update();
 
     void arucoPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
-    void joyCallback(const sensor_msgs::Joy::ConstPtr &msg);
+    void rcCallback(const mavros_msgs::RCIn::ConstPtr &msg);
     void parametersCallback(const iris_land::controllers_gain::ConstPtr &msg);
 
 private:
-    sensor_msgs::Joy joy;
+    mavros_msgs::RCIn rc_status;
     geometry_msgs::PoseStamped aruco_pose;
     iris_land::controllers_gain parameters;
 
