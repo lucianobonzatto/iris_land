@@ -48,8 +48,6 @@
 
 using namespace std;
 
-#define TAG_ID 0
-
 enum JOY_BUTTONS
 {
     A,
@@ -80,9 +78,7 @@ enum JOY_AXES
 enum STATES
 {
     STOPPED = 0,
-    TAKE_OFF,
     LAND,
-    JOY_CONTROL,
     LAND_CONTROL,
     FOLLOW_CONTROL
 };

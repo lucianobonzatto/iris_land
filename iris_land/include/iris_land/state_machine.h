@@ -16,9 +16,7 @@ private:
     STATES state;
 
     bool STOPPED_update(sensor_msgs::Joy newJoy);
-    bool TAKE_OFF_update(sensor_msgs::Joy newJoy);
     bool LAND_update(sensor_msgs::Joy newJoy);
-    bool JOY_CONTROL_update(sensor_msgs::Joy newJoy);
     bool LAND_CONTROL_update(sensor_msgs::Joy newJoy);
     bool FOLLOW_CONTROL_update(sensor_msgs::Joy newJoy);
     void swap_state(STATES new_state);
