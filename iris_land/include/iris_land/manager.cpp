@@ -43,14 +43,8 @@ void Manager::update()
     // case STATES::STOPPED:
     //     STOPPED_action();
     //     break;
-    // case STATES::TAKE_OFF:
-    //     TAKE_OFF_action();
-    //     break;
     // case STATES::LAND:
     //     LAND_action();
-    //     break;
-    // case STATES::JOY_CONTROL:
-    //     JOY_CONTROL_action();
     //     break;
     // case STATES::LAND_CONTROL:
     //     LAND_CONTROL_action();
@@ -64,8 +58,6 @@ void Manager::update()
 
     follow_controller.update_parameters(parameters);
     land_controller.update_parameters(parameters);
-    joy_linear_velocity = parameters.linear_vel;
-    joy_angular_velocity = parameters.angular_vel;
     if (state_machine.update_state(rc_status))
     {
         send_velocity(0, 0, 0, 0);

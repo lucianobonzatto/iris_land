@@ -38,11 +38,6 @@ private:
     void LAND_CONTROL_action();
     void FOLLOW_CONTROL_action();
     void send_velocity(double x_linear, double y_linear, double z_linear, double angular);
-
-    // joy parameters
-    ros::Time joy_last_timestamp;
-    double joy_linear_velocity;
-    double joy_angular_velocity;
 };
 
 #endif // MANAGER_H

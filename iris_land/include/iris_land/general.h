@@ -48,33 +48,6 @@
 
 using namespace std;
 
-enum JOY_BUTTONS
-{
-    A,
-    B,
-    X,
-    Y,
-    LB,
-    RB,
-    BACK,
-    START,
-    LOGITECH,
-    ANALOGIC_LEFT,
-    ANALOGIC_RIGHT
-};
-
-enum JOY_AXES
-{
-    HORIZONTAL_ANALOGIC_LEFT,
-    VERTICAL_ANALOGIC_LEFT,
-    LT,
-    HORIZONTAL_ANALOGIC_RIGHT,
-    VERTICAL_ANALOGIC_RIGHT,
-    RT,
-    HORIZONTAL_ARROW,
-    VERTICAL_ARROW
-};
-
 enum STATES
 {
     STOPPED = 0,
@@ -85,9 +58,7 @@ enum STATES
 
 static std::string states_name[6] = {
     "STOPPED",
-    "TAKE_OFF",
     "LAND",
-    "JOY_CONTROL",
     "LAND_CONTROL",
     "FOLLOW_CONTROL"
 };
