@@ -66,11 +66,11 @@ void Manager::update()
     land_controller.update_parameters(parameters);
     joy_linear_velocity = parameters.linear_vel;
     joy_angular_velocity = parameters.angular_vel;
-    // if (state_machine.update_state(joy))
-    // {
-    //     send_velocity(0, 0, 0, 0);
-    //     land_controller.reset_altitude(1);
-    // }
+    if (state_machine.update_state(rc_status))
+    {
+        send_velocity(0, 0, 0, 0);
+        land_controller.reset_altitude(1);
+    }
 }
 
 void Manager::STOPPED_action()

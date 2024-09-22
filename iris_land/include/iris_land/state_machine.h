@@ -9,16 +9,16 @@ public:
     ~State_Machine();
 
     STATES get_state();
-    bool update_state(sensor_msgs::Joy newJoy);
+    bool update_state(mavros_msgs::RCIn rcStatus);
     void land();
 
 private:
     STATES state;
 
-    bool STOPPED_update(sensor_msgs::Joy newJoy);
-    bool LAND_update(sensor_msgs::Joy newJoy);
-    bool LAND_CONTROL_update(sensor_msgs::Joy newJoy);
-    bool FOLLOW_CONTROL_update(sensor_msgs::Joy newJoy);
+    bool STOPPED_update(mavros_msgs::RCIn rcStatus);
+    bool LAND_update(mavros_msgs::RCIn rcStatus);
+    bool LAND_CONTROL_update(mavros_msgs::RCIn rcStatus);
+    bool FOLLOW_CONTROL_update(mavros_msgs::RCIn rcStatus);
     void swap_state(STATES new_state);
 };
 
