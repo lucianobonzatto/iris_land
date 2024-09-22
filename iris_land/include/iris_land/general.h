@@ -63,21 +63,4 @@ static std::string states_name[6] = {
     "FOLLOW_CONTROL"
 };
 
-enum CONTROLERS
-{
-    _NENHUM = 0,
-    _PD,
-    _CASCADE,
-    _PARALLEL,
-    _PID
-};
-
-static std::string controlers_name[6] = {
-    "NENHUM",
-    "PD",
-    "CASCADE",
-    "PARALLEL",
-    "PID"
-};
-
 #endif

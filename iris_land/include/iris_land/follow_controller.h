@@ -20,7 +20,6 @@ private:
     parallel_velocity_ctl parallelController;
     PID_velocity_ctl pidController;
     Pose setpoint;
-    int controller_mode;
 
     double calc_vel(double valor);
 };
