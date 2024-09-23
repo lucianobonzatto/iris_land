@@ -81,9 +81,9 @@ enum KEY_POSITION
     UC,
     UB,
     UA,
-    DC,
+    DA,
     DB,
-    DA
+    DC
 };
 
 enum STATE_KEY_LIMITS
@@ -101,8 +101,8 @@ enum STATE_KEY_LIMITS
     ((value >  MAX_MID_A && value <= MAX      ) ? UC : \
      (value >  MAX_MID_B && value <= MAX_MID_A) ? UB : \
      (value >  MID       && value <= MAX_MID_B) ? UA : \
-     (value >  MIN_MID_A && value <= MID      ) ? DC : \
+     (value >  MIN_MID_A && value <= MID      ) ? DA : \
      (value >  MIN_MID_B && value <= MIN_MID_A) ? DB : \
-     (value >= MIN       && value <= MIN_MID_B) ? DA : OUT)
+     (value >= MIN       && value <= MIN_MID_B) ? DC : OUT)
 
 #endif
