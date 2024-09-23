@@ -3,7 +3,8 @@
 
 #include "general.h"
 
-class State_Machine {
+class State_Machine
+{
 public:
     State_Machine();
     ~State_Machine();
@@ -22,5 +23,4 @@ private:
     void swap_state(STATES new_state);
 };
 
-#endif //STATES_MACHINE_H
-
+#endif // STATES_MACHINE_H

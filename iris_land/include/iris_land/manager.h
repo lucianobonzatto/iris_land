@@ -28,7 +28,7 @@ private:
 
     ROSClient *ROS_client;
     DroneControl *drone_control;
-    
+
     State_Machine state_machine;
     Land_Controller land_controller;
     Follow_Controller follow_controller;

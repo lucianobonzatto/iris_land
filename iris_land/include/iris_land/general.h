@@ -48,6 +48,12 @@
 
 using namespace std;
 
+static std::string states_name[6] = {
+    "STOPPED",
+    "LAND",
+    "LAND_CONTROL",
+    "FOLLOW_CONTROL"};
+
 enum STATES
 {
     STOPPED = 0,
@@ -56,11 +62,47 @@ enum STATES
     FOLLOW_CONTROL
 };
 
-static std::string states_name[6] = {
-    "STOPPED",
-    "LAND",
-    "LAND_CONTROL",
-    "FOLLOW_CONTROL"
+enum RC_CHANNELS
+{
+    CHANNEL_0 = 0,
+    CHANNEL_1,
+    CHANNEL_2,
+    CHANNEL_3,
+    CHANNEL_4,
+    CHANNEL_5,
+    CHANNEL_6,
+    CHANNEL_7,
+    STATE_KEY
 };
+
+enum KEY_POSITION
+{
+    OUT = 0,
+    UC,
+    UB,
+    UA,
+    DC,
+    DB,
+    DA
+};
+
+enum STATE_KEY_LIMITS
+{
+    MAX       = 90,
+    MAX_MID_A = 60,
+    MAX_MID_B = 30,
+    MID       = 0,
+    MIN_MID_A = -30,
+    MIN_MID_B = -60,
+    MIN       = -90
+};
+
+#define IDENTIFY_STATE_KEY_POSITION(value)             \
+    ((value >  MAX_MID_A && value <= MAX      ) ? UC : \
+     (value >  MAX_MID_B && value <= MAX_MID_A) ? UB : \
+     (value >  MID       && value <= MAX_MID_B) ? UA : \
+     (value >  MIN_MID_A && value <= MID      ) ? DC : \
+     (value >  MIN_MID_B && value <= MIN_MID_A) ? DB : \
+     (value >= MIN       && value <= MIN_MID_B) ? DA : OUT)
 
 #endif
