@@ -39,12 +39,9 @@ bool State_Machine::STOPPED_update(mavros_msgs::RCIn rcStatus)
 {
     KEY_POSITION position = IDENTIFY_STATE_KEY_POSITION(rcStatus.channels[STATE_KEY]);
     if(position == OUT){swap_state(STATES::STOPPED); return true;}
-    else if(position == UC){swap_state(STATES::STOPPED); return true;}
-    else if(position == UB){swap_state(STATES::STOPPED); return true;}
-    else if(position == UA){swap_state(STATES::STOPPED); return true;}
-    else if(position == DA){swap_state(STATES::STOPPED); return true;}
-    else if(position == DB){swap_state(STATES::STOPPED); return true;}
-    else if(position == DC){swap_state(STATES::STOPPED); return true;}
+    else if(position == UC){swap_state(STATES::LAND_CONTROL); return true;}
+    else if(position == UB){swap_state(STATES::FOLLOW_CONTROL); return true;}
+    else if(position == UA){swap_state(STATES::LAND); return true;}
     
     return false;
 }
@@ -53,9 +50,8 @@ bool State_Machine::LAND_update(mavros_msgs::RCIn rcStatus)
 {
     KEY_POSITION position = IDENTIFY_STATE_KEY_POSITION(rcStatus.channels[STATE_KEY]);
     if(position == OUT){swap_state(STATES::STOPPED); return true;}
-    else if(position == UC){swap_state(STATES::STOPPED); return true;}
-    else if(position == UB){swap_state(STATES::STOPPED); return true;}
-    else if(position == UA){swap_state(STATES::STOPPED); return true;}
+    else if(position == UC){swap_state(STATES::LAND_CONTROL); return true;}
+    else if(position == UB){swap_state(STATES::FOLLOW_CONTROL); return true;}
     else if(position == DA){swap_state(STATES::STOPPED); return true;}
     else if(position == DB){swap_state(STATES::STOPPED); return true;}
     else if(position == DC){swap_state(STATES::STOPPED); return true;}
@@ -67,9 +63,8 @@ bool State_Machine::LAND_CONTROL_update(mavros_msgs::RCIn rcStatus)
 {
     KEY_POSITION position = IDENTIFY_STATE_KEY_POSITION(rcStatus.channels[STATE_KEY]);
     if(position == OUT){swap_state(STATES::STOPPED); return true;}
-    else if(position == UC){swap_state(STATES::STOPPED); return true;}
-    else if(position == UB){swap_state(STATES::STOPPED); return true;}
-    else if(position == UA){swap_state(STATES::STOPPED); return true;}
+    else if(position == UB){swap_state(STATES::FOLLOW_CONTROL); return true;}
+    else if(position == UA){swap_state(STATES::LAND); return true;}
     else if(position == DA){swap_state(STATES::STOPPED); return true;}
     else if(position == DB){swap_state(STATES::STOPPED); return true;}
     else if(position == DC){swap_state(STATES::STOPPED); return true;}
@@ -81,9 +76,8 @@ bool State_Machine::FOLLOW_CONTROL_update(mavros_msgs::RCIn rcStatus)
 {
     KEY_POSITION position = IDENTIFY_STATE_KEY_POSITION(rcStatus.channels[STATE_KEY]);
     if(position == OUT){swap_state(STATES::STOPPED); return true;}
-    else if(position == UC){swap_state(STATES::STOPPED); return true;}
-    else if(position == UB){swap_state(STATES::STOPPED); return true;}
-    else if(position == UA){swap_state(STATES::STOPPED); return true;}
+    else if(position == UC){swap_state(STATES::LAND_CONTROL); return true;}
+    else if(position == UA){swap_state(STATES::LAND); return true;}
     else if(position == DA){swap_state(STATES::STOPPED); return true;}
     else if(position == DB){swap_state(STATES::STOPPED); return true;}
     else if(position == DC){swap_state(STATES::STOPPED); return true;}

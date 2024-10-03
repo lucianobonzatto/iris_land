@@ -28,8 +28,11 @@ void Manager::print_parameters()
     cout << "\tlinear_vel: " << parameters.linear_vel
          << "\tangular_vel: " << parameters.angular_vel << endl;
 
-    cout << "\trc: " << rc_status.header.stamp << endl;
     cout << "\tstate: " << states_name[state_machine.get_state()] << endl;
+    cout << "\trc: " << rc_status.header.stamp << endl;
+    if(!rc_status.header.stamp.isZero()){
+        cout << "\trc position: " << IDENTIFY_STATE_KEY_POSITION(rc_status.channels[STATE_KEY]) << endl;
+    }
 
     follow_controller.print_parameters();
     land_controller.print_parameters();

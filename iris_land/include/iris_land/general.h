@@ -64,15 +64,14 @@ enum STATES
 
 enum RC_CHANNELS
 {
-    CHANNEL_0 = 0,
-    CHANNEL_1,
+    CHANNEL_1 = 0,
     CHANNEL_2,
     CHANNEL_3,
     CHANNEL_4,
     CHANNEL_5,
     CHANNEL_6,
-    CHANNEL_7,
-    STATE_KEY
+    STATE_KEY,
+    CHANNEL_8
 };
 
 enum KEY_POSITION
@@ -88,13 +87,13 @@ enum KEY_POSITION
 
 enum STATE_KEY_LIMITS
 {
-    MAX       = 90,
-    MAX_MID_A = 60,
-    MAX_MID_B = 30,
-    MID       = 0,
-    MIN_MID_A = -30,
-    MIN_MID_B = -60,
-    MIN       = -90
+    MAX       = 550,
+    MAX_MID_A = 450,
+    MAX_MID_B = 350,
+    MID       = 250,
+    MIN_MID_A = 150,
+    MIN_MID_B = 50,
+    MIN       = 0
 };
 
 #define IDENTIFY_STATE_KEY_POSITION(value)             \
