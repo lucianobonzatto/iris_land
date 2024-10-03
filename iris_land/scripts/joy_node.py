@@ -88,7 +88,7 @@ if __name__ == '__main__':
         rospy.init_node('rc_override_gui_publisher', anonymous=True)
         
         # Cria o publisher
-        rc_override_pub = rospy.Publisher('/mavros/rc/override', OverrideRCIn, queue_size=10)
+        rc_override_pub = rospy.Publisher('/rc/override', OverrideRCIn, queue_size=10)
 
         # Cria a interface gráfica em um thread separado
         import threading
