@@ -10,6 +10,7 @@ def publish_loop():
     while not rospy.is_shutdown():
         if publish_active:
             rc_msg = RCIn()
+            rc_msg.header.stamp = rospy.Time.now()
             rc_msg.channels = [
                 throttle_slider.get(),
                 yaw_slider.get(),
