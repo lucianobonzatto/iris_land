@@ -2,7 +2,7 @@
 
 State_Machine::State_Machine()
 {
-    state = STATES::STOPPED;
+    state = STATES::AWAITING_MODE;
 }
 
 State_Machine::~State_Machine()
@@ -24,6 +24,7 @@ bool State_Machine::update_state(mavros_msgs::RCIn rcStatus)
     case STATES::LAND:           return LAND_update(rcStatus);           break;
     case STATES::LAND_CONTROL:   return LAND_CONTROL_update(rcStatus);   break;
     case STATES::FOLLOW_CONTROL: return FOLLOW_CONTROL_update(rcStatus); break;
+    case STATES::AWAITING_MODE:  return AWAITING_MODE_update(rcStatus);  break;
     default: break;
     }
     return false;
@@ -38,7 +39,7 @@ void State_Machine::land()
 bool State_Machine::STOPPED_update(mavros_msgs::RCIn rcStatus)
 {
     KEY_POSITION position = IDENTIFY_STATE_KEY_POSITION(rcStatus.channels[STATE_KEY]);
-    if(position == OUT){swap_state(STATES::STOPPED); return true;}
+    if(position == OUT){swap_state(STATES::AWAITING_MODE); return true;}
     else if(position == UC){swap_state(STATES::LAND_CONTROL); return true;}
     else if(position == UB){swap_state(STATES::FOLLOW_CONTROL); return true;}
     else if(position == UA){swap_state(STATES::LAND); return true;}
@@ -49,12 +50,7 @@ bool State_Machine::STOPPED_update(mavros_msgs::RCIn rcStatus)
 bool State_Machine::LAND_update(mavros_msgs::RCIn rcStatus)
 {
     KEY_POSITION position = IDENTIFY_STATE_KEY_POSITION(rcStatus.channels[STATE_KEY]);
-    if(position == OUT){swap_state(STATES::STOPPED); return true;}
-    else if(position == UC){swap_state(STATES::LAND_CONTROL); return true;}
-    else if(position == UB){swap_state(STATES::FOLLOW_CONTROL); return true;}
-    else if(position == DA){swap_state(STATES::STOPPED); return true;}
-    else if(position == DB){swap_state(STATES::STOPPED); return true;}
-    else if(position == DC){swap_state(STATES::STOPPED); return true;}
+    if(position == OUT){swap_state(STATES::AWAITING_MODE); return true;}
     
     return false;
 }
@@ -62,7 +58,7 @@ bool State_Machine::LAND_update(mavros_msgs::RCIn rcStatus)
 bool State_Machine::LAND_CONTROL_update(mavros_msgs::RCIn rcStatus)
 {
     KEY_POSITION position = IDENTIFY_STATE_KEY_POSITION(rcStatus.channels[STATE_KEY]);
-    if(position == OUT){swap_state(STATES::STOPPED); return true;}
+    if(position == OUT){swap_state(STATES::AWAITING_MODE); return true;}
     else if(position == UB){swap_state(STATES::FOLLOW_CONTROL); return true;}
     else if(position == UA){swap_state(STATES::LAND); return true;}
     else if(position == DA){swap_state(STATES::STOPPED); return true;}
@@ -75,7 +71,7 @@ bool State_Machine::LAND_CONTROL_update(mavros_msgs::RCIn rcStatus)
 bool State_Machine::FOLLOW_CONTROL_update(mavros_msgs::RCIn rcStatus)
 {
     KEY_POSITION position = IDENTIFY_STATE_KEY_POSITION(rcStatus.channels[STATE_KEY]);
-    if(position == OUT){swap_state(STATES::STOPPED); return true;}
+    if(position == OUT){swap_state(STATES::AWAITING_MODE); return true;}
     else if(position == UC){swap_state(STATES::LAND_CONTROL); return true;}
     else if(position == UA){swap_state(STATES::LAND); return true;}
     else if(position == DA){swap_state(STATES::STOPPED); return true;}
@@ -85,8 +81,16 @@ bool State_Machine::FOLLOW_CONTROL_update(mavros_msgs::RCIn rcStatus)
     return false;
 }
 
+bool State_Machine::AWAITING_MODE_update(mavros_msgs::RCIn rcStatus)
+{
+    return false;
+}
+
 void State_Machine::swap_state(STATES new_state)
 {
-    std::cout << "swap \t" << states_name[state] << "\t->\t" << states_name[new_state] << std::endl;
-    state = new_state;
+    if(new_state != state)
+    {
+        std::cout << "swap \t" << states_name[state] << "\t->\t" << states_name[new_state] << std::endl;
+        state = new_state;
+    }
 }

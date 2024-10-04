@@ -52,14 +52,16 @@ static std::string states_name[6] = {
     "STOPPED",
     "LAND",
     "LAND_CONTROL",
-    "FOLLOW_CONTROL"};
+    "FOLLOW_CONTROL",
+    "AWAITING_MODE"};
 
 enum STATES
 {
     STOPPED = 0,
     LAND,
     LAND_CONTROL,
-    FOLLOW_CONTROL
+    FOLLOW_CONTROL,
+    AWAITING_MODE
 };
 
 enum RC_CHANNELS
