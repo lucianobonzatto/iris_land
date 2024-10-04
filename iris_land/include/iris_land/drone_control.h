@@ -44,6 +44,8 @@ public:
     void land();
     void disarm();
 
+    string get_flight_mode();
+
 private:
     uint8_t landed_state_ = 0;
     geometry_msgs::PoseStamped setpoint_pos_ENU_;

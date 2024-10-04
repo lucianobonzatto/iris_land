@@ -1,4 +1,5 @@
 #include "manager.h"
+#include "drone_control.h"
 
 Manager::Manager()
 {
@@ -14,6 +15,7 @@ void Manager::Init(ROSClient *rosClient, DroneControl *droneControl)
     parameters.angular_vel = 0.1;
 
     ROS_client = rosClient;
+    drone_control = droneControl;
 }
 
 void Manager::print_parameters()
@@ -33,6 +35,7 @@ void Manager::print_parameters()
     if(!rc_status.header.stamp.isZero()){
         cout << "\trc position: " << IDENTIFY_STATE_KEY_POSITION(rc_status.channels[STATE_KEY]) << endl;
     }
+    cout << "\tflight_mode: " << drone_control->get_flight_mode() << endl;
 
     follow_controller.print_parameters();
     land_controller.print_parameters();
@@ -61,7 +64,8 @@ void Manager::update()
 
     follow_controller.update_parameters(parameters);
     land_controller.update_parameters(parameters);
-    if (state_machine.update_state(rc_status))
+    flight_mode = drone_control->get_flight_mode();
+    if (state_machine.update_state(rc_status, flight_mode))
     {
         send_velocity(0, 0, 0, 0);
         land_controller.reset_altitude(1);
@@ -129,6 +133,7 @@ void Manager::send_velocity(double x_linear, double y_linear, double z_linear, d
     // velocity.angular.z = -angular;
     // ROS_client->cmd_vel_pub.publish(velocity);
     // TODO: chamar o cmdvel da droneControl
+    // TODO: verificar se esta no modo
 
 }
 

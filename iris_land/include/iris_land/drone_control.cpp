@@ -390,6 +390,11 @@ void DroneControl::disarm()
     return;
 }
 
+string DroneControl::get_flight_mode()
+{
+    return current_state_.mode;
+}
+
 double DroneControl::currentYaw()
 {
     // Calculate yaw current orientation

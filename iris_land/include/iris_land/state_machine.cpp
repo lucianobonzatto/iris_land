@@ -15,7 +15,7 @@ STATES State_Machine::get_state()
     return state;
 }
 
-bool State_Machine::update_state(mavros_msgs::RCIn rcStatus)
+bool State_Machine::update_state(mavros_msgs::RCIn rcStatus, string flight_mode)
 {
     if(rcStatus.header.stamp.isZero()){return false;}
     switch (state)

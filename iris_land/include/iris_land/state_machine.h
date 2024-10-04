@@ -10,7 +10,7 @@ public:
     ~State_Machine();
 
     STATES get_state();
-    bool update_state(mavros_msgs::RCIn rcStatus);
+    bool update_state(mavros_msgs::RCIn rcStatus, string flight_mode);
     void land();
 
 private:
