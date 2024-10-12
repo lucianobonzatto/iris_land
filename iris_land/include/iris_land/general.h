@@ -79,31 +79,22 @@ enum RC_CHANNELS
 enum KEY_POSITION
 {
     OUT = 0,
-    UC,
-    UB,
-    UA,
-    DA,
-    DB,
-    DC
+    P1,
+    P2,
+    P3
 };
 
 enum STATE_KEY_LIMITS
 {
-    MAX       = 550,
-    MAX_MID_A = 450,
-    MAX_MID_B = 350,
-    MID       = 250,
-    MIN_MID_A = 150,
-    MIN_MID_B = 50,
+    MAX       = 2500,
+    MID_MAX   = 1750,
+    MID_MIN   = 1238,
     MIN       = 0
 };
 
-#define IDENTIFY_STATE_KEY_POSITION(value)             \
-    ((value >  MAX_MID_A && value <= MAX      ) ? UC : \
-     (value >  MAX_MID_B && value <= MAX_MID_A) ? UB : \
-     (value >  MID       && value <= MAX_MID_B) ? UA : \
-     (value >  MIN_MID_A && value <= MID      ) ? DA : \
-     (value >  MIN_MID_B && value <= MIN_MID_A) ? DB : \
-     (value >= MIN       && value <= MIN_MID_B) ? DC : OUT)
+#define IDENTIFY_STATE_KEY_POSITION(value)          \
+    ((value >  MIN      && value <= MID_MIN) ? P1 : \
+     (value >  MID_MIN  && value <= MID_MAX) ? P2 : \
+     (value >  MID_MAX  && value <= MAX)     ? P3 : OUT)
 
 #endif
