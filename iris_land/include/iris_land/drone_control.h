@@ -45,6 +45,7 @@ public:
     void disarm();
 
     string get_flight_mode();
+    uint8_t get_landed_state();
 
 private:
     uint8_t landed_state_ = 0;

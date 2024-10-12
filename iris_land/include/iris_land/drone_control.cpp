@@ -395,6 +395,11 @@ string DroneControl::get_flight_mode()
     return current_state_.mode;
 }
 
+uint8_t DroneControl::get_landed_state()
+{
+    return landed_state_;
+}
+
 double DroneControl::currentYaw()
 {
     // Calculate yaw current orientation

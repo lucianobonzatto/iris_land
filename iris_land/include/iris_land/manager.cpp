@@ -43,6 +43,13 @@ void Manager::print_parameters()
 
 void Manager::update()
 {
+    string flight_mode = drone_control->get_flight_mode();
+    uint8_t landed_state = drone_control->get_landed_state();
+
+    if(flight_mode == "OFFBOARD")
+    {
+
+    
     // STATES state = state_machine.get_state();
     // switch (state)
     // {
@@ -62,10 +69,13 @@ void Manager::update()
     //     break;
     // }
 
+    }
+
     follow_controller.update_parameters(parameters);
     land_controller.update_parameters(parameters);
     flight_mode = drone_control->get_flight_mode();
-    if (state_machine.update_state(rc_status, flight_mode))
+    landed_state = drone_control->get_landed_state();
+    if (state_machine.update_state(rc_status, flight_mode, landed_state))
     {
         send_velocity(0, 0, 0, 0);
         land_controller.reset_altitude(1);
