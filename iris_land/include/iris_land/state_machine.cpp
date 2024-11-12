@@ -17,6 +17,11 @@ STATES State_Machine::get_state()
 
 bool State_Machine::update_state(mavros_msgs::RCIn rcStatus, string flight_mode, uint8_t landed_state)
 {
+    if((landed_state != 4) && (flight_mode != "OFFBOARD"))
+    {
+        swap_state(STATES::AWAITING_MODE);
+    }
+
     if(rcStatus.header.stamp.isZero()){return false;}
     switch (state)
     {

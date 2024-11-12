@@ -395,7 +395,7 @@ string DroneControl::get_flight_mode()
     return current_state_.mode;
 }
 
-uint8_t DroneControl::get_landed_state()
+int DroneControl::get_landed_state()
 {
     return landed_state_;
 }

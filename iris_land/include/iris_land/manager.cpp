@@ -36,6 +36,7 @@ void Manager::print_parameters()
         cout << "\trc position: " << IDENTIFY_STATE_KEY_POSITION(rc_status.channels[STATE_KEY]) << endl;
     }
     cout << "\tflight_mode: " << drone_control->get_flight_mode() << endl;
+    cout << "\tlanded_state: " << drone_control->get_landed_state() << endl;
 
     follow_controller.print_parameters();
     land_controller.print_parameters();
@@ -43,19 +44,12 @@ void Manager::print_parameters()
 
 void Manager::update()
 {
-    string flight_mode = drone_control->get_flight_mode();
-    uint8_t landed_state = drone_control->get_landed_state();
-
-    if(flight_mode == "OFFBOARD")
+    STATES state = state_machine.get_state();
+    switch (state)
     {
-
-    
-    // STATES state = state_machine.get_state();
-    // switch (state)
-    // {
-    // case STATES::STOPPED:
-    //     STOPPED_action();
-    //     break;
+    case STATES::STOPPED:
+        STOPPED_action();
+        break;
     // case STATES::LAND:
     //     LAND_action();
     //     break;
@@ -65,16 +59,15 @@ void Manager::update()
     // case STATES::FOLLOW_CONTROL:
     //     FOLLOW_CONTROL_action();
     //     break;
-    // default:
-    //     break;
-    // }
-
+    case STATES::AWAITING_MODE:
+    default:
+        break;
     }
 
     follow_controller.update_parameters(parameters);
     land_controller.update_parameters(parameters);
-    flight_mode = drone_control->get_flight_mode();
-    landed_state = drone_control->get_landed_state();
+    string flight_mode = drone_control->get_flight_mode();
+    uint8_t landed_state = drone_control->get_landed_state();
     if (state_machine.update_state(rc_status, flight_mode, landed_state))
     {
         send_velocity(0, 0, 0, 0);
