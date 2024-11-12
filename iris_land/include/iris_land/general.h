@@ -48,6 +48,9 @@
 
 using namespace std;
 
+#define CORRECT_LAND_STATE (4)
+#define CORRECT_FLIGHT_MODE "OFFBOARD"
+
 static std::string states_name[6] = {
     "STOPPED",
     "LAND",
