@@ -20,7 +20,7 @@ private:
     bool LAND_update(mavros_msgs::RCIn rcStatus);
     bool LAND_CONTROL_update(mavros_msgs::RCIn rcStatus);
     bool FOLLOW_CONTROL_update(mavros_msgs::RCIn rcStatus);
-    bool AWAITING_MODE_update(mavros_msgs::RCIn rcStatus);
+    bool AWAITING_MODE_update(mavros_msgs::RCIn rcStatus, string flight_mode, uint8_t landed_state);
     void swap_state(STATES new_state);
 };
 

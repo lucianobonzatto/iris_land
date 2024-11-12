@@ -17,7 +17,7 @@ STATES State_Machine::get_state()
 
 bool State_Machine::update_state(mavros_msgs::RCIn rcStatus, string flight_mode, uint8_t landed_state)
 {
-    if((landed_state != 4) && (flight_mode != "OFFBOARD"))
+    if((landed_state != 4) || (flight_mode != "OFFBOARD"))
     {
         swap_state(STATES::AWAITING_MODE);
     }
@@ -29,7 +29,7 @@ bool State_Machine::update_state(mavros_msgs::RCIn rcStatus, string flight_mode,
     case STATES::LAND:           return LAND_update(rcStatus);           break;
     case STATES::LAND_CONTROL:   return LAND_CONTROL_update(rcStatus);   break;
     case STATES::FOLLOW_CONTROL: return FOLLOW_CONTROL_update(rcStatus); break;
-    case STATES::AWAITING_MODE:  return AWAITING_MODE_update(rcStatus);  break;
+    case STATES::AWAITING_MODE:  return AWAITING_MODE_update(rcStatus, flight_mode, landed_state);  break;
     default: break;
     }
     return false;
@@ -82,8 +82,12 @@ bool State_Machine::FOLLOW_CONTROL_update(mavros_msgs::RCIn rcStatus)
     return false;
 }
 
-bool State_Machine::AWAITING_MODE_update(mavros_msgs::RCIn rcStatus)
+bool State_Machine::AWAITING_MODE_update(mavros_msgs::RCIn rcStatus, string flight_mode, uint8_t landed_state)
 {
+    if((landed_state == 4) && (flight_mode == "OFFBOARD"))
+    {
+        swap_state(STATES::STOPPED);
+    }
     return false;
 }
 
