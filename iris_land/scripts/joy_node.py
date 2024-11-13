@@ -1,5 +1,5 @@
 import rospy
-from mavros_msgs.msg import RCIn
+from mavros_msgs.msg import RCIn, OverrideRCIn
 import tkinter as tk
 
 # Variável global para sinalizar quando enviar mensagens
@@ -9,8 +9,8 @@ def publish_loop():
     rate = rospy.Rate(10)  # Define a frequência de 10 Hz
     while not rospy.is_shutdown():
         if publish_active:
-            rc_msg = RCIn()
-            rc_msg.header.stamp = rospy.Time.now()
+            rc_msg = OverrideRCIn()
+            # rc_msg.header.stamp = rospy.Time.now()
             rc_msg.channels = [
                 throttle_slider.get(),
                 yaw_slider.get(),
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         rospy.init_node('rc_override_gui_publisher', anonymous=True)
         
         # Cria o publisher
-        rc_pub = rospy.Publisher('/rc/in', RCIn, queue_size=10)
+        rc_pub = rospy.Publisher('/mavros/rc/override', OverrideRCIn, queue_size=10)
 
         # Cria a interface gráfica em um thread separado
         import threading

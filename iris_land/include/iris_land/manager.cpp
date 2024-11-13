@@ -60,6 +60,9 @@ void Manager::update()
     //     FOLLOW_CONTROL_action();
     //     break;
     case STATES::AWAITING_MODE:
+    // TODO: remover para o drone real
+        drone_control->await_offboardMode();
+        drone_control->takeOff();
     default:
         break;
     }
@@ -82,6 +85,7 @@ void Manager::update()
 
 void Manager::STOPPED_action()
 {
+    send_velocity(0, 0, 0, 0);
 }
 
 void Manager::LAND_action()
@@ -126,23 +130,7 @@ void Manager::FOLLOW_CONTROL_action()
 
 void Manager::send_velocity(double x_linear, double y_linear, double z_linear, double angular)
 {
-    // cout << "x_linear: " << x_linear
-    //      << "\ty_linear: " << y_linear
-    //      << "\tz_linear: " << z_linear
-    //      << "\tangular: " << angular << endl;
-
-    // geometry_msgs::Twist velocity;
-    // velocity.linear.x = -y_linear;
-    // velocity.linear.y = x_linear;
-    // velocity.linear.z = z_linear;
-
-    // velocity.angular.x = 0;
-    // velocity.angular.y = 0;
-    // velocity.angular.z = -angular;
-    // ROS_client->cmd_vel_pub.publish(velocity);
-    // TODO: chamar o cmdvel da droneControl
-    // TODO: verificar se esta no modo
-
+    drone_control->cmd_vel(x_linear, y_linear, z_linear, angular);
 }
 
 void Manager::arucoPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)

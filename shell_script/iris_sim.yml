@@ -7,6 +7,12 @@ windows:
       panes:
         - cd ~/src/Firmware/; make px4_sitl gazebo_iris
         - sleep 5; roslaunch mavros px4.launch fcu_url:='udp://:14550@127.0.0.1:14555'
+  - echo:
+      layout: tiled
+      panes:
+        - rostopic echo /mavros/state
+        - rostopic echo /mavros/extended_state
+        - rostopic echo /mavros/rc/in
   # - magni:
   #     layout: tiled
   #     panes:
