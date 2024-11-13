@@ -61,8 +61,8 @@ void Manager::update()
     //     break;
     case STATES::AWAITING_MODE:
     // TODO: remover para o drone real
-        drone_control->await_offboardMode();
-        drone_control->takeOff();
+        // drone_control->await_offboardMode();
+        // drone_control->takeOff();
     default:
         break;
     }
@@ -85,7 +85,7 @@ void Manager::update()
 
 void Manager::STOPPED_action()
 {
-    send_velocity(0, 0, 0, 0);
+    // send_velocity(0, 0, 0, 0);
 }
 
 void Manager::LAND_action()
