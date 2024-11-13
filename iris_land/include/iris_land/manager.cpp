@@ -70,11 +70,11 @@ void Manager::update()
     follow_controller.update_parameters(parameters);
     land_controller.update_parameters(parameters);
 
-    // string flight_mode = CORRECT_FLIGHT_MODE;
-    string flight_mode = drone_control->get_flight_mode();
+    string flight_mode = CORRECT_FLIGHT_MODE;
+    // string flight_mode = drone_control->get_flight_mode();
 
-    // uint8_t landed_state = CORRECT_LAND_STATE;
-    uint8_t landed_state = drone_control->get_landed_state();
+    uint8_t landed_state = CORRECT_LAND_STATE;
+    // uint8_t landed_state = drone_control->get_landed_state();
 
     if (state_machine.update_state(rc_status, flight_mode, landed_state))
     {

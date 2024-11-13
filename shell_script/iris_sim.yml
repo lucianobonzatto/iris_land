@@ -13,10 +13,10 @@ windows:
         - rostopic echo /mavros/state
         - rostopic echo /mavros/extended_state
         - rostopic echo /mavros/rc/in
-  # - magni:
-  #     layout: tiled
-  #     panes:
-  #       - roslaunch magni_gazebo teste.launch
+  - magni:
+      layout: tiled
+      panes:
+        - roslaunch magni_gazebo teste.launch
   # - image_transport:
   #     layout: tiled
   #     panes:
