@@ -50,17 +50,13 @@ void Manager::update()
     case STATES::STOPPED:
         STOPPED_action();
         break;
-    // case STATES::LAND:
-    //     LAND_action();
-    //     break;
-    // case STATES::LAND_CONTROL:
-    //     LAND_CONTROL_action();
-    //     break;
-    // case STATES::FOLLOW_CONTROL:
-    //     FOLLOW_CONTROL_action();
-    //     break;
+    case STATES::LAND_CONTROL:
+        LAND_CONTROL_action();
+        break;
+    case STATES::FOLLOW_CONTROL:
+        FOLLOW_CONTROL_action();
+        break;
     case STATES::AWAITING_MODE:
-    // TODO: remover para o drone real
         // drone_control->await_offboardMode();
         // drone_control->takeOff();
     default:
@@ -73,8 +69,8 @@ void Manager::update()
     // string flight_mode = CORRECT_FLIGHT_MODE;
     string flight_mode = drone_control->get_flight_mode();
 
-    uint8_t landed_state = CORRECT_LAND_STATE;
-    // uint8_t landed_state = drone_control->get_landed_state();
+    // uint8_t landed_state = CORRECT_LAND_STATE;
+    uint8_t landed_state = drone_control->get_landed_state();
 
     if (state_machine.update_state(rc_status, flight_mode, landed_state))
     {
@@ -85,47 +81,45 @@ void Manager::update()
 
 void Manager::STOPPED_action()
 {
-    // send_velocity(0, 0, 0, 0);
-}
-
-void Manager::LAND_action()
-{
-    // std_msgs::Empty emptyMsg;
-    // ROS_client->land_pub.publish(emptyMsg);
-    // TODO: chamar o land da droneControl
+    send_velocity(0, 0, 0, 0);
 }
 
 void Manager::LAND_CONTROL_action()
 {
-    cout << "**********************" << endl;
-    geometry_msgs::Twist velocity;
+    // cout << "**********************" << endl;
+    // geometry_msgs::Twist velocity;
 
-    velocity = land_controller.get_velocity(aruco_pose);
-    send_velocity(velocity.linear.x,
-                  velocity.linear.y,
-                  velocity.linear.z,
-                  velocity.angular.z);
+    // velocity = land_controller.get_velocity(aruco_pose);
+    // send_velocity(velocity.linear.x,
+    //               velocity.linear.y,
+    //               velocity.linear.z,
+    //               velocity.angular.z);
 
-    cout << "completed_approach: " << land_controller.completed_approach() << endl;
-    if (land_controller.completed_approach())
-    {
-        // std_msgs::Empty emptyMsg;
-        // ROS_client->land_pub.publish(emptyMsg);
-        // TODO: chamar o land da droneControl
-        // state_machine.land();
-    }
-    cout << "**********************" << endl;
+    // cout << "completed_approach: " << land_controller.completed_approach() << endl;
+    // if (land_controller.completed_approach())
+    // {
+    //     // std_msgs::Empty emptyMsg;
+    //     // ROS_client->land_pub.publish(emptyMsg);
+    //     // TODO: chamar o land da droneControl
+    //     // state_machine.land();
+    // }
+    // cout << "**********************" << endl;
+    // TODO: chamar o land da droneControl
+
+    send_velocity(0, 0, 0, -1);
 }
 
 void Manager::FOLLOW_CONTROL_action()
 {
-    geometry_msgs::Twist velocity;
+    // geometry_msgs::Twist velocity;
 
-    velocity = follow_controller.get_velocity(aruco_pose);
-    send_velocity(velocity.linear.x,
-                  velocity.linear.y,
-                  velocity.linear.z,
-                  velocity.angular.z);
+    // velocity = follow_controller.get_velocity(aruco_pose);
+    // send_velocity(velocity.linear.x,
+    //               velocity.linear.y,
+    //               velocity.linear.z,
+    //               velocity.angular.z);
+
+    send_velocity(0, 0, 0, 1);
 }
 
 void Manager::send_velocity(double x_linear, double y_linear, double z_linear, double angular)
