@@ -17,6 +17,8 @@ int main(int argc, char *argv[])
     drone_control.Init(&ros_client);
     manager.Init(&ros_client, &drone_control);
 
+    drone_control.Setup();
+
     while (ros::ok())
     {
         ros::spinOnce();

@@ -2,6 +2,16 @@
 
 DroneControl::DroneControl()
 {
+    local_position_.header.stamp = ros::Time::now();
+    local_position_.header.frame_id = "world";
+    local_position_.pose.position.x = 0;
+    local_position_.pose.position.y = 0;
+    local_position_.pose.position.z = 0;
+    local_position_.pose.orientation.x = 0;
+    local_position_.pose.orientation.y = 0;
+    local_position_.pose.orientation.z = 0;
+    local_position_.pose.orientation.w = 1;
+    setpoint_pos_ENU_ = gps_init_pos_ = local_position_;
 }
 
 DroneControl::~DroneControl()
@@ -13,6 +23,38 @@ void DroneControl::Init(ROSClient *drone_control)
     ros_client_ = drone_control;
     this->rate_ = new ros::Rate(ROS_RATE);
     static tf2_ros::TransformListener tfListener(tfBuffer_);
+}
+
+void DroneControl::Setup()
+{
+    while (ros::ok() && !current_state_.connected)
+    {
+        ros::spinOnce();
+        rate_->sleep();
+        ROS_INFO("connecting to FCU...");
+    }
+    for (int i = 0; ros::ok() && i < 4 * ROS_RATE; ++i)
+    {
+        ros::spinOnce();
+        rate_->sleep();
+    }
+    if (ros::Time::now() - local_position_.header.stamp < ros::Duration(1.0))
+    {
+        ROS_INFO("Local_position available");
+    }
+    else
+    {
+        ROS_WARN("Local_position not available, initializing to 0");
+        local_position_.header.stamp = ros::Time::now();
+        local_position_.header.frame_id = "world";
+        local_position_.pose.position.x = 0;
+        local_position_.pose.position.y = 0;
+        local_position_.pose.position.z = 0;
+        local_position_.pose.orientation.x = 0;
+        local_position_.pose.orientation.y = 0;
+        local_position_.pose.orientation.z = 0;
+        local_position_.pose.orientation.w = 1;
+    }
 }
 
 void DroneControl::state_cb(const mavros_msgs::State::ConstPtr &msg)
@@ -215,39 +257,7 @@ void DroneControl::cmd_vel_unstamped(double x, double y, double z, double ang)
 
 void DroneControl::set_offboardMode()
 {
-    // Wait for FCU connection
-    while (ros::ok() && current_state_.connected)
-    {
-        ros::spinOnce();
-        rate_->sleep();
-        ROS_INFO("connecting to FCU...");
-    }
-
-    // Wait for ROS
-    for (int i = 0; ros::ok() && i < 4 * ROS_RATE; ++i)
-    {
-        ros::spinOnce();
-        rate_->sleep();
-    }
-
-    if (ros::Time::now() - local_position_.header.stamp < ros::Duration(1.0))
-    {
-        ROS_INFO("Local_position available");
-    }
-    else
-    {
-        ROS_WARN("Local_position not available, initializing to 0");
-        local_position_.header.stamp = ros::Time::now();
-        local_position_.header.frame_id = "world";
-        local_position_.pose.position.x = 0;
-        local_position_.pose.position.y = 0;
-        local_position_.pose.position.z = 0;
-        local_position_.pose.orientation.x = 0;
-        local_position_.pose.orientation.y = 0;
-        local_position_.pose.orientation.z = 0;
-        local_position_.pose.orientation.w = 1;
-    }
-
+    Setup();
     setpoint_pos_ENU_ = gps_init_pos_ = local_position_;
 
     // Send a few setpoints before starting

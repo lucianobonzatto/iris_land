@@ -10,6 +10,7 @@ public:
     DroneControl();
     ~DroneControl();
     void Init(ROSClient *drone_control);
+    void Setup();
 
     static constexpr float TAKEOFF_ALTITUDE = 5.0;
     static constexpr float ROS_RATE = 20.0;
