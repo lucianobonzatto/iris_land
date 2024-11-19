@@ -32,7 +32,7 @@ void Manager::print_parameters()
 
     cout << "\tstate: " << states_name[state_machine.get_state()] << endl;
     cout << "\trc: " << rc_status.header.stamp << endl;
-    cout << "\tconnected: " << drone_control->current_state_.connected << endl;
+    cout << "\tconnected: " << (int) drone_control->current_state_.connected << endl;
     cout << "\tflight_mode: " << drone_control->get_flight_mode() << endl;
     cout << "\tlanded_state: " << drone_control->get_landed_state() << endl;
 
@@ -55,8 +55,8 @@ void Manager::update()
         FOLLOW_CONTROL_action();
         break;
     case STATES::AWAITING_MODE:
-        drone_control->set_offboardMode();
-        drone_control->takeOff();
+        AWAITING_MODE_action();
+        break;
     default:
         break;
     }
@@ -118,6 +118,16 @@ void Manager::FOLLOW_CONTROL_action()
     //               velocity.angular.z);
 
     send_velocity(0, 0, 0, 1);
+}
+
+void Manager::AWAITING_MODE_action()
+{
+    // // drone_control->live_signal();
+    // drone_control->await_offboardMode();
+    // drone_control->takeOff();
+
+    drone_control->set_offboardMode();
+    drone_control->takeOff();
 }
 
 void Manager::send_velocity(double x_linear, double y_linear, double z_linear, double angular)

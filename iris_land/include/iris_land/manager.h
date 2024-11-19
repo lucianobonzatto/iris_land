@@ -36,6 +36,7 @@ private:
     void STOPPED_action();
     void LAND_CONTROL_action();
     void FOLLOW_CONTROL_action();
+    void AWAITING_MODE_action();
     void send_velocity(double x_linear, double y_linear, double z_linear, double angular);
 };
 
