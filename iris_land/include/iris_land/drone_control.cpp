@@ -305,6 +305,34 @@ void DroneControl::set_offboardMode()
     return;
 }
 
+void DroneControl::await_offboardMode()
+{
+    Setup();
+    setpoint_pos_ENU_ = gps_init_pos_ = local_position_;
+
+    // Send a few setpoints before starting
+    for (int i = 20; ros::ok() && i > 0; --i)
+    {
+        ros_client_->setpoint_pos_pub_.publish(setpoint_pos_ENU_);
+        ros::spinOnce();
+        rate_->sleep();
+    }
+
+    ROS_INFO("awaiting to OFFBOARD mode");
+    while (ros::ok())
+    {
+        if (current_state_.mode != "OFFBOARD")
+        {
+            ROS_INFO("OFFBOARD enabled");
+            break;
+        }
+
+        ros_client_->setpoint_pos_pub_.publish(setpoint_pos_ENU_);
+        ros::spinOnce();
+        rate_->sleep();
+    }
+}
+
 void DroneControl::takeOff()
 {
     ROS_INFO("awaiting to arm");
