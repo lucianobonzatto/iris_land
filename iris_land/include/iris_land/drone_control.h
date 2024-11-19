@@ -35,6 +35,7 @@ public:
     void flyToGlobal(double latitude, double longitude, double altitude, double yaw);
     void flyToLocal(double x, double y, double z, double yaw);
     void hover(double seconds);
+    void live_signal();
 
     void cmd_vel(double x, double y, double z, double ang);
     void cmd_vel_unstamped(double x, double y, double z, double ang);

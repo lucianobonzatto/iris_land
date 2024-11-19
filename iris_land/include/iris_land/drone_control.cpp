@@ -57,6 +57,25 @@ void DroneControl::Setup()
     }
 }
 
+void DroneControl::live_signal()
+{
+    if (ros::Time::now() - local_position_.header.stamp > ros::Duration(1.0))
+    {
+        ROS_WARN("Local_position not available, initializing to 0");
+        local_position_.header.stamp = ros::Time::now();
+        local_position_.header.frame_id = "world";
+        local_position_.pose.position.x = 0;
+        local_position_.pose.position.y = 0;
+        local_position_.pose.position.z = 0;
+        local_position_.pose.orientation.x = 0;
+        local_position_.pose.orientation.y = 0;
+        local_position_.pose.orientation.z = 0;
+        local_position_.pose.orientation.w = 1;
+    }
+    setpoint_pos_ENU_ = gps_init_pos_ = local_position_;
+    ros_client_->setpoint_pos_pub_.publish(setpoint_pos_ENU_);
+}
+
 void DroneControl::state_cb(const mavros_msgs::State::ConstPtr &msg)
 {
     current_state_ = *msg;
@@ -321,7 +340,7 @@ void DroneControl::await_offboardMode()
     ROS_INFO("awaiting to OFFBOARD mode");
     while (ros::ok())
     {
-        if (current_state_.mode != "OFFBOARD")
+        if (current_state_.mode == "OFFBOARD")
         {
             ROS_INFO("OFFBOARD enabled");
             break;
