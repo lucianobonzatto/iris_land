@@ -39,7 +39,7 @@ public:
     void cmd_vel_unstamped(double x, double y, double z, double ang);
     void cmd_vel_base_link(double x, double y, double z, double ang);
 
-    void await_offboardMode();
+    void set_offboardMode();
     void takeOff();
     void land();
     void disarm();

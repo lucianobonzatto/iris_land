@@ -55,7 +55,7 @@ void Manager::update()
         FOLLOW_CONTROL_action();
         break;
     case STATES::AWAITING_MODE:
-        drone_control->await_offboardMode();
+        drone_control->set_offboardMode();
         drone_control->takeOff();
     default:
         break;

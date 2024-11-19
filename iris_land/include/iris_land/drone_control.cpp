@@ -213,7 +213,7 @@ void DroneControl::cmd_vel_unstamped(double x, double y, double z, double ang)
     // rate_->sleep();
 }
 
-void DroneControl::await_offboardMode()
+void DroneControl::set_offboardMode()
 {
     // Wait for FCU connection
     while (ros::ok() && current_state_.connected)
