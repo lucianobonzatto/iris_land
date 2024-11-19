@@ -25,7 +25,9 @@ windows:
   #       - sleep 8; rosrun iris_followup aruco_node.py
   #       # - sleep 8; roslaunch iris_followup ar_track.launch
         
-  # - manager:
-  #     layout: tiled
-  #     panes:
-  #       - sleep 10; roslaunch iris_followup manager.launch
+  - manager:
+      layout: tiled
+      panes:
+        - sleep 7; rosrun iris_land joy_node.py
+        # - sleep 10; roslaunch iris_followup manager.launch
+        
