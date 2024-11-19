@@ -32,9 +32,7 @@ void Manager::print_parameters()
 
     cout << "\tstate: " << states_name[state_machine.get_state()] << endl;
     cout << "\trc: " << rc_status.header.stamp << endl;
-    if(!rc_status.header.stamp.isZero()){
-        cout << "\trc position: " << IDENTIFY_STATE_KEY_POSITION(rc_status.channels[STATE_KEY]) << endl;
-    }
+    cout << "\tconnected: " << drone_control->current_state_.connected << endl;
     cout << "\tflight_mode: " << drone_control->get_flight_mode() << endl;
     cout << "\tlanded_state: " << drone_control->get_landed_state() << endl;
 
@@ -57,8 +55,8 @@ void Manager::update()
         FOLLOW_CONTROL_action();
         break;
     case STATES::AWAITING_MODE:
-        // drone_control->await_offboardMode();
-        // drone_control->takeOff();
+        drone_control->await_offboardMode();
+        drone_control->takeOff();
     default:
         break;
     }
