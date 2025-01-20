@@ -18,7 +18,7 @@ class ImageReader:
         self._initialize_transform_matrices()
 
     def _initialize_topics(self):
-        self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.image_callback)
+        self.image_sub = rospy.Subscriber('/iris/usb_cam/image_raw', Image, self.image_callback)
         self.image_pub = rospy.Publisher('/aruco/image', Image, queue_size=10)
         self.pose_pub = rospy.Publisher('/aruco/pose', PoseStamped, queue_size=10)
 
@@ -176,6 +176,8 @@ class ImageReader:
         rospy.spin()
 
 if __name__ == '__main__':
+    print(cv2.__version__)
+
     rospy.init_node('aruco_node')
 
     republisher = ImageReader()
