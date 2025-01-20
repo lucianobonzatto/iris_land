@@ -21,13 +21,10 @@ windows:
       layout: tiled
       panes:
         - sleep 7; rqt_image_view
-  #       - sleep 7; rosrun iris_followup udp_image.py
-        - sleep 8; rosrun iris_followup aruco_node.py
-  #       # - sleep 8; roslaunch iris_followup ar_track.launch
-        
+        - sleep 8; rosrun iris_land aruco_node.py
   - manager:
       layout: tiled
       panes:
         - sleep 7; rosrun iris_land joy_node.py
-        # - sleep 10; roslaunch iris_followup manager.launch
+        # - sleep 10; roslaunch iris_land manager.launch
         
