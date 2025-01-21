@@ -201,7 +201,7 @@ if __name__ == '__main__':
         print("1. Desinstalar as versões existentes do OpenCV:")
         print("   pip3 uninstall opencv-python opencv-contrib-python")
         print("2. Instalar a versão 4.11.0 do OpenCV:")
-        print("   pip3 install opencv-python==4.11.0 opencv-contrib-python==4.11.0")
+        print("   pip3 install opencv-python==4.11.0.86 opencv-contrib-python==4.11.0.86")
         sys.exit(1)
 
     rospy.init_node('aruco_node')
