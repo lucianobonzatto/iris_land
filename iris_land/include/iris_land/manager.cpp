@@ -109,15 +109,15 @@ void Manager::LAND_CONTROL_action()
 
 void Manager::FOLLOW_CONTROL_action()
 {
-    // geometry_msgs::Twist velocity;
+    geometry_msgs::Twist velocity;
 
-    // velocity = follow_controller.get_velocity(aruco_pose);
-    // send_velocity(velocity.linear.x,
-    //               velocity.linear.y,
-    //               velocity.linear.z,
-    //               velocity.angular.z);
+    velocity = follow_controller.get_velocity(aruco_pose);
+    send_velocity(velocity.linear.x,
+                  velocity.linear.y,
+                  velocity.linear.z,
+                  velocity.angular.z);
 
-    send_velocity(0, 0, 0, 1);
+    // send_velocity(0, 0, 0, 1);
 }
 
 void Manager::AWAITING_MODE_action()
