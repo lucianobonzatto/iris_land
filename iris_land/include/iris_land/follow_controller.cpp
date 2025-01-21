@@ -73,9 +73,9 @@ geometry_msgs::Twist Follow_Controller::get_velocity(geometry_msgs::PoseStamped 
     }
 
     Pose measurement;
-    measurement.x = -poseStamped.pose.position.x;
-    measurement.y = -poseStamped.pose.position.y;
-    measurement.z = -poseStamped.pose.position.z;
+    measurement.x = poseStamped.pose.position.x;
+    measurement.y = poseStamped.pose.position.y;
+    measurement.z = poseStamped.pose.position.z;
     measurement.theta = poseStamped.pose.orientation.x;
 
     Speed vel;
