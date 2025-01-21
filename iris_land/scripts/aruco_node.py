@@ -25,18 +25,17 @@ class ImageReader:
     def _initialize_aruco_settings(self):
         self.camera_matrix = np.array(
             [
-                [3.02573320e03, 0.00000000e00, 1.02641519e03],
-                [0.00000000e00, 2.98476190e03, 2.69918299e02],
-                [0.00000000e00, 0.00000000e00, 1.00000000e00],
+                [277.191356, 0.        , 320.5],
+                [0.        , 277.191356, 240.5],
+                [0.        , 0.        , 1.   ],
             ]
         )
         self.distortion_coeffs = np.array(
-            [-0.31855945, -0.04039797, 0.00156687, 0.00949025, 0.09074052]
+            [0.0, 0.0, 0.0, 0.0, 0.0]
         )
 
         self.marker_sizes = {272: 0.15, 682: 0.08, 0: 0.25}
-        self.dictionary = aruco.Dictionary_get(aruco.DICT_ARUCO_ORIGINAL)
-        self.parameters = aruco.DetectorParameters_create()
+        self.dictionary = aruco.getPredefinedDictionary(aruco.DICT_ARUCO_ORIGINAL)
         self.bridge = CvBridge()
 
     def _initialize_transform_matrices(self):
@@ -76,7 +75,7 @@ class ImageReader:
         self.TM_Landpad_To_Aruco_000 = np.linalg.inv(self.TM_Aruco_To_Landpad_000)
     
     def image_callback(self, msg):
-        image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+        image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough').copy()
         pose_msg, image = self.position_detect(image)
 
         # image message creation
@@ -91,9 +90,15 @@ class ImageReader:
 
     def position_detect(self, image):
         pose_msg = None
+        return_image = None
+        
         gray_frame = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        corners, ids, _ = aruco.detectMarkers(gray_frame, self.dictionary, parameters=self.parameters)
+        corners, ids, _ = aruco.detectMarkers(gray_frame, self.dictionary)
         return_image = aruco.drawDetectedMarkers(image, corners, ids)
+
+        print('---')
+        print(cv2.__version__)
+
 
         if ids is not None:
             ids_to_process = [
@@ -114,34 +119,38 @@ class ImageReader:
                 )
 
                 return_image = cv2.drawFrameAxes(return_image,self.camera_matrix,self.distortion_coeffs,rvecs,tvecs,marker_length)
-            
                 if rvecs is not None and tvecs is not None:
                     tvecs = np.squeeze(tvecs)
                     rvecs = np.squeeze(rvecs)
-                    pos_landpad_to_camera, rot_landpad_to_camera = self._landpad_to_camera(tvecs, rvecs, marker_id)
 
-                    # Armazena os valores na lista
-                    if pos_landpad_to_camera is not None and rot_landpad_to_camera is not None:
-                        positions.append(pos_landpad_to_camera)
-                        orientations.append(rot_landpad_to_camera)
+                    print('\n', marker_id, "\t\tx\ty\tz")
+                    print("\ttvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]))
+                    # print("\trvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]))
+
+        #             pos_landpad_to_camera, rot_landpad_to_camera = self._landpad_to_camera(tvecs, rvecs, marker_id)
+
+        #             # Armazena os valores na lista
+        #             if pos_landpad_to_camera is not None and rot_landpad_to_camera is not None:
+        #                 positions.append(pos_landpad_to_camera)
+        #                 orientations.append(rot_landpad_to_camera)
                     
-            if positions and orientations:
-                avg_position = np.mean(positions, axis=0)
-                avg_orientation = np.mean(orientations, axis=0)
+        #     if positions and orientations:
+        #         avg_position = np.mean(positions, axis=0)
+        #         avg_orientation = np.mean(orientations, axis=0)
 
-                # Converte os ângulos médios de Euler para quaternion
-                quaternion = R.from_euler('ZYX', avg_orientation, degrees=True).as_quat()
+        #         # Converte os ângulos médios de Euler para quaternion
+        #         quaternion = R.from_euler('ZYX', avg_orientation, degrees=True).as_quat()
 
-                # Preenche o pose_msg com os valores médios
-                pose_msg = PoseStamped()
-                pose_msg.pose.position.x = avg_position[0]
-                pose_msg.pose.position.y = avg_position[1]
-                pose_msg.pose.position.z = avg_position[2]
+        #         # Preenche o pose_msg com os valores médios
+        #         pose_msg = PoseStamped()
+        #         pose_msg.pose.position.x = avg_position[0]
+        #         pose_msg.pose.position.y = avg_position[1]
+        #         pose_msg.pose.position.z = avg_position[2]
 
-                pose_msg.pose.orientation.x = quaternion[0]
-                pose_msg.pose.orientation.y = quaternion[1]
-                pose_msg.pose.orientation.z = quaternion[2]
-                pose_msg.pose.orientation.w = quaternion[3]
+        #         pose_msg.pose.orientation.x = quaternion[0]
+        #         pose_msg.pose.orientation.y = quaternion[1]
+        #         pose_msg.pose.orientation.z = quaternion[2]
+        #         pose_msg.pose.orientation.w = quaternion[3]
 
         return pose_msg, return_image
 
@@ -176,8 +185,6 @@ class ImageReader:
         rospy.spin()
 
 if __name__ == '__main__':
-    print(cv2.__version__)
-
     rospy.init_node('aruco_node')
 
     republisher = ImageReader()

@@ -1,12 +1,32 @@
 import cv2
 import numpy as np
+import rospy
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+
+# Inicializar o nó ROS
+rospy.init_node('marker_publisher', anonymous=True)
+image_pub = rospy.Publisher('/iris/usb_cam/image_raw', Image, queue_size=10)
+bridge = CvBridge()
 
 # Carregar a imagem do marcador
-marker_image = cv2.imread('iris_land/scripts/resize.png')
+# marker_image = cv2.imread('resize.png')
+marker_image = cv2.imread('aruco-0.png')
+
+camera_matrix = np.array(
+    [
+        [277.191356, 0.        , 320.5],
+        [0.        , 277.191356, 240.5],
+        [0.        , 0.        , 1.   ],
+    ]
+)
+distortion_coeffs = np.array(
+    [0.0, 0.0, 0.0, 0.0, 0.0]
+)
 
 # Verificar se a imagem foi carregada corretamente
 if marker_image is None:
-    print("Erro ao carregar a imagem. Verifique o caminho do arquivo.")
+    rospy.logerr("Erro ao carregar a imagem. Verifique o caminho do arquivo.")
     exit()
 
 # Definir o tamanho original do marcador
@@ -30,20 +50,22 @@ def update_marker_size(val):
     marker_height_percent = val
 
 # Criar uma imagem de fundo com as dimensões 320x240
-img = np.zeros((240, 320, 3), dtype=np.uint8)
+img = np.ones((240, 320, 3), dtype=np.uint8) * 255
 
-# Adicionar o evento de rolagem do mouse e clique do mouse
+# Adicionar o evento de clique do mouse
 cv2.namedWindow("Image")
 cv2.setMouseCallback("Image", mouse_callback)
 
 # Criar a janela de controle deslizante (scrollbar) para o tamanho do marcador
 cv2.createTrackbar('Marker Size (%)', 'Image', 10, 100, update_marker_size)
 
-# Inicializar os percentuais (100% de tamanho original)
+# Inicializar os percentuais (10% de tamanho original)
 marker_width_percent = 10
 marker_height_percent = 10
 
-while True:
+rate = rospy.Rate(10)  # Publicar a imagem a 10 Hz
+
+while not rospy.is_shutdown():
     # Criar uma cópia da imagem para desenhar o marcador
     img_copy = img.copy()
 
@@ -80,11 +102,22 @@ while True:
         # Inserir o marcador redimensionado na região correspondente da imagem de fundo
         img_copy[marker_top_left[1]:marker_top_left[1]+marker_height, marker_top_left[0]:marker_top_left[0]+marker_width] = resized_marker[0:marker_height, 0:marker_width]
 
+    h, w = img_copy.shape[:2]
+    new_camera_matrix, _ = cv2.getOptimalNewCameraMatrix(camera_matrix, distortion_coeffs, (w, h), 1, (w, h))
+    mapx, mapy = cv2.initUndistortRectifyMap(camera_matrix, distortion_coeffs, None, new_camera_matrix, (w, h), cv2.CV_32FC1)
+    img_copy = cv2.remap(img_copy, mapx, mapy, interpolation=cv2.INTER_LINEAR)
+
+    # Publicar a imagem como mensagem ROS
+    ros_image = bridge.cv2_to_imgmsg(img_copy, encoding="bgr8")
+    image_pub.publish(ros_image)
+
     # Exibir a imagem com o marcador ajustado
     cv2.imshow("Image", img_copy)
 
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q'):  # Pressione 'q' para sair
         break
+
+    rate.sleep()
 
 cv2.destroyAllWindows()
