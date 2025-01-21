@@ -10,13 +10,13 @@ image_pub = rospy.Publisher('/iris/usb_cam/image_raw', Image, queue_size=10)
 bridge = CvBridge()
 
 # Carregar a imagem do marcador
-# marker_image = cv2.imread('resize.png')
-marker_image = cv2.imread('aruco-0.png')
+marker_image = cv2.imread('resize.png')
+# marker_image = cv2.imread('aruco-0.png')
 
 camera_matrix = np.array(
     [
-        [277.191356, 0.        , 320.5],
-        [0.        , 277.191356, 240.5],
+        [277.191356, 0.        , 320/2],
+        [0.        , 277.191356, 240/2],
         [0.        , 0.        , 1.   ],
     ]
 )

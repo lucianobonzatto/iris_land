@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import cv2
 import rospy
 import numpy as np
@@ -10,6 +11,7 @@ from sensor_msgs.msg import CameraInfo
 from geometry_msgs.msg import PoseStamped
 from cv_bridge import CvBridge, CvBridgeError
 from scipy.spatial.transform import Rotation as R
+from scipy.stats import circmean
 
 class ImageReader:
     def __init__(self):
@@ -25,8 +27,8 @@ class ImageReader:
     def _initialize_aruco_settings(self):
         self.camera_matrix = np.array(
             [
-                [277.191356, 0.        , 320.5],
-                [0.        , 277.191356, 240.5],
+                [277.191356, 0.        , 320/2],
+                [0.        , 277.191356, 240/2],
                 [0.        , 0.        , 1.   ],
             ]
         )
@@ -75,6 +77,7 @@ class ImageReader:
         self.TM_Landpad_To_Aruco_000 = np.linalg.inv(self.TM_Aruco_To_Landpad_000)
     
     def image_callback(self, msg):
+        # print("---")
         image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough').copy()
         pose_msg, image = self.position_detect(image)
 
@@ -95,10 +98,6 @@ class ImageReader:
         gray_frame = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray_frame, self.dictionary)
         return_image = aruco.drawDetectedMarkers(image, corners, ids)
-
-        print('---')
-        print(cv2.__version__)
-
 
         if ids is not None:
             ids_to_process = [
@@ -123,34 +122,43 @@ class ImageReader:
                     tvecs = np.squeeze(tvecs)
                     rvecs = np.squeeze(rvecs)
 
-                    print('\n', marker_id, "\t\tx\ty\tz")
-                    print("\ttvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]))
-                    # print("\trvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]))
+                    pos_landpad_to_camera, rot_landpad_to_camera = self._landpad_to_camera(tvecs, rvecs, marker_id)
+                    # print('\n', marker_id, '\tx\ty\tz')
+                    # print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(pos_landpad_to_camera[0], pos_landpad_to_camera[1], pos_landpad_to_camera[2]))
+                    # print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rot_landpad_to_camera[0], rot_landpad_to_camera[1], rot_landpad_to_camera[2]))
 
-        #             pos_landpad_to_camera, rot_landpad_to_camera = self._landpad_to_camera(tvecs, rvecs, marker_id)
+                    if pos_landpad_to_camera is not None and rot_landpad_to_camera is not None:
+                        positions.append(pos_landpad_to_camera)
+                        orientations.append(rot_landpad_to_camera)
 
-        #             # Armazena os valores na lista
-        #             if pos_landpad_to_camera is not None and rot_landpad_to_camera is not None:
-        #                 positions.append(pos_landpad_to_camera)
-        #                 orientations.append(rot_landpad_to_camera)
-                    
-        #     if positions and orientations:
-        #         avg_position = np.mean(positions, axis=0)
-        #         avg_orientation = np.mean(orientations, axis=0)
+            if positions and orientations:
+                avg_position = np.mean(positions, axis=0)
 
-        #         # Converte os ângulos médios de Euler para quaternion
-        #         quaternion = R.from_euler('ZYX', avg_orientation, degrees=True).as_quat()
+                orientations = np.array(orientations)
+                avg_orientation = np.array([
+                    circmean(orientations[:, 0], low=-pi, high=pi),  # Roll
+                    circmean(orientations[:, 1], low=-pi, high=pi),  # Pitch
+                    circmean(orientations[:, 2], low=-pi, high=pi)   # Yaw
+                ])
 
-        #         # Preenche o pose_msg com os valores médios
-        #         pose_msg = PoseStamped()
-        #         pose_msg.pose.position.x = avg_position[0]
-        #         pose_msg.pose.position.y = avg_position[1]
-        #         pose_msg.pose.position.z = avg_position[2]
+                # print('\n\tx\ty\tz')
+                # print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(avg_position[0], avg_position[1], avg_position[2]))
+                # print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(avg_orientation[0], avg_orientation[1], avg_orientation[2]))
 
-        #         pose_msg.pose.orientation.x = quaternion[0]
-        #         pose_msg.pose.orientation.y = quaternion[1]
-        #         pose_msg.pose.orientation.z = quaternion[2]
-        #         pose_msg.pose.orientation.w = quaternion[3]
+                # Converte os ângulos médios de Euler para quaternion
+                quaternion = R.from_euler('ZYX', avg_orientation, degrees=True).as_quat()
+
+                # Preenche o pose_msg com os valores médios
+                pose_msg = PoseStamped()
+                pose_msg.pose.position.x = avg_position[0]
+                pose_msg.pose.position.y = avg_position[1]
+                pose_msg.pose.position.z = avg_position[2]
+
+                pose_msg.pose.orientation.x = quaternion[0]
+                pose_msg.pose.orientation.y = quaternion[1]
+                pose_msg.pose.orientation.z = quaternion[2]
+                pose_msg.pose.orientation.w = quaternion[3]
+
 
         return pose_msg, return_image
 
@@ -177,7 +185,7 @@ class ImageReader:
         pos_landpad_to_camera[1] = -pos_landpad_to_camera[1]
 
         rotation_landpad_to_camera = R.from_matrix(TM_Landpad_To_Camera[:3, :3])
-        rot_landpad_to_camera = rotation_landpad_to_camera.as_euler('ZYX', degrees=True) # roll, pitch, yaw
+        rot_landpad_to_camera = rotation_landpad_to_camera.as_euler('ZYX', degrees=False) # roll, pitch, yaw
 
         return pos_landpad_to_camera, rot_landpad_to_camera
 
@@ -185,6 +193,17 @@ class ImageReader:
         rospy.spin()
 
 if __name__ == '__main__':
+    opencv_version = cv2.__version__
+
+    if opencv_version != '4.11.0':
+        print(f"A versão do OpenCV é {opencv_version}, não é 4.11.0.")
+        print("Para corrigir, use os seguintes comandos:")
+        print("1. Desinstalar as versões existentes do OpenCV:")
+        print("   pip3 uninstall opencv-python opencv-contrib-python")
+        print("2. Instalar a versão 4.11.0 do OpenCV:")
+        print("   pip3 install opencv-python==4.11.0 opencv-contrib-python==4.11.0")
+        sys.exit(1)
+
     rospy.init_node('aruco_node')
 
     republisher = ImageReader()
