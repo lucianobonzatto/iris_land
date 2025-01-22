@@ -81,8 +81,8 @@ geometry_msgs::Twist Follow_Controller::get_velocity(geometry_msgs::PoseStamped 
     Speed vel;
     vel = pidController.control(setpoint, measurement);
 
-    velocity.linear.x = vel.vx;
-    velocity.linear.y = -vel.vy;
+    velocity.linear.x = -vel.vy;
+    velocity.linear.y = vel.vx;
     velocity.linear.z = vel.vz;
     velocity.angular.z = vel.vtheta;
 
