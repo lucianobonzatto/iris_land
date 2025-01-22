@@ -94,15 +94,12 @@ void Manager::LAND_CONTROL_action()
                   velocity.angular.z);
 
     // cout << "completed_approach: " << land_controller.completed_approach() << endl;
-    // if (land_controller.completed_approach())
-    // {
-    //     // std_msgs::Empty emptyMsg;
-    //     // ROS_client->land_pub.publish(emptyMsg);
-    //     // TODO: chamar o land da droneControl
-    //     // state_machine.land();
-    // }
+    if (land_controller.completed_approach())
+    {
+        drone_control->land();
+        state_machine.land();
+    }
     // cout << "**********************" << endl;
-    // TODO: chamar o land da droneControl
 }
 
 void Manager::FOLLOW_CONTROL_action()
