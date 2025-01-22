@@ -129,7 +129,8 @@ void Manager::AWAITING_MODE_action()
 
 void Manager::send_velocity(double x_linear, double y_linear, double z_linear, double angular)
 {
-    drone_control->cmd_vel(x_linear, y_linear, z_linear, angular);
+    drone_control->cmd_vel(y_linear, x_linear, z_linear, angular);
+    ROS_INFO("SEND VELOCITY: x: %f y: %f z: %f yaw: %f", x_linear, y_linear, z_linear, angular);
 }
 
 void Manager::arucoPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)

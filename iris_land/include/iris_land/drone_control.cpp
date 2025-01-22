@@ -232,7 +232,7 @@ void DroneControl::cmd_vel(double x, double y, double z, double ang)
     world_msg.twist.angular.y = 0;
     world_msg.twist.angular.z = ang;
 
-    ROS_INFO("SEND VELOCITY: x: %f y: %f z: %f yaw: %f", x, y, z, ang);
+    // ROS_INFO("SEND VELOCITY: x: %f y: %f z: %f yaw: %f", x, y, z, ang);
     ros_client_->velocity_pub.publish(world_msg);
     // ros::spinOnce();
     // rate_->sleep();
