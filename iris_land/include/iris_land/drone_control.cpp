@@ -380,7 +380,7 @@ void DroneControl::takeOff()
     while (ros::ok() && i < 10 * ROS_RATE)
     {
         i++;
-        // ROS_INFO("Retrying to Takeoff");
+        ROS_INFO("Retrying to Takeoff");
         // ros_client_->takeoff_client_.call(takeoff_request);
         ros_client_->setpoint_pos_pub_.publish(setpoint_pos_ENU_);
 
@@ -419,10 +419,7 @@ void DroneControl::land()
         ros::spinOnce();
         rate_->sleep();
     }
-    if (i == MAX_ATTEMPTS)
-        ROS_WARN("Landing failed, aborting");
-    else
-        ROS_INFO("Landing success");
+    ROS_INFO("Landing success");
 
     return;
 }
