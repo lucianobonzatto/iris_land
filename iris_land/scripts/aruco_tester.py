@@ -4,14 +4,16 @@ import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
-# Inicializar o nó ROS
 rospy.init_node('marker_publisher', anonymous=True)
 image_pub = rospy.Publisher('/iris/usb_cam/image_raw', Image, queue_size=10)
 bridge = CvBridge()
+rate = rospy.Rate(10)  # Publicar a imagem a 10 Hz
 
-# Carregar a imagem do marcador
 marker_image = cv2.imread('resize.png')
 # marker_image = cv2.imread('aruco-0.png')
+if marker_image is None:
+    rospy.logerr("Erro ao carregar a imagem. Verifique o caminho do arquivo.")
+    exit()
 
 camera_matrix = np.array(
     [
@@ -24,54 +26,35 @@ distortion_coeffs = np.array(
     [0.0, 0.0, 0.0, 0.0, 0.0]
 )
 
-# Verificar se a imagem foi carregada corretamente
-if marker_image is None:
-    rospy.logerr("Erro ao carregar a imagem. Verifique o caminho do arquivo.")
-    exit()
-
-# Definir o tamanho original do marcador
-original_marker_width = marker_image.shape[1]
-original_marker_height = marker_image.shape[0]
-
-# Variáveis para armazenar a posição do marcador
 marker_x, marker_y = 160, 120  # Posição centralizada para 320x240
-
-# Função de callback para eventos do mouse
-def mouse_callback(event, x, y, flags, param):
-    global marker_x, marker_y
-    if event == cv2.EVENT_LBUTTONDOWN:  # Quando o botão esquerdo do mouse é pressionado
-        marker_x, marker_y = x, y  # Atualiza a posição do marcador
-
-# Função de callback do scroll bar
-def update_marker_size(val):
-    global marker_width_percent, marker_height_percent
-    # Atualiza os percentuais para largura e altura
-    marker_width_percent = val
-    marker_height_percent = val
-
-# Criar uma imagem de fundo com as dimensões 320x240
-img = np.ones((240, 320, 3), dtype=np.uint8) * 255
-
-# Adicionar o evento de clique do mouse
-cv2.namedWindow("Image")
-cv2.setMouseCallback("Image", mouse_callback)
-
-# Criar a janela de controle deslizante (scrollbar) para o tamanho do marcador
-cv2.createTrackbar('Marker Size (%)', 'Image', 10, 100, update_marker_size)
-
-# Inicializar os percentuais (10% de tamanho original)
 marker_width_percent = 10
 marker_height_percent = 10
 
-rate = rospy.Rate(10)  # Publicar a imagem a 10 Hz
+def mouse_callback(event, x, y, flags, param):
+    global marker_image
+    global marker_x, marker_y
+    if event == cv2.EVENT_LBUTTONDOWN:  # Quando o botão esquerdo do mouse é pressionado
+        marker_x, marker_y = x, y  # Atualiza a posição do marcador
+    if event == cv2.EVENT_RBUTTONDOWN:  # Quando o botão esquerdo do mouse é pressionado
+        marker_image = cv2.rotate(marker_image, cv2.ROTATE_90_CLOCKWISE)
+
+def update_marker_size(val):
+    global marker_width_percent, marker_height_percent
+    marker_width_percent = val
+    marker_height_percent = val
+    
+cv2.namedWindow("Image", cv2.WINDOW_GUI_NORMAL)
+cv2.setMouseCallback("Image", mouse_callback)
+cv2.createTrackbar('Marker Size (%)', 'Image', 10, 100, update_marker_size)
+img = np.ones((240, 320, 3), dtype=np.uint8) * 255
 
 while not rospy.is_shutdown():
     # Criar uma cópia da imagem para desenhar o marcador
     img_copy = img.copy()
 
     # Calcular os novos tamanhos do marcador com base no valor percentual
-    new_marker_width = int(original_marker_width * marker_width_percent / 100)
-    new_marker_height = int(original_marker_height * marker_height_percent / 100)
+    new_marker_width = int(marker_image.shape[1] * marker_width_percent / 100)
+    new_marker_height = int(marker_image.shape[0] * marker_height_percent / 100)
 
     # Redimensionar o marcador com o novo tamanho
     resized_marker = cv2.resize(marker_image, (new_marker_width, new_marker_height))
