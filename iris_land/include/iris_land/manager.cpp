@@ -73,7 +73,7 @@ void Manager::update()
     if (state_machine.update_state(rc_status, flight_mode, landed_state))
     {
         send_velocity(0, 0, 0, 0);
-        land_controller.reset_altitude(1);
+        land_controller.reset_altitude(2);
     }
 }
 
@@ -85,13 +85,13 @@ void Manager::STOPPED_action()
 void Manager::LAND_CONTROL_action()
 {
     // cout << "**********************" << endl;
-    // geometry_msgs::Twist velocity;
+    geometry_msgs::Twist velocity;
 
-    // velocity = land_controller.get_velocity(aruco_pose);
-    // send_velocity(velocity.linear.x,
-    //               velocity.linear.y,
-    //               velocity.linear.z,
-    //               velocity.angular.z);
+    velocity = land_controller.get_velocity(aruco_pose);
+    send_velocity(velocity.linear.x,
+                  velocity.linear.y,
+                  velocity.linear.z,
+                  velocity.angular.z);
 
     // cout << "completed_approach: " << land_controller.completed_approach() << endl;
     // if (land_controller.completed_approach())
@@ -103,8 +103,6 @@ void Manager::LAND_CONTROL_action()
     // }
     // cout << "**********************" << endl;
     // TODO: chamar o land da droneControl
-
-    send_velocity(0, 0, 0, -1);
 }
 
 void Manager::FOLLOW_CONTROL_action()
@@ -116,8 +114,6 @@ void Manager::FOLLOW_CONTROL_action()
                   velocity.linear.y,
                   velocity.linear.z,
                   velocity.angular.z);
-
-    // send_velocity(0, 0, 0, 1);
 }
 
 void Manager::AWAITING_MODE_action()

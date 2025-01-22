@@ -4,7 +4,7 @@ Land_Controller::Land_Controller()
 {
     setpoint.x = 0;
     setpoint.y = 0;
-    setpoint.z = 1;
+    setpoint.z = 2;
     setpoint.theta = 0;
     controller_mode = 0;
     distance_threshold = 0.1;
