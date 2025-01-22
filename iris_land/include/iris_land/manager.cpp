@@ -25,7 +25,7 @@ void Manager::print_parameters()
     cout << "\tx: " << aruco_pose.pose.position.x
          << "\ty: " << aruco_pose.pose.position.y
          << "\tz: " << aruco_pose.pose.position.z
-         << "\ttheta: " << aruco_pose.pose.orientation.x << endl;
+         << "\ttheta: " << get_yaw(aruco_pose.pose.orientation) << endl;
 
     cout << "\tlinear_vel: " << parameters.linear_vel
          << "\tangular_vel: " << parameters.angular_vel << endl;

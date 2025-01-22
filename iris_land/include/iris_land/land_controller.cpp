@@ -110,7 +110,7 @@ geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped po
     measurement.x = -poseStamped.pose.position.x;
     measurement.y = -poseStamped.pose.position.y;
     measurement.z = -poseStamped.pose.position.z;
-    measurement.theta = poseStamped.pose.orientation.x;
+    measurement.theta = get_yaw(poseStamped.pose.orientation);
 
     double distance = calculate_distance(measurement, setpoint);
     double angle_distance = measurement.theta - setpoint.theta;

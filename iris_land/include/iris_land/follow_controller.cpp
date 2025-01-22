@@ -76,7 +76,7 @@ geometry_msgs::Twist Follow_Controller::get_velocity(geometry_msgs::PoseStamped 
     measurement.x = poseStamped.pose.position.x;
     measurement.y = poseStamped.pose.position.y;
     measurement.z = poseStamped.pose.position.z;
-    measurement.theta = poseStamped.pose.orientation.x;
+    measurement.theta = get_yaw(poseStamped.pose.orientation);
 
     Speed vel;
     vel = pidController.control(setpoint, measurement);
