@@ -85,7 +85,7 @@ class ControllerGUI:
                 self.entries[f"{controller_type}_{gain}_{dimension}"] = entry
 
     def save_gains(self):
-        file_name = self.package_path + "/parameters/gains.txt"
+        file_name = self.package_path + "/../gains.txt"
         print(file_name)
 
         with open(file_name, 'w') as file:
