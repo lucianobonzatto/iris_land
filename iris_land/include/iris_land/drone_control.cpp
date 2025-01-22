@@ -390,7 +390,7 @@ void DroneControl::takeOff()
     }
     // sleep(10);
 
-    ROS_INFO("landed_state_: %d", landed_state_);
+    // ROS_INFO("landed_state_: %d", landed_state_);
     ROS_INFO("Takeoff finished!");
     return;
 }
