@@ -63,8 +63,8 @@ class ControllerGUI:
         self.entry_text = Entry(self.root, width=15)
         self.entry_text.grid(row=15, column= 20, padx=5, pady=5)
 
-        self.scale = Scale(self.root, from_=0.0, to=2.0, resolution=0.01, orient="horizontal", length=400)
-        self.scale.set(1.0)
+        self.scale = Scale(self.root, from_=1.0, to=5.0, resolution=0.01, orient="horizontal", length=400)
+        self.scale.set(2.0)
         self.scale.grid(row=15, column=1, columnspan=10)
 
     def create_gain_entries(self, controller_type, gains_Text, row_start, column_start):
