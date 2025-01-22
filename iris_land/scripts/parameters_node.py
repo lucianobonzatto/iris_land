@@ -114,7 +114,7 @@ class ControllerGUI:
         process.wait()
 
     def load_gains(self):
-        file_name = self.package_path + "/parameters/gains.txt"
+        file_name = self.package_path + "/../gains.txt"
         try:
             with open(file_name, 'r') as file:
                 lines = file.readlines()
