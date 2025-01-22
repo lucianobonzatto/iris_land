@@ -380,7 +380,7 @@ void DroneControl::takeOff()
     while (ros::ok() && i < 10 * ROS_RATE)
     {
         i++;
-        ROS_INFO("Retrying to Takeoff");
+        // ROS_INFO("Retrying to Takeoff");
         // ros_client_->takeoff_client_.call(takeoff_request);
         ros_client_->setpoint_pos_pub_.publish(setpoint_pos_ENU_);
 
