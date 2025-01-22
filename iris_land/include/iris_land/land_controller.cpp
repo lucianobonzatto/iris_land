@@ -7,8 +7,8 @@ Land_Controller::Land_Controller()
     setpoint.z = 2;
     setpoint.theta = 0;
     controller_mode = 0;
-    distance_threshold = 0.1;
-    angular_threshold = 0.1;
+    distance_threshold = 0.2;
+    angular_threshold = 0.2;
 
     PID::Builder builder;
     builder.setDt(0.05);
@@ -92,7 +92,7 @@ void Land_Controller::reset_altitude(double altitude)
 
 bool Land_Controller::completed_approach()
 {
-    if(setpoint.z < 0.2)
+    if(setpoint.z < 0.7)
         return true;
     return false;
 }
