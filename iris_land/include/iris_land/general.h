@@ -100,4 +100,6 @@ enum STATE_KEY_LIMITS
      (value >  MID_MIN  && value <= MID_MAX) ? P2 : \
      (value >  MID_MAX  && value <= MAX)     ? P3 : OUT)
 
+double get_yaw(const geometry_msgs::Quaternion& quaternion);
+
 #endif

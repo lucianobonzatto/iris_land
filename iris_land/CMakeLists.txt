@@ -205,6 +205,7 @@ catkin_install_python(PROGRAMS
 
 add_executable( iris_mng
                 src/manager_node.cpp
+                include/iris_land/general.cpp
                 include/iris_land/manager.cpp
                 include/iris_land/state_machine.cpp
                 include/iris_land/follow_controller.cpp
