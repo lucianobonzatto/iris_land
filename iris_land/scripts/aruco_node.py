@@ -73,7 +73,7 @@ class ImageReader:
         self.TM_Landpad_To_Aruco_000 = np.linalg.inv(self.TM_Aruco_To_Landpad_000)
     
     def image_callback(self, msg):
-        print("---")
+        # print("---")
         image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough').copy()
         pose_msg, image = self.position_detect(image)
 
@@ -117,21 +117,21 @@ class ImageReader:
                 if rvecs is not None and tvecs is not None:
                     tvecs = np.squeeze(tvecs)
                     rvecs = np.squeeze(rvecs)
-                    print('\n----', marker_id, '----\n')
+                    # print('\n----', marker_id, '----\n')
 
                     pos_landpad_to_camera, rot_landpad_to_camera = self._landpad_to_camera(tvecs, rvecs, marker_id)
 
-                    print('\tx\ty\tz', '\t\tx\ty\tz')
-                    print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]), '\t',
-                          "\t{:.2f}\t{:.2f}\t{:.2f}".format(pos_landpad_to_camera[0], pos_landpad_to_camera[1], pos_landpad_to_camera[2]))
-                    print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]), '\t',
-                          "\t{:.2f}\t{:.2f}\t{:.2f}".format(rot_landpad_to_camera[0], rot_landpad_to_camera[1], rot_landpad_to_camera[2]))
+                    # print('\tx\ty\tz', '\t\tx\ty\tz')
+                    # print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]), '\t',
+                    #       "\t{:.2f}\t{:.2f}\t{:.2f}".format(pos_landpad_to_camera[0], pos_landpad_to_camera[1], pos_landpad_to_camera[2]))
+                    # print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]), '\t',
+                    #       "\t{:.2f}\t{:.2f}\t{:.2f}".format(rot_landpad_to_camera[0], rot_landpad_to_camera[1], rot_landpad_to_camera[2]))
 
                     if pos_landpad_to_camera is not None and rot_landpad_to_camera is not None:
                         positions.append(pos_landpad_to_camera)
                         orientations.append(rot_landpad_to_camera)
 
-            print('\n----------------\n')
+            # print('\n----------------\n')
             if positions and orientations:
                 avg_position = np.mean(positions, axis=0)
 
@@ -142,9 +142,9 @@ class ImageReader:
                     circmean(orientations[:, 2], low=-pi, high=pi)   # Yaw
                 ])
 
-                print('\tx\ty\tz')
-                print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(avg_position[0], avg_position[1], avg_position[2]))
-                print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(np.degrees(avg_orientation[0]), np.degrees(avg_orientation[1]), np.degrees(avg_orientation[2])))
+                # print('\tx\ty\tz')
+                # print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(avg_position[0], avg_position[1], avg_position[2]))
+                # print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(np.degrees(avg_orientation[0]), np.degrees(avg_orientation[1]), np.degrees(avg_orientation[2])))
 
                 # Converte os ângulos médios de Euler para quaternion
                 quaternion = R.from_euler('ZYX', avg_orientation, degrees=False).as_quat()
