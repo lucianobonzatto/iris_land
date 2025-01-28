@@ -68,9 +68,9 @@ def create_gui():
     global channel_7
     channel_7 = tk.IntVar()
     channel_7.set(0)  # Valor inicial neutro
-    tk.Radiobutton(root, text="p1", variable=channel_7, value=982).pack()
-    tk.Radiobutton(root, text="p2", variable=channel_7, value=1494).pack()
-    tk.Radiobutton(root, text="p3", variable=channel_7, value=2006).pack()
+    tk.Radiobutton(root, text="p1 - stop", variable=channel_7, value=982).pack()
+    tk.Radiobutton(root, text="p2 - land", variable=channel_7, value=1494).pack()
+    tk.Radiobutton(root, text="p3 - follow", variable=channel_7, value=2006).pack()
 
     # Botão para alternar a publicação
     global toggle_button
