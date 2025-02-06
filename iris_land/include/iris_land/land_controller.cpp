@@ -92,7 +92,7 @@ void Land_Controller::reset_altitude(double altitude)
 
 bool Land_Controller::completed_approach()
 {
-    if(setpoint.z < 0.7)
+    if(setpoint.z < 0.5)
         return true;
     return false;
 }
