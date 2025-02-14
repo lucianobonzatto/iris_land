@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import cv2
 import rospy
 import numpy as np
@@ -10,77 +11,201 @@ from sensor_msgs.msg import CameraInfo
 from geometry_msgs.msg import PoseStamped
 from cv_bridge import CvBridge, CvBridgeError
 from scipy.spatial.transform import Rotation as R
+from scipy.stats import circmean
 
-class ImageRepublisher:
+class ImageReader:
     def __init__(self):
-        self.image_sub = rospy.Subscriber('/tello/image_raw/raw', Image, self.image_callback)
-        self.camera_info_sub = rospy.Subscriber('/tello/image_raw/camera_info', CameraInfo, self.camera_info_callback)
+        self._initialize_topics()
+        self._initialize_aruco_settings()
+        self._initialize_transform_matrices()
 
+    def _initialize_topics(self):
+        self.image_sub = rospy.Subscriber('/iris/usb_cam/image_raw', Image, self.image_callback)
         self.image_pub = rospy.Publisher('/aruco/image', Image, queue_size=10)
         self.pose_pub = rospy.Publisher('/aruco/pose', PoseStamped, queue_size=10)
 
-        self.camera_matrix = np.array([[277.191356, 0.        , 320.5],
-                                       [0.        , 277.191356, 240.5],
-                                       [0.        , 0.        , 1.   ]])
+    def _initialize_aruco_settings(self):
+        self.camera_matrix = np.array(
+            [
+                [277.191356, 0.        , 320/2],
+                [0.        , 277.191356, 240/2],
+                [0.        , 0.        , 1.   ],
+            ]
+        )
+        self.distortion_coeffs = np.array(
+            [0.0, 0.0, 0.0, 0.0, 0.0]
+        )
 
-        self.distortion_coeffs = np.array([[0, 0, 0, 0, 0]])
-        self.dictionary = aruco.Dictionary_get(aruco.DICT_5X5_50)
-        self.parameters = aruco.DetectorParameters_create()
+        self.marker_sizes = {272: 0.15, 682: 0.08, 0: 0.25}
+        self.dictionary = aruco.getPredefinedDictionary(aruco.DICT_ARUCO_ORIGINAL)
         self.bridge = CvBridge()
 
-    def camera_info_callback(self, msg):
-        self.camera_matrix = np.array(msg.K).reshape(3, 3)
-        self.distortion_coeffs = np.array(msg.D)
+    def _initialize_transform_matrices(self):
+        # Cria a matriz de transformação Landpad -> Aruco
 
-    def image_callback(self, msg):
-        image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-        markers, ids, _ = aruco.detectMarkers(image, self.dictionary, parameters=self.parameters)
+        Position_272 = np.array([-0.255, -0.160, 0])
+        Rotation_272 = np.eye(3)
 
-        print(len(markers))
+        Position_682 = np.array([0.043, 0.038, 0])
+        Rotation_682 = np.eye(3)
 
-        if len(markers) > 0:
-            ids = ids.flatten()
-            image = aruco.drawDetectedMarkers(image, markers, ids)
-            rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(markers, 0.12, self.camera_matrix, self.distortion_coeffs)
+        Position_000 = np.array([0.320, 0.215, 0])
+        Rotation_000 = np.array([
+            [-1, 0, 0],  # Cos(180) = -1, Sin(180) = 0
+            [ 0,-1, 0],  # Cos(180) = -1, Sin(180) = 0
+            [ 0, 0, 1]    # Eixo Z permanece o mesmo
+        ])
+
+        self.TM_Aruco_To_Landpad_272 = np.eye(4)
+        self.TM_Aruco_To_Landpad_272[:3, :3] = Rotation_272
+        self.TM_Aruco_To_Landpad_272[:3, 3] = Position_272
+
+        self.TM_Aruco_To_Landpad_682 = np.eye(4)
+        self.TM_Aruco_To_Landpad_682[:3, :3] = Rotation_682
+        self.TM_Aruco_To_Landpad_682[:3, 3] = Position_682
+
+        self.TM_Aruco_To_Landpad_000 = np.eye(4)
+        self.TM_Aruco_To_Landpad_000[:3, :3] = Rotation_000
+        self.TM_Aruco_To_Landpad_000[:3, 3] = Position_000
+
+        self.TM_Landpad_To_Aruco_272 = np.linalg.inv(self.TM_Aruco_To_Landpad_272)
+        self.TM_Landpad_To_Aruco_682 = np.linalg.inv(self.TM_Aruco_To_Landpad_682)
+        self.TM_Landpad_To_Aruco_000 = np.linalg.inv(self.TM_Aruco_To_Landpad_000)
     
-            for i in range(len(ids)):
-                if (ids[i] != 0):
-                    continue
-          
-                rvec = rvecs[i][0]
-                tvec = tvecs[i][0]
-                rotation_matrix_euler = R.from_rotvec(rvec).as_euler('ZYX')
-                
+    def image_callback(self, msg):
+        # print("---")
+        image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough').copy()
+        pose_msg, image = self.position_detect(image)
 
-                teste = {'id': -1, 'position':[0,0,0], 'orientation':[0,0,0]}
-                teste['id'] = ids[i]
-                teste['position'] = tvec
-                teste['orientation'] = np.degrees(rotation_matrix_euler)
-                print(teste)
+        # image message creation
+        image_msg = self.bridge.cv2_to_imgmsg(image, encoding='bgr8')
+        self.image_pub.publish(image_msg)
 
+        # pose message creation
+        if pose_msg is not None:
+            pose_msg.header.stamp = rospy.Time.now()
+            pose_msg.header.frame_id = "camera_frame"
+            self.pose_pub.publish(pose_msg)
+
+    def position_detect(self, image):
+        pose_msg = None
+        return_image = None
+        
+        gray_frame = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        corners, ids, _ = aruco.detectMarkers(gray_frame, self.dictionary)
+        return_image = aruco.drawDetectedMarkers(image, corners, ids)
+
+        if ids is not None:
+            ids_to_process = [
+                (i, id[0])
+                for i, id in enumerate(ids)
+                if id[0] in self.marker_sizes
+            ]
+
+            positions = []
+            orientations = []
+            for i, marker_id in ids_to_process:
+                marker_length = self.marker_sizes[marker_id]
+                rvecs, tvecs, _objPoints = aruco.estimatePoseSingleMarkers(
+                    corners[i : i + 1],
+                    marker_length,
+                    self.camera_matrix,
+                    self.distortion_coeffs,
+                )
+
+                return_image = cv2.drawFrameAxes(return_image,self.camera_matrix,self.distortion_coeffs,rvecs,tvecs,marker_length)
+                if rvecs is not None and tvecs is not None:
+                    tvecs = np.squeeze(tvecs)
+                    rvecs = np.squeeze(rvecs)
+                    # print('\n----', marker_id, '----\n')
+
+                    pos_landpad_to_camera, rot_landpad_to_camera = self._landpad_to_camera(tvecs, rvecs, marker_id)
+
+                    # print('\tx\ty\tz', '\t\tx\ty\tz')
+                    # print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]), '\t',
+                    #       "\t{:.2f}\t{:.2f}\t{:.2f}".format(pos_landpad_to_camera[0], pos_landpad_to_camera[1], pos_landpad_to_camera[2]))
+                    # print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]), '\t',
+                    #       "\t{:.2f}\t{:.2f}\t{:.2f}".format(rot_landpad_to_camera[0], rot_landpad_to_camera[1], rot_landpad_to_camera[2]))
+
+                    if pos_landpad_to_camera is not None and rot_landpad_to_camera is not None:
+                        positions.append(pos_landpad_to_camera)
+                        orientations.append(rot_landpad_to_camera)
+
+            # print('\n----------------\n')
+            if positions and orientations:
+                avg_position = np.mean(positions, axis=0)
+
+                orientations = np.array(orientations)
+                avg_orientation = np.array([
+                    circmean(orientations[:, 0], low=-pi, high=pi),  # Roll
+                    circmean(orientations[:, 1], low=-pi, high=pi),  # Pitch
+                    circmean(orientations[:, 2], low=-pi, high=pi)   # Yaw
+                ])
+
+                # print('\tx\ty\tz')
+                # print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(avg_position[0], avg_position[1], avg_position[2]))
+                # print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(np.degrees(avg_orientation[0]), np.degrees(avg_orientation[1]), np.degrees(avg_orientation[2])))
+
+                # Converte os ângulos médios de Euler para quaternion
+                quaternion = R.from_euler('ZYX', avg_orientation, degrees=False).as_quat()
+
+                # Preenche o pose_msg com os valores médios
                 pose_msg = PoseStamped()
-                pose_msg.header.stamp = rospy.Time.now()
-                # pose_msg.header.frame_id = "camera_frame"
+                pose_msg.pose.position.x = avg_position[0]
+                pose_msg.pose.position.y = avg_position[1]
+                pose_msg.pose.position.z = avg_position[2]
 
-                pose_msg.pose.position.x = -tvec[1]
-                pose_msg.pose.position.y = -tvec[0]
-                pose_msg.pose.position.z = -tvec[2]
+                pose_msg.pose.orientation.x = quaternion[0]
+                pose_msg.pose.orientation.y = quaternion[1]
+                pose_msg.pose.orientation.z = quaternion[2]
+                pose_msg.pose.orientation.w = quaternion[3]
 
-                pose_msg.pose.orientation.x = rotation_matrix_euler[0]
-                pose_msg.pose.orientation.y = rotation_matrix_euler[1]
-                pose_msg.pose.orientation.z = rotation_matrix_euler[2]
 
-                self.pose_pub.publish(pose_msg)
+        return pose_msg, return_image
 
-        republished_msg = self.bridge.cv2_to_imgmsg(image, encoding='bgr8')
-        self.image_pub.publish(republished_msg)
+    def _landpad_to_camera(self, Tvec, Rvec, id):
+        if id not in [272, 682, 0]:
+            return None, None
 
+        # Cria a matriz de transformação Aruco -> Câmera
+        r = R.from_rotvec(Rvec)
+        TM_Aruco_To_Camera = np.eye(4)
+        TM_Aruco_To_Camera[:3, :3] = r.as_matrix()
+        TM_Aruco_To_Camera[:3, 3] = Tvec
+
+        # Cria a matriz de transformação Landpad -> Câmera
+        TM_Landpad_To_Camera = TM_Aruco_To_Camera @ self.TM_Landpad_To_Aruco_000
+        if id == 272:
+            TM_Landpad_To_Camera = TM_Aruco_To_Camera @ self.TM_Landpad_To_Aruco_272
+        elif id == 682:
+            TM_Landpad_To_Camera = TM_Aruco_To_Camera @ self.TM_Landpad_To_Aruco_682
+        elif id == 0:
+            TM_Landpad_To_Camera = TM_Aruco_To_Camera @ self.TM_Landpad_To_Aruco_000
+
+        pos_landpad_to_camera = TM_Landpad_To_Camera[:3, 3]
+        pos_landpad_to_camera[1] = -pos_landpad_to_camera[1]
+
+        rotation_landpad_to_camera = R.from_matrix(TM_Landpad_To_Camera[:3, :3])
+        rot_landpad_to_camera = rotation_landpad_to_camera.as_euler('ZYX', degrees=False) # roll, pitch, yaw
+
+        return pos_landpad_to_camera, rot_landpad_to_camera
 
     def run(self):
         rospy.spin()
 
 if __name__ == '__main__':
+    opencv_version = cv2.__version__
+
+    if opencv_version != '4.11.0':
+        print(f"A versão do OpenCV é {opencv_version}, não é 4.11.0.")
+        print("Para corrigir, use os seguintes comandos:")
+        print("1. Desinstalar as versões existentes do OpenCV:")
+        print("   pip3 uninstall opencv-python opencv-contrib-python")
+        print("2. Instalar a versão 4.11.0 do OpenCV:")
+        print("   pip3 install opencv-python==4.11.0.86 opencv-contrib-python==4.11.0.86")
+        sys.exit(1)
+
     rospy.init_node('aruco_node')
 
-    republisher = ImageRepublisher()
+    republisher = ImageReader()
     republisher.run()

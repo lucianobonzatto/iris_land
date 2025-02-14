@@ -170,6 +170,7 @@ include
 catkin_install_python(PROGRAMS
   scripts/parameters_node.py
   scripts/aruco_node.py
+  scripts/aruco_tester.py
   scripts/joy_node.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
@@ -204,6 +205,7 @@ catkin_install_python(PROGRAMS
 
 add_executable( iris_mng
                 src/manager_node.cpp
+                include/iris_land/general.cpp
                 include/iris_land/manager.cpp
                 include/iris_land/state_machine.cpp
                 include/iris_land/follow_controller.cpp

@@ -63,8 +63,8 @@ class ControllerGUI:
         self.entry_text = Entry(self.root, width=15)
         self.entry_text.grid(row=15, column= 20, padx=5, pady=5)
 
-        self.scale = Scale(self.root, from_=0.0, to=2.0, resolution=0.01, orient="horizontal", length=400)
-        self.scale.set(1.0)
+        self.scale = Scale(self.root, from_=1.0, to=5.0, resolution=0.01, orient="horizontal", length=400)
+        self.scale.set(2.0)
         self.scale.grid(row=15, column=1, columnspan=10)
 
     def create_gain_entries(self, controller_type, gains_Text, row_start, column_start):
@@ -85,7 +85,7 @@ class ControllerGUI:
                 self.entries[f"{controller_type}_{gain}_{dimension}"] = entry
 
     def save_gains(self):
-        file_name = self.package_path + "/parameters/gains.txt"
+        file_name = self.package_path + "/../gains.txt"
         print(file_name)
 
         with open(file_name, 'w') as file:
@@ -114,7 +114,7 @@ class ControllerGUI:
         process.wait()
 
     def load_gains(self):
-        file_name = self.package_path + "/parameters/gains.txt"
+        file_name = self.package_path + "/../gains.txt"
         try:
             with open(file_name, 'r') as file:
                 lines = file.readlines()

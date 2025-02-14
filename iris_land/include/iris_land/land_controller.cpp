@@ -4,11 +4,11 @@ Land_Controller::Land_Controller()
 {
     setpoint.x = 0;
     setpoint.y = 0;
-    setpoint.z = 1;
+    setpoint.z = 2;
     setpoint.theta = 0;
     controller_mode = 0;
-    distance_threshold = 0.1;
-    angular_threshold = 0.1;
+    distance_threshold = 0.2;
+    angular_threshold = 0.2;
 
     PID::Builder builder;
     builder.setDt(0.05);
@@ -92,7 +92,7 @@ void Land_Controller::reset_altitude(double altitude)
 
 bool Land_Controller::completed_approach()
 {
-    if(setpoint.z < 0.2)
+    if(setpoint.z < 0.5)
         return true;
     return false;
 }
@@ -107,10 +107,10 @@ geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped po
     }
 
     Pose measurement;
-    measurement.x = -poseStamped.pose.position.x;
-    measurement.y = -poseStamped.pose.position.y;
-    measurement.z = -poseStamped.pose.position.z;
-    measurement.theta = poseStamped.pose.orientation.x;
+    measurement.x = poseStamped.pose.position.x;
+    measurement.y = poseStamped.pose.position.y;
+    measurement.z = poseStamped.pose.position.z;
+    measurement.theta = get_yaw(poseStamped.pose.orientation);
 
     double distance = calculate_distance(measurement, setpoint);
     double angle_distance = measurement.theta - setpoint.theta;
@@ -129,8 +129,8 @@ geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped po
 
     Speed vel = get_align_velocity(measurement);
 
-    velocity.linear.x = vel.vx;
-    velocity.linear.y = vel.vy;
+    velocity.linear.x = -vel.vy;
+    velocity.linear.y = vel.vx;
     velocity.linear.z = vel.vz;
     velocity.angular.z = vel.vtheta;
     return velocity;

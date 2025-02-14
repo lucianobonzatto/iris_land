@@ -25,7 +25,7 @@ void Manager::print_parameters()
     cout << "\tx: " << aruco_pose.pose.position.x
          << "\ty: " << aruco_pose.pose.position.y
          << "\tz: " << aruco_pose.pose.position.z
-         << "\ttheta: " << aruco_pose.pose.orientation.x << endl;
+         << "\ttheta: " << get_yaw(aruco_pose.pose.orientation) << endl;
 
     cout << "\tlinear_vel: " << parameters.linear_vel
          << "\tangular_vel: " << parameters.angular_vel << endl;
@@ -73,7 +73,7 @@ void Manager::update()
     if (state_machine.update_state(rc_status, flight_mode, landed_state))
     {
         send_velocity(0, 0, 0, 0);
-        land_controller.reset_altitude(1);
+        land_controller.reset_altitude(2);
     }
 }
 
@@ -85,51 +85,45 @@ void Manager::STOPPED_action()
 void Manager::LAND_CONTROL_action()
 {
     // cout << "**********************" << endl;
-    // geometry_msgs::Twist velocity;
+    geometry_msgs::Twist velocity;
 
-    // velocity = land_controller.get_velocity(aruco_pose);
-    // send_velocity(velocity.linear.x,
-    //               velocity.linear.y,
-    //               velocity.linear.z,
-    //               velocity.angular.z);
+    velocity = land_controller.get_velocity(aruco_pose);
+    send_velocity(velocity.linear.x,
+                  velocity.linear.y,
+                  velocity.linear.z,
+                  velocity.angular.z);
 
     // cout << "completed_approach: " << land_controller.completed_approach() << endl;
-    // if (land_controller.completed_approach())
-    // {
-    //     // std_msgs::Empty emptyMsg;
-    //     // ROS_client->land_pub.publish(emptyMsg);
-    //     // TODO: chamar o land da droneControl
-    //     // state_machine.land();
-    // }
+    if (land_controller.completed_approach())
+    {
+        drone_control->land();
+        state_machine.land();
+    }
     // cout << "**********************" << endl;
-    // TODO: chamar o land da droneControl
-
-    send_velocity(0, 0, 0, -1);
 }
 
 void Manager::FOLLOW_CONTROL_action()
 {
-    // geometry_msgs::Twist velocity;
+    geometry_msgs::Twist velocity;
 
-    // velocity = follow_controller.get_velocity(aruco_pose);
-    // send_velocity(velocity.linear.x,
-    //               velocity.linear.y,
-    //               velocity.linear.z,
-    //               velocity.angular.z);
-
-    send_velocity(0, 0, 0, 1);
+    velocity = follow_controller.get_velocity(aruco_pose);
+    send_velocity(velocity.linear.x,
+                  velocity.linear.y,
+                  velocity.linear.z,
+                  velocity.angular.z);
 }
 
 void Manager::AWAITING_MODE_action()
 {
     drone_control->live_signal();
-    // drone_control->await_offboardMode();
-    // drone_control->takeOff();
+    drone_control->await_offboardMode();
+    drone_control->takeOff();
 }
 
 void Manager::send_velocity(double x_linear, double y_linear, double z_linear, double angular)
 {
     drone_control->cmd_vel(x_linear, y_linear, z_linear, angular);
+    // ROS_INFO("SEND VELOCITY: x: %f y: %f z: %f yaw: %f", x_linear, y_linear, z_linear, angular);
 }
 
 void Manager::arucoPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
