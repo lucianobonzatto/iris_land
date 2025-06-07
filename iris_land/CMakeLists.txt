@@ -17,6 +17,10 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(OpenCV REQUIRED)
+## Encontra o GStreamer usando pkg-config
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GST REQUIRED gstreamer-1.0)
+
 
 add_message_files(
   FILES
@@ -56,6 +60,7 @@ include_directories(
   include/iris_land
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${GST_INCLUDE_DIRS}  # Inclui os diretórios do GStreamer
 )
 
 ## ------------------------------------------------------------------
@@ -76,6 +81,7 @@ add_executable(iris_mng
 target_link_libraries(iris_mng
   ${catkin_LIBRARIES}
   ${OpenCV_LIBS}
+  
 )
 add_dependencies(iris_mng ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
@@ -91,6 +97,18 @@ target_link_libraries(aruco_node
   ${OpenCV_LIBS}
 )
 add_dependencies(aruco_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Adiciona o executável (nome: stereo_camera_publisher_node, arquivo: scripts/camera_publisher.cpp)
+add_executable(stereo_camera_publisher_node src/camera_publisher.cpp)
+
+## Linka o executável com as bibliotecas necessárias
+target_link_libraries(stereo_camera_publisher_node
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${GST_LIBRARIES}  # Linka com as bibliotecas do GStreamer
+)
+
+
 
 ## Instalar scripts Python
 catkin_install_python(PROGRAMS
