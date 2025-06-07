@@ -1,7 +1,4 @@
-iris_land/PD_controller pd_ctrl
 iris_land/PID_controller pid_ctrl
-iris_land/PDPI_controller paralel_ctrl
-iris_land/PDPI_controller cascade_ctrl
 int32 mode
 float64 altitude
 float64 linear_vel

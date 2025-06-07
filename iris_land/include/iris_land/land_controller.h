@@ -17,9 +17,6 @@ public:
     bool completed_approach();
 
 private:
-    PD_velocity_ctl pdController;
-    cascade_velocity_ctl cascadeController;
-    parallel_velocity_ctl parallelController;
     PID_velocity_ctl pidController;
     Pose setpoint;
     int controller_mode;
