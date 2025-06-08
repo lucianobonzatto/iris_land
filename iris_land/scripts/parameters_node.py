@@ -26,52 +26,60 @@ class ControllerGUI:
 
         self.create_widgets()
         self.load_gains()
-
+        
     def create_widgets(self):
-        # Frame para os gains PID
+
+        self.action_frame = tk.Frame(self.root)
+        self.action_frame.grid(row=1, column=0, columnspan=1, pady=5)
+
+        self.submit_button = Button(self.action_frame, text="Aplicar", command=self.apply_gains)
+        self.submit_button.grid(row=0, column=0, padx=5)
+
+        self.save_button = Button(self.action_frame, text="Salvar", command=self.save_gains)
+        self.save_button.grid(row=0, column=1, padx=5)
+
+        # Frame para os ganhos PID
         self.pid_frame = tk.LabelFrame(self.root, text="Ganhos PID")
         self.pid_frame.grid(row=0, column=0, padx=10, pady=10)
 
-        self.create_gain_entries("PID", ["P", "I", "D"], 1, 0, frame=self.pid_frame)
+        self.create_gain_entries("PID", ["P", "I", "D"], 0, 0, frame=self.pid_frame)
 
         # Frame para parâmetros gerais
         self.param_frame = tk.LabelFrame(self.root, text="Parâmetros Gerais")
         self.param_frame.grid(row=0, column=1, padx=10, pady=10, sticky="n")
 
-        Label(self.param_frame, text="linear_vel").grid(row=0, column=0)
-        self.linear_vel = Entry(self.param_frame, width=5)
+        # Labels e Entradas de Velocidade
+        Label(self.param_frame, text="Linear Vel").grid(row=0, column=0, padx=5, pady=2)
+        self.linear_vel = Entry(self.param_frame, width=7)
         self.linear_vel.insert(0, "1.0")
-        self.linear_vel.grid(row=1, column=0, padx=5, pady=5)
+        self.linear_vel.grid(row=1, column=0, padx=5, pady=2)
 
-        Label(self.param_frame, text="angular_vel").grid(row=2, column=0)
-        self.angular_vel = Entry(self.param_frame, width=5)
+        Label(self.param_frame, text="Angular Vel").grid(row=0, column=1, padx=5, pady=2)
+        self.angular_vel = Entry(self.param_frame, width=7)
         self.angular_vel.insert(0, "1.0")
-        self.angular_vel.grid(row=3, column=0, padx=5, pady=5)
+        self.angular_vel.grid(row=1, column=1, padx=5, pady=2)
 
-        Label(self.param_frame, text="Altitude").grid(row=4, column=0)
-        self.scale = Scale(self.param_frame, from_=1.0, to=5.0, resolution=0.01, orient="horizontal", length=200)
+        # Altitude (label + scale)
+        Label(self.param_frame, text="Altitude").grid(row=2, column=0, columnspan=2, pady=2)
+        self.scale = Scale(self.param_frame, from_=1.0, to=5.0, resolution=0.01,
+                        orient="horizontal", length=200)
         self.scale.set(2.0)
-        self.scale.grid(row=5, column=0, padx=5, pady=5)
+        self.scale.grid(row=3, column=0, columnspan=2, padx=5, pady=2)
 
-        # Frame para botões
-        self.button_frame = tk.Frame(self.root)
-        self.button_frame.grid(row=1, column=0, columnspan=2, pady=10)
+        # Frame para botões do bag
+        self.bag_frame = tk.LabelFrame(self.root, text="bag")
+        self.bag_frame.grid(row=0, column=2, columnspan=2, padx=10, pady=10)
 
-        self.submit_button = Button(self.button_frame, text="Aplicar", command=self.apply_gains)
-        self.submit_button.grid(row=0, column=0, padx=5)
-
-        self.save_button = Button(self.button_frame, text="Salvar", command=self.save_gains)
-        self.save_button.grid(row=0, column=1, padx=5)
-
-        self.start_bag_button = Button(self.button_frame, text="Start Bag", command=self.start_bag)
+        self.start_bag_button = Button(self.bag_frame, text="Start Bag", command=self.start_bag)
         self.start_bag_button.grid(row=1, column=0, padx=5)
 
-        self.stop_bag_button = Button(self.button_frame, text="Stop Bag", command=self.stop_bag)
+        self.stop_bag_button = Button(self.bag_frame, text="Stop Bag", command=self.stop_bag)
         self.stop_bag_button.grid(row=1, column=1, padx=5)
 
-        Label(self.button_frame, text="Nome do arquivo:").grid(row=2, column=0, columnspan=2)
-        self.entry_text = Entry(self.button_frame, width=20)
+        Label(self.bag_frame, text="Nome do arquivo:").grid(row=2, column=0, columnspan=2)
+        self.entry_text = Entry(self.bag_frame, width=20)
         self.entry_text.grid(row=3, column=0, columnspan=2, pady=5)
+
 
     def create_gain_entries(self, controller_type, gains_Text, row_start, column_start, frame=None):
         if frame is None:

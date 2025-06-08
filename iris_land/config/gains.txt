@@ -1,8 +1,8 @@
-PID_P_x: 1
+PID_P_x: 0.0
 PID_I_x: 0.0
 PID_D_x: 0.0
 PID_P_y: 0.0
-PID_I_y: 2
+PID_I_y: 0.0
 PID_D_y: 0.0
 PID_P_z: 0.0
 PID_I_z: 0.0
