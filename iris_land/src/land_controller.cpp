@@ -15,27 +15,6 @@ Land_Controller::Land_Controller()
     builder.setOutMax(1);
     builder.setConditionalIntegration(true);
 
-    PD_velocity_ctl pd_controller(
-        builder,
-        builder,
-        builder,
-        builder);
-    pdController = pd_controller;
-
-    cascade_velocity_ctl cascade_controller(
-        builder, builder,
-        builder, builder,
-        builder, builder,
-        builder, builder);
-    cascadeController = cascade_controller;
-
-    parallel_velocity_ctl parallel_controller(
-        builder, builder,
-        builder, builder,
-        builder, builder,
-        builder, builder);
-    parallelController = parallel_controller;
-
     PID_velocity_ctl pid_Controller(
         builder,
         builder,

@@ -15,9 +15,6 @@ public:
     void update_parameters(iris_land::controllers_gain newParameters);
 
 private:
-    PD_velocity_ctl pdController;
-    cascade_velocity_ctl cascadeController;
-    parallel_velocity_ctl parallelController;
     PID_velocity_ctl pidController;
     Pose setpoint;
 
