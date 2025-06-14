@@ -87,17 +87,17 @@ target_link_libraries(iris_mng
 add_dependencies(iris_mng ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## ------------------------------------------------------------------
-## Executável “aruco_node”
+## Executável aruco_stereo
 ## ------------------------------------------------------------------
-add_executable(aruco_node
-  src/aruco_node.cpp
+add_executable(aruco_stereo
+  src/aruco_stereo.cpp
 )
 
-target_link_libraries(aruco_node
+target_link_libraries(aruco_stereo
   ${catkin_LIBRARIES}
   ${OpenCV_LIBS}
 )
-add_dependencies(aruco_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(aruco_stereo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## ------------------------------------------------------------------
 ## Executável stereo_camera_publisher_node
@@ -116,5 +116,6 @@ target_link_libraries(stereo_camera_publisher_node
 catkin_install_python(PROGRAMS
   scripts/parameters_node.py
   scripts/joy_node.py
+  scripts/aruco_rgb.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
