@@ -7,11 +7,10 @@ windows:
       panes:
         - sleep 1; rqt_image_view
         - sleep 1; rosrun iris_land stereo_camera_publisher_node
-        - sleep 1; rosrun iris_land aruco_node
+        - sleep 1; rosrun iris_land aruco_stereo
   - manager:
       layout: tiled
       panes:
-  #       - sleep 7; rosrun iris_land joy_node.py
         - sleep 3; rosrun iris_land parameters_node.py
         - sleep 3; rosrun iris_land iris_mng
         
