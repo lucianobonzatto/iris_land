@@ -117,7 +117,7 @@ void Manager::AWAITING_MODE_action()
 {
     drone_control->live_signal();
     drone_control->await_offboardMode();
-    drone_control->takeOff();
+    // drone_control->takeOff();
 }
 
 void Manager::send_velocity(double x_linear, double y_linear, double z_linear, double angular)
