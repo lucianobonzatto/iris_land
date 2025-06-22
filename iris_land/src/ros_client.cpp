@@ -13,6 +13,7 @@ void ROSClient::Init(Manager *const manager, DroneControl *const drone_control)
     rc_sub = nh->subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 1, &Manager::rcCallback, manager);
     pose_sub = nh->subscribe<geometry_msgs::PoseStamped>("/aruco/pose", 10, &Manager::arucoPoseCallback, manager);
     parameters_sub = nh->subscribe<iris_land::controllers_gain>("/PID/parameters", 1, &Manager::parametersCallback, manager);
+    status_pub = nh->advertise<std_msgs::String>("/controller/status", 10);
 
 // DroneControl parameters
     state_sub_ = nh->subscribe<mavros_msgs::State>("/mavros/state", 10, &DroneControl::state_cb, drone_control);

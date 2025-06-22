@@ -26,9 +26,9 @@ void Manager::print_parameters()
 
     ss << "Aruco Pose:\n";
     ss << "\tstamp: " << aruco_pose.header.stamp << "\n";
-    ss << "\tx: " << aruco_pose.pose.position.x << "\n"
-       << "\ty: " << aruco_pose.pose.position.y << "\n"
-       << "\tz: " << aruco_pose.pose.position.z << "\n"
+    ss << "\tx: " << aruco_pose.pose.position.x
+       << "\ty: " << aruco_pose.pose.position.y
+       << "\tz: " << aruco_pose.pose.position.z
        << "\ttheta: " << get_yaw(aruco_pose.pose.orientation) << "\n";
 
     ss << "Parameters:\n";
@@ -47,6 +47,9 @@ void Manager::print_parameters()
     follow_controller.append_parameters(ss);
     land_controller.append_parameters(ss);
 
+    std_msgs::String msg;
+    msg.data = ss.str();
+    ROS_client->status_pub.publish(msg);
     ROS_INFO_STREAM(ss.str());
 }
 
@@ -88,16 +91,20 @@ void Manager::update()
         send_velocity(0, 0, 0, 0);
         land_controller.reset_altitude(2);
     }
+
+    std_msgs::String msg;
+    msg.data = ss.str();
+    ROS_client->status_pub.publish(msg);
     ROS_INFO_STREAM(ss.str());
 }
 
 void Manager::STOPPED_action(std::stringstream& ss)
 {
     ss << "Velocity:\n";
-    ss << "\tX:\t" << 0 << "\n";
-    ss << "\tY:\t" << 0 << "\n";
-    ss << "\tZ:\t" << 0 << "\n";
-    ss << "\tYaw:\t" << 0 << "\n";
+    ss << "\tX:\t" << 0;
+    ss << "\tY:\t" << 0;
+    ss << "\tZ:\t" << 0;
+    ss << "\tYaw:\t" << 0;
     send_velocity(0, 0, 0, 0);
 }
 
@@ -111,10 +118,10 @@ void Manager::LAND_CONTROL_action(std::stringstream& ss)
                   velocity.linear.z,
                   velocity.angular.z);
     ss << "Velocity:\n";
-    ss << "\tX:\t" << velocity.linear.x << "\n";
-    ss << "\tY:\t" << velocity.linear.y << "\n";
-    ss << "\tZ:\t" << velocity.linear.z << "\n";
-    ss << "\tYaw:\t" << velocity.angular.z << "\n";
+    ss << "\tX:\t" << velocity.linear.x;
+    ss << "\tY:\t" << velocity.linear.y;
+    ss << "\tZ:\t" << velocity.linear.z;
+    ss << "\tYaw:\t" << velocity.angular.z;
 
     bool completed = land_controller.completed_approach();
     ss << "\tCompleted approach: " << (completed ? "Yes" : "No") << "\n";
@@ -137,10 +144,10 @@ void Manager::FOLLOW_CONTROL_action(std::stringstream& ss)
                   velocity.linear.z,
                   velocity.angular.z);
     ss << "Velocity:\n";
-    ss << "\tX:\t" << velocity.linear.x << "\n";
-    ss << "\tY:\t" << velocity.linear.y << "\n";
-    ss << "\tZ:\t" << velocity.linear.z << "\n";
-    ss << "\tYaw:\t" << velocity.angular.z << "\n";
+    ss << "\tX:\t" << velocity.linear.x;
+    ss << "\tY:\t" << velocity.linear.y;
+    ss << "\tZ:\t" << velocity.linear.z;
+    ss << "\tYaw:\t" << velocity.angular.z;
 }
 
 void Manager::AWAITING_MODE_action(std::stringstream& ss)
