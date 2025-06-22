@@ -52,20 +52,23 @@ void Manager::print_parameters()
 
 void Manager::update()
 {
+    std::stringstream ss;
+    ss << "======== EXECUTION ========\n";
+
     STATES state = state_machine.get_state();
     switch (state)
     {
     case STATES::STOPPED:
-        STOPPED_action();
+        STOPPED_action(ss);
         break;
     case STATES::LAND_CONTROL:
-        LAND_CONTROL_action();
+        LAND_CONTROL_action(ss);
         break;
     case STATES::FOLLOW_CONTROL:
-        FOLLOW_CONTROL_action();
+        FOLLOW_CONTROL_action(ss);
         break;
     case STATES::AWAITING_MODE:
-        AWAITING_MODE_action();
+        AWAITING_MODE_action(ss);
         break;
     default:
         break;
@@ -85,16 +88,21 @@ void Manager::update()
         send_velocity(0, 0, 0, 0);
         land_controller.reset_altitude(2);
     }
+    ROS_INFO_STREAM(ss.str());
 }
 
-void Manager::STOPPED_action()
+void Manager::STOPPED_action(std::stringstream& ss)
 {
+    ss << "Velocity:\n";
+    ss << "\tX:\t" << 0 << "\n";
+    ss << "\tY:\t" << 0 << "\n";
+    ss << "\tZ:\t" << 0 << "\n";
+    ss << "\tYaw:\t" << 0 << "\n";
     send_velocity(0, 0, 0, 0);
 }
 
-void Manager::LAND_CONTROL_action()
+void Manager::LAND_CONTROL_action(std::stringstream& ss)
 {
-    // cout << "**********************" << endl;
     geometry_msgs::Twist velocity;
 
     velocity = land_controller.get_velocity(aruco_pose);
@@ -102,17 +110,24 @@ void Manager::LAND_CONTROL_action()
                   velocity.linear.y,
                   velocity.linear.z,
                   velocity.angular.z);
+    ss << "Velocity:\n";
+    ss << "\tX:\t" << velocity.linear.x << "\n";
+    ss << "\tY:\t" << velocity.linear.y << "\n";
+    ss << "\tZ:\t" << velocity.linear.z << "\n";
+    ss << "\tYaw:\t" << velocity.angular.z << "\n";
 
-    // cout << "completed_approach: " << land_controller.completed_approach() << endl;
-    if (land_controller.completed_approach())
+    bool completed = land_controller.completed_approach();
+    ss << "\tCompleted approach: " << (completed ? "Yes" : "No") << "\n";
+
+    if (completed)
     {
+        ss << "\tTriggering LAND...\n";
         drone_control->land();
         state_machine.land();
     }
-    // cout << "**********************" << endl;
 }
 
-void Manager::FOLLOW_CONTROL_action()
+void Manager::FOLLOW_CONTROL_action(std::stringstream& ss)
 {
     geometry_msgs::Twist velocity;
 
@@ -121,9 +136,14 @@ void Manager::FOLLOW_CONTROL_action()
                   velocity.linear.y,
                   velocity.linear.z,
                   velocity.angular.z);
+    ss << "Velocity:\n";
+    ss << "\tX:\t" << velocity.linear.x << "\n";
+    ss << "\tY:\t" << velocity.linear.y << "\n";
+    ss << "\tZ:\t" << velocity.linear.z << "\n";
+    ss << "\tYaw:\t" << velocity.angular.z << "\n";
 }
 
-void Manager::AWAITING_MODE_action()
+void Manager::AWAITING_MODE_action(std::stringstream& ss)
 {
     drone_control->live_signal();
     drone_control->await_offboardMode();

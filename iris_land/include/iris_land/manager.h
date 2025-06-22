@@ -33,10 +33,10 @@ private:
     Land_Controller land_controller;
     Follow_Controller follow_controller;
 
-    void STOPPED_action();
-    void LAND_CONTROL_action();
-    void FOLLOW_CONTROL_action();
-    void AWAITING_MODE_action();
+    void STOPPED_action(std::stringstream& ss);
+    void LAND_CONTROL_action(std::stringstream& ss);
+    void FOLLOW_CONTROL_action(std::stringstream& ss);
+    void AWAITING_MODE_action(std::stringstream& ss);
     void send_velocity(double x_linear, double y_linear, double z_linear, double angular);
 };
 
