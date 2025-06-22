@@ -24,25 +24,25 @@ Follow_Controller::~Follow_Controller()
 {
 }
 
-void Follow_Controller::print_parameters()
+void Follow_Controller::append_parameters(std::stringstream& ss)
 {
-    cout << "Follow_Controller: " << endl;
-    cout << "\tx: " << setpoint.x << "\ty: " << setpoint.y
-         << "\tz: " << setpoint.z << "\ttheta: " << setpoint.theta << endl;
+    ss << "Follow Controller:\n";
+    ss << "\tx: " << setpoint.x << "\ty: " << setpoint.y
+       << "\tz: " << setpoint.z << "\ttheta: " << setpoint.theta << "\n";
 
     double kp, ki, kd;
-    kp = ki = kd = 0;
+
     pidController.get_x(kp, ki, kd);
-    cout << "\tx_kp: " << kp << "\tx_ki: " << ki << "\tx_kd: " << kd << endl;
+    ss << "\tx_kp:\t" << kp << "\tx_ki:\t" << ki << "\tx_kd:\t" << kd << "\n";
 
     pidController.get_y(kp, ki, kd);
-    cout << "\ty_kp: " << kp << "\ty_ki: " << ki << "\ty_kd: " << kd << endl;
+    ss << "\ty_kp:\t" << kp << "\ty_ki:\t" << ki << "\ty_kd:\t" << kd << "\n";
 
     pidController.get_z(kp, ki, kd);
-    cout << "\tz_kp: " << kp << "\tz_ki: " << ki << "\tz_kd: " << kd << endl;
+    ss << "\tz_kp:\t" << kp << "\tz_ki:\t" << ki << "\tz_kd:\t" << kd << "\n";
 
     pidController.get_theta(kp, ki, kd);
-    cout << "\tt_kp: " << kp << "\tt_ki: " << ki << "\tt_kd: " << kd << endl;
+    ss << "\tt_kp:\t" << kp << "\tt_ki:\t" << ki << "\tt_kd:\t" << kd << "\n";
 }
 
 void Follow_Controller::update_parameters(iris_land::controllers_gain newParameters)
