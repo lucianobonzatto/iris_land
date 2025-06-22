@@ -109,7 +109,7 @@ geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped po
     Speed vel = get_align_velocity(measurement);
 
     velocity.linear.x = -vel.vy;
-    velocity.linear.y = vel.vx;
+    velocity.linear.y = -vel.vx;
     velocity.linear.z = vel.vz;
     velocity.angular.z = vel.vtheta;
     return velocity;
