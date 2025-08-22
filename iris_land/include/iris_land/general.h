@@ -1,50 +1,50 @@
-#ifndef CONFIG
-#define CONFIG
+#ifndef GENERAL_H
+#define GENERAL_H
 
-#include <thread>
-#include <iostream>
-#include <unistd.h>
+#include "rclcpp/rclcpp.hpp"
+// #include <thread>
+// #include <iostream>
+// #include <unistd.h>
 #include <string>
-#include <ros/ros.h>
-#include <tf/tf.h>
-#include <cmath>
+// #include <tf/tf.h>
+// #include <cmath>
 
-#include <std_msgs/Bool.h>
-#include <std_msgs/Empty.h>
-#include <std_msgs/String.h>
-#include <std_msgs/Float32MultiArray.h>
+#include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/empty.hpp"
+#include "std_msgs/msg/string.hpp"
+// #include <std_msgs/Float32MultiArray.h>
 
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/PoseArray.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <geometry_msgs/TwistStamped.h>
+#include "geometry_msgs/msg/point.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 
-#include <nav_msgs/Odometry.h>
+// #include <nav_msgs/Odometry.h>
 
-#include <sensor_msgs/Imu.h>
-#include <sensor_msgs/NavSatFix.h>
+// #include <sensor_msgs/Imu.h>
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
 
-#include <mavros_msgs/CommandBool.h>
-#include <mavros_msgs/CommandTOL.h>
-#include <mavros_msgs/SetMode.h>
-#include <mavros_msgs/State.h>
-#include <mavros_msgs/ExtendedState.h>
-#include <mavros_msgs/GlobalPositionTarget.h>
-#include <mavros_msgs/RCIn.h>
+#include "mavros_msgs/srv/command_bool.hpp"
+#include "mavros_msgs/srv/command_tol.hpp"
+#include "mavros_msgs/srv/set_mode.hpp"
+#include "mavros_msgs/msg/state.hpp"
+#include "mavros_msgs/msg/extended_state.hpp"
+#include "mavros_msgs/msg/position_target.hpp"
+#include "mavros_msgs/msg/rc_in.hpp"
 
-#include <geographic_msgs/GeoPoseStamped.h>
+#include "geographic_msgs/msg/geo_pose_stamped.hpp"
 
-#include <iris_land/controllers_gain.h>
+// #include <iris_land/controllers_gain.h>
 
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/static_transform_broadcaster.h>
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2_ros/transform_listener.h>
+// #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include "tf2_ros/buffer.h"
+// #include <tf2_ros/static_transform_broadcaster.h>
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
 
 using namespace std;
 
@@ -100,6 +100,6 @@ enum STATE_KEY_LIMITS
      (value >  MID_MIN  && value <= MID_MAX) ? P2 : \
      (value >  MID_MAX  && value <= MAX)     ? P3 : OUT)
 
-double get_yaw(const geometry_msgs::Quaternion& quaternion);
+double get_yaw(const geometry_msgs::msg::Quaternion &q);
 
-#endif
+#endif /* GENERAL_H */
