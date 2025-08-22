@@ -89,7 +89,7 @@ void DroneControl::extended_state_cb(const mavros_msgs::ExtendedState::ConstPtr 
 void DroneControl::local_position_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
     local_position_ = *msg;
-    static int cnt = 0;
+    // static int cnt = 0;
 
     static tf2_ros::TransformBroadcaster br;
     static tf2_ros::StaticTransformBroadcaster sbr;
@@ -104,12 +104,12 @@ void DroneControl::local_position_cb(const geometry_msgs::PoseStamped::ConstPtr 
     transformStamped_.transform.rotation = local_position_.pose.orientation;
     br.sendTransform(transformStamped_);
 
-    cnt++;
-    if (cnt % 100 == 0)
-    {
-        ROS_INFO("Mavros local position: E: %f, N: %f, U: %f, yaw: %f", transformStamped_.transform.translation.x,
-                 transformStamped_.transform.translation.y, transformStamped_.transform.translation.z, currentYaw());
-    }
+    // cnt++;
+    // if (cnt % 100 == 0)
+    // {
+    //     ROS_INFO("Mavros local position: E: %f, N: %f, U: %f, yaw: %f", transformStamped_.transform.translation.x,
+    //              transformStamped_.transform.translation.y, transformStamped_.transform.translation.z, currentYaw());
+    // }
 }
 
 void DroneControl::global_position_cb(const sensor_msgs::NavSatFix::ConstPtr &msg)

@@ -20,42 +20,58 @@ void Manager::Init(ROSClient *rosClient, DroneControl *droneControl)
 
 void Manager::print_parameters()
 {
-    cout << "================" << endl;
-    cout << "\tpose: " << aruco_pose.header.stamp << endl;
-    cout << "\tx: " << aruco_pose.pose.position.x
-         << "\ty: " << aruco_pose.pose.position.y
-         << "\tz: " << aruco_pose.pose.position.z
-         << "\ttheta: " << get_yaw(aruco_pose.pose.orientation) << endl;
+    std::stringstream ss;
 
-    cout << "\tlinear_vel: " << parameters.linear_vel
-         << "\tangular_vel: " << parameters.angular_vel << endl;
+    ss << "================\n";
 
-    cout << "\tstate: " << states_name[state_machine.get_state()] << endl;
-    cout << "\trc: " << rc_status.header.stamp << endl;
-    cout << "\tconnected: " << (int) drone_control->current_state_.connected << endl;
-    cout << "\tflight_mode: " << drone_control->get_flight_mode() << endl;
-    cout << "\tlanded_state: " << drone_control->get_landed_state() << endl;
+    ss << "Aruco Pose:\n";
+    ss << "\tstamp: " << aruco_pose.header.stamp << "\n";
+    ss << "\tx: " << aruco_pose.pose.position.x
+       << "\ty: " << aruco_pose.pose.position.y
+       << "\tz: " << aruco_pose.pose.position.z
+       << "\ttheta: " << get_yaw(aruco_pose.pose.orientation) << "\n";
 
-    follow_controller.print_parameters();
-    land_controller.print_parameters();
+    ss << "Parameters:\n";
+    ss << "\tlinear_vel: " << parameters.linear_vel << "\n";
+    ss << "\tangular_vel: " << parameters.angular_vel << "\n";
+
+    ss << "State:\n";
+    ss << "\tcontrol_state: " << states_name[state_machine.get_state()] << "\n";
+    ss << "\tflight_mode:   " << drone_control->get_flight_mode() << "\n";
+    ss << "\tlanded_state: " << drone_control->get_landed_state() << "\n";
+
+    ss << "RC Status:\n";
+    ss << "\tstamp: " << rc_status.header.stamp << "\n";
+    ss << "\tconnected: " << (int) drone_control->current_state_.connected << "\n";
+
+    follow_controller.append_parameters(ss);
+    land_controller.append_parameters(ss);
+
+    std_msgs::String msg;
+    msg.data = ss.str();
+    ROS_client->status_pub.publish(msg);
+    ROS_INFO_STREAM(ss.str());
 }
 
 void Manager::update()
 {
+    std::stringstream ss;
+    ss << "======== EXECUTION ========\n";
+
     STATES state = state_machine.get_state();
     switch (state)
     {
     case STATES::STOPPED:
-        STOPPED_action();
+        STOPPED_action(ss);
         break;
     case STATES::LAND_CONTROL:
-        LAND_CONTROL_action();
+        LAND_CONTROL_action(ss);
         break;
     case STATES::FOLLOW_CONTROL:
-        FOLLOW_CONTROL_action();
+        FOLLOW_CONTROL_action(ss);
         break;
     case STATES::AWAITING_MODE:
-        AWAITING_MODE_action();
+        AWAITING_MODE_action(ss);
         break;
     default:
         break;
@@ -75,16 +91,25 @@ void Manager::update()
         send_velocity(0, 0, 0, 0);
         land_controller.reset_altitude(2);
     }
+
+    std_msgs::String msg;
+    msg.data = ss.str();
+    ROS_client->status_pub.publish(msg);
+    ROS_INFO_STREAM(ss.str());
 }
 
-void Manager::STOPPED_action()
+void Manager::STOPPED_action(std::stringstream& ss)
 {
+    ss << "Velocity:\n";
+    ss << "\tX:\t" << 0;
+    ss << "\tY:\t" << 0;
+    ss << "\tZ:\t" << 0;
+    ss << "\tYaw:\t" << 0;
     send_velocity(0, 0, 0, 0);
 }
 
-void Manager::LAND_CONTROL_action()
+void Manager::LAND_CONTROL_action(std::stringstream& ss)
 {
-    // cout << "**********************" << endl;
     geometry_msgs::Twist velocity;
 
     velocity = land_controller.get_velocity(aruco_pose);
@@ -92,17 +117,24 @@ void Manager::LAND_CONTROL_action()
                   velocity.linear.y,
                   velocity.linear.z,
                   velocity.angular.z);
+    ss << "Velocity:\n";
+    ss << "\tX:\t" << velocity.linear.x;
+    ss << "\tY:\t" << velocity.linear.y;
+    ss << "\tZ:\t" << velocity.linear.z;
+    ss << "\tYaw:\t" << velocity.angular.z;
 
-    // cout << "completed_approach: " << land_controller.completed_approach() << endl;
-    if (land_controller.completed_approach())
+    bool completed = land_controller.completed_approach();
+    ss << "\tCompleted approach: " << (completed ? "Yes" : "No") << "\n";
+
+    if (completed)
     {
+        ss << "\tTriggering LAND...\n";
         drone_control->land();
         state_machine.land();
     }
-    // cout << "**********************" << endl;
 }
 
-void Manager::FOLLOW_CONTROL_action()
+void Manager::FOLLOW_CONTROL_action(std::stringstream& ss)
 {
     geometry_msgs::Twist velocity;
 
@@ -111,13 +143,18 @@ void Manager::FOLLOW_CONTROL_action()
                   velocity.linear.y,
                   velocity.linear.z,
                   velocity.angular.z);
+    ss << "Velocity:\n";
+    ss << "\tX:\t" << velocity.linear.x;
+    ss << "\tY:\t" << velocity.linear.y;
+    ss << "\tZ:\t" << velocity.linear.z;
+    ss << "\tYaw:\t" << velocity.angular.z;
 }
 
-void Manager::AWAITING_MODE_action()
+void Manager::AWAITING_MODE_action(std::stringstream& ss)
 {
     drone_control->live_signal();
     drone_control->await_offboardMode();
-    drone_control->takeOff();
+    // drone_control->takeOff();
 }
 
 void Manager::send_velocity(double x_linear, double y_linear, double z_linear, double angular)

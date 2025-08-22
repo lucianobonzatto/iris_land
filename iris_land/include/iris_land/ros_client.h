@@ -15,6 +15,7 @@ public:
     ros::Subscriber pose_sub;
     ros::Subscriber rc_sub;
     ros::Subscriber parameters_sub;
+    ros::Publisher status_pub;
 
     ros::Subscriber state_sub_;
     ros::Subscriber extended_state_sub_;

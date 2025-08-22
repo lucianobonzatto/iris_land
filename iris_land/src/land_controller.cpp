@@ -15,27 +15,6 @@ Land_Controller::Land_Controller()
     builder.setOutMax(1);
     builder.setConditionalIntegration(true);
 
-    PD_velocity_ctl pd_controller(
-        builder,
-        builder,
-        builder,
-        builder);
-    pdController = pd_controller;
-
-    cascade_velocity_ctl cascade_controller(
-        builder, builder,
-        builder, builder,
-        builder, builder,
-        builder, builder);
-    cascadeController = cascade_controller;
-
-    parallel_velocity_ctl parallel_controller(
-        builder, builder,
-        builder, builder,
-        builder, builder,
-        builder, builder);
-    parallelController = parallel_controller;
-
     PID_velocity_ctl pid_Controller(
         builder,
         builder,
@@ -48,25 +27,25 @@ Land_Controller::~Land_Controller()
 {
 }
 
-void Land_Controller::print_parameters()
+void Land_Controller::append_parameters(std::stringstream& ss)
 {
-    cout << "Land_Controller: " << endl;
-    cout << "\tx: " << setpoint.x << "\ty: " << setpoint.y
-         << "\tz: " << setpoint.z << "\ttheta: " << setpoint.theta << endl;
+    ss << "Land Controller:\n";
+    ss << "\tx: " << setpoint.x << "\ty: " << setpoint.y
+       << "\tz: " << setpoint.z << "\ttheta: " << setpoint.theta << "\n";
 
     double kp, ki, kd;
-    kp = ki = kd = 0;
+
     pidController.get_x(kp, ki, kd);
-    cout << "\tx_kp: " << kp << "\tx_ki: " << ki << "\tx_kd: " << kd << endl;
+    ss << "\tx_kp:\t" << kp << "\tx_ki:\t" << ki << "\tx_kd:\t" << kd << "\n";
 
     pidController.get_y(kp, ki, kd);
-    cout << "\ty_kp: " << kp << "\ty_ki: " << ki << "\ty_kd: " << kd << endl;
+    ss << "\ty_kp:\t" << kp << "\ty_ki:\t" << ki << "\ty_kd:\t" << kd << "\n";
 
     pidController.get_z(kp, ki, kd);
-    cout << "\tz_kp: " << kp << "\tz_ki: " << ki << "\tz_kd: " << kd << endl;
+    ss << "\tz_kp:\t" << kp << "\tz_ki:\t" << ki << "\tz_kd:\t" << kd << "\n";
 
     pidController.get_theta(kp, ki, kd);
-    cout << "\tt_kp: " << kp << "\tt_ki: " << ki << "\tt_kd: " << kd << endl;
+    ss << "\tt_kp:\t" << kp << "\tt_ki:\t" << ki << "\tt_kd:\t" << kd << "\n";
 }
 
 void Land_Controller::update_parameters(iris_land::controllers_gain newParameters)
@@ -92,7 +71,7 @@ void Land_Controller::reset_altitude(double altitude)
 
 bool Land_Controller::completed_approach()
 {
-    if(setpoint.z < 0.5)
+    if(setpoint.z < 0.7)
         return true;
     return false;
 }
@@ -130,7 +109,7 @@ geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped po
     Speed vel = get_align_velocity(measurement);
 
     velocity.linear.x = -vel.vy;
-    velocity.linear.y = vel.vx;
+    velocity.linear.y = -vel.vx;
     velocity.linear.z = vel.vz;
     velocity.angular.z = vel.vtheta;
     return velocity;

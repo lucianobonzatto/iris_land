@@ -10,14 +10,11 @@ public:
     Follow_Controller();
     ~Follow_Controller();
 
-    void print_parameters();
-    geometry_msgs::Twist get_velocity(geometry_msgs::PoseStamped poseStamped);    
+    void append_parameters(std::stringstream& ss);
+    geometry_msgs::Twist get_velocity(geometry_msgs::PoseStamped poseStamped);
     void update_parameters(iris_land::controllers_gain newParameters);
 
 private:
-    PD_velocity_ctl pdController;
-    cascade_velocity_ctl cascadeController;
-    parallel_velocity_ctl parallelController;
     PID_velocity_ctl pidController;
     Pose setpoint;
 
