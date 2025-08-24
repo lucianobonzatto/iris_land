@@ -48,7 +48,7 @@ void Land_Controller::append_parameters(std::stringstream& ss)
     ss << "\tt_kp:\t" << kp << "\tt_ki:\t" << ki << "\tt_kd:\t" << kd << "\n";
 }
 
-void Land_Controller::update_parameters(iris_land::controllers_gain newParameters)
+void Land_Controller::update_parameters(iris_land_msgs::msg::ControllersGain newParameters)
 {
     pidController.update_x( newParameters.pid_ctrl.x.p_gain,
                             newParameters.pid_ctrl.x.i_gain,
@@ -76,11 +76,11 @@ bool Land_Controller::completed_approach()
     return false;
 }
 
-geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped poseStamped)
+geometry_msgs::msg::Twist Land_Controller::get_velocity(geometry_msgs::msg::PoseStamped poseStamped)
 {
-    geometry_msgs::Twist velocity;
+    geometry_msgs::msg::Twist velocity;
 
-    if (poseStamped.header.stamp.isZero())
+    if (poseStamped.header.stamp.sec == 0 && poseStamped.header.stamp.nanosec == 0)
     {
         return velocity;
     }

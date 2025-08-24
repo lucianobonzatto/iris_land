@@ -12,6 +12,7 @@ find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(mavros_msgs REQUIRED)
+find_package(iris_land_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(cv_bridge REQUIRED)
@@ -27,13 +28,13 @@ endif()
 add_executable(iris_mng
   src/manager_node.cpp
   # src/drone_control.cpp
-  # src/follow_controller.cpp
+  src/follow_controller.cpp
   src/general.cpp
-  # src/land_controller.cpp
+  src/land_controller.cpp
   # src/manager.cpp
-  # src/PIDlib.cpp
+  src/PIDlib.cpp
   # src/ros_client.cpp
-  # src/state_machine.cpp
+  src/state_machine.cpp
 )
 target_include_directories(iris_mng PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include/iris_land/
@@ -43,6 +44,7 @@ ament_target_dependencies(iris_mng
   std_msgs
   sensor_msgs
   geometry_msgs
+  iris_land_msgs
   mavros_msgs
   tf2_ros
   cv_bridge

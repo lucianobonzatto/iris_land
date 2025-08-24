@@ -12,8 +12,8 @@ public:
 
     void append_parameters(std::stringstream& ss);
 
-    geometry_msgs::Twist get_velocity(geometry_msgs::PoseStamped poseStamped);
-    void update_parameters(iris_land::controllers_gain newParameters);
+    geometry_msgs::msg::Twist get_velocity(geometry_msgs::msg::PoseStamped poseStamped);
+    void update_parameters(iris_land_msgs::msg::ControllersGain newParameters);
     void reset_altitude(double altitude);
     bool completed_approach();
 
