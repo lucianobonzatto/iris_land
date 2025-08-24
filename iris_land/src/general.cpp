@@ -1,8 +1,6 @@
 #include "general.h"
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2/LinearMath/Matrix3x3.h>
 
-double get_yaw(const geometry_msgs::Quaternion& quaternion) {
+double get_yaw(const geometry_msgs::msg::Quaternion& quaternion) {
     tf2::Quaternion tf_quaternion(
         quaternion.x,
         quaternion.y,

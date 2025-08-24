@@ -5,46 +5,51 @@
 #include <iostream>
 #include <unistd.h>
 #include <string>
-#include <ros/ros.h>
-#include <tf/tf.h>
 #include <cmath>
 
-#include <std_msgs/Bool.h>
-#include <std_msgs/Empty.h>
-#include <std_msgs/String.h>
-#include <std_msgs/Float32MultiArray.h>
+#include <rclcpp/rclcpp.hpp>  // ROS 2 node
 
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/PoseArray.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <geometry_msgs/TwistStamped.h>
+// Mensagens padrão ROS 2
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/empty.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <std_msgs/msg/float32_multi_array.hpp>
 
-#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+#include <geometry_msgs/msg/pose.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
+#include <geometry_msgs/msg/quaternion.hpp>
 
-#include <sensor_msgs/Imu.h>
-#include <sensor_msgs/NavSatFix.h>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
 
-#include <mavros_msgs/CommandBool.h>
-#include <mavros_msgs/CommandTOL.h>
-#include <mavros_msgs/SetMode.h>
-#include <mavros_msgs/State.h>
-#include <mavros_msgs/ExtendedState.h>
-#include <mavros_msgs/GlobalPositionTarget.h>
-#include <mavros_msgs/RCIn.h>
+// MAVROS em ROS 2 (as mensagens geralmente mantêm o mesmo nome)
+#include "mavros_msgs/srv/command_bool.hpp"
+#include "mavros_msgs/srv/command_tol.hpp"
+#include <mavros_msgs/srv/set_mode.hpp>
+#include <mavros_msgs/msg/state.hpp>
+#include <mavros_msgs/msg/extended_state.hpp>
+#include <mavros_msgs/msg/global_position_target.hpp>
+#include <mavros_msgs/msg/rc_in.hpp>
 
-#include <geographic_msgs/GeoPoseStamped.h>
+#include <geographic_msgs/msg/geo_pose_stamped.hpp>
 
-#include <iris_land/controllers_gain.h>
+// Cabeçalhos do seu pacote
+// #include <iris_land_msgs/msg/ControllersGain.hpp>
 
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/static_transform_broadcaster.h>
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2_ros/transform_listener.h>
+// TF2 ROS 2
+#include "tf2_ros/buffer.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/transform_broadcaster.h"
+// #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+
 
 using namespace std;
 
@@ -100,6 +105,6 @@ enum STATE_KEY_LIMITS
      (value >  MID_MIN  && value <= MID_MAX) ? P2 : \
      (value >  MID_MAX  && value <= MAX)     ? P3 : OUT)
 
-double get_yaw(const geometry_msgs::Quaternion& quaternion);
+double get_yaw(const geometry_msgs::msg::Quaternion& quaternion);
 
 #endif
