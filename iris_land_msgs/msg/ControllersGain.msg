@@ -1,4 +1,4 @@
-iris_land/PID_controller pid_ctrl
+iris_land_msgs/PIDController pid_ctrl
 int32 mode
 float64 altitude
 float64 linear_vel
