@@ -3,29 +3,29 @@
 #include "ros_client.h"
 #include "drone_control.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "manager_control");
-    ros::NodeHandle *nh = new ros::NodeHandle();
-    ros::Rate loop_rate(20);
+    rclcpp::init(argc, argv);
+    auto node = rclcpp::Node::make_shared("manager_control");
+    rclcpp::Rate loop_rate(20);
 
-    Manager manager;
-    DroneControl drone_control;
-    ROSClient ros_client(nh);
+    Manager manager(node);
+    ROSClient ros_client(node);
+    DroneControl drone_control(node, &ros_client);
 
-    ros_client.Init(&manager, &drone_control);
-    drone_control.Init(&ros_client);
     manager.Init(&ros_client, &drone_control);
 
+    ros_client.init(&manager, &drone_control);
     drone_control.Setup();
 
-    while (ros::ok())
+    while (rclcpp::ok())
     {
-        ros::spinOnce();
+        rclcpp::spin_some(node);
         manager.print_parameters();
         manager.update();
 
         loop_rate.sleep();
     }
-    delete nh;
+
+    return 0;
 }
