@@ -1,10 +1,6 @@
 #include "manager.h"
 #include "drone_control.h"
 
-Manager::Manager()
-{
-}
-
 Manager::~Manager()
 {
 }
@@ -25,7 +21,7 @@ void Manager::print_parameters()
     ss << "================\n";
 
     ss << "Aruco Pose:\n";
-    ss << "\tstamp: " << aruco_pose.header.stamp << "\n";
+    ss << "\tstamp: " << aruco_pose.header.stamp.sec << "." << aruco_pose.header.stamp.nanosec << "\n";
     ss << "\tx: " << aruco_pose.pose.position.x
        << "\ty: " << aruco_pose.pose.position.y
        << "\tz: " << aruco_pose.pose.position.z
@@ -41,16 +37,16 @@ void Manager::print_parameters()
     ss << "\tlanded_state: " << drone_control->get_landed_state() << "\n";
 
     ss << "RC Status:\n";
-    ss << "\tstamp: " << rc_status.header.stamp << "\n";
-    ss << "\tconnected: " << (int) drone_control->current_state_.connected << "\n";
+    ss << "\tstamp: " << rc_status.header.stamp.sec << "." << rc_status.header.stamp.nanosec << "\n";
+    ss << "\tconnected: " << (int)drone_control->current_state_.connected << "\n";
 
     follow_controller.append_parameters(ss);
     land_controller.append_parameters(ss);
 
-    std_msgs::String msg;
+    std_msgs::msg::String msg;
     msg.data = ss.str();
-    ROS_client->status_pub.publish(msg);
-    ROS_INFO_STREAM(ss.str());
+    ROS_client->status_pub->publish(msg);
+    RCLCPP_INFO_STREAM(nh_->get_logger(), ss.str());
 }
 
 void Manager::update()
@@ -92,13 +88,13 @@ void Manager::update()
         land_controller.reset_altitude(2);
     }
 
-    std_msgs::String msg;
+    std_msgs::msg::String msg;
     msg.data = ss.str();
-    ROS_client->status_pub.publish(msg);
-    ROS_INFO_STREAM(ss.str());
+    ROS_client->status_pub->publish(msg);
+    RCLCPP_INFO_STREAM(nh_->get_logger(), ss.str());
 }
 
-void Manager::STOPPED_action(std::stringstream& ss)
+void Manager::STOPPED_action(std::stringstream &ss)
 {
     ss << "Velocity:\n";
     ss << "\tX:\t" << 0;
@@ -108,9 +104,9 @@ void Manager::STOPPED_action(std::stringstream& ss)
     send_velocity(0, 0, 0, 0);
 }
 
-void Manager::LAND_CONTROL_action(std::stringstream& ss)
+void Manager::LAND_CONTROL_action(std::stringstream &ss)
 {
-    geometry_msgs::Twist velocity;
+    geometry_msgs::msg::Twist velocity;
 
     velocity = land_controller.get_velocity(aruco_pose);
     send_velocity(velocity.linear.x,
@@ -134,9 +130,9 @@ void Manager::LAND_CONTROL_action(std::stringstream& ss)
     }
 }
 
-void Manager::FOLLOW_CONTROL_action(std::stringstream& ss)
+void Manager::FOLLOW_CONTROL_action(std::stringstream &ss)
 {
-    geometry_msgs::Twist velocity;
+    geometry_msgs::msg::Twist velocity;
 
     velocity = follow_controller.get_velocity(aruco_pose);
     send_velocity(velocity.linear.x,
@@ -150,10 +146,12 @@ void Manager::FOLLOW_CONTROL_action(std::stringstream& ss)
     ss << "\tYaw:\t" << velocity.angular.z;
 }
 
-void Manager::AWAITING_MODE_action(std::stringstream& ss)
+void Manager::AWAITING_MODE_action(std::stringstream &ss)
 {
+    ss << "-- await offboard mode --\n";
+
     drone_control->live_signal();
-    drone_control->await_offboardMode();
+    drone_control->await_OFFBOARD_Mode();
     // drone_control->takeOff();
 }
 
@@ -163,17 +161,17 @@ void Manager::send_velocity(double x_linear, double y_linear, double z_linear, d
     // ROS_INFO("SEND VELOCITY: x: %f y: %f z: %f yaw: %f", x_linear, y_linear, z_linear, angular);
 }
 
-void Manager::arucoPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
+void Manager::arucoPoseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
 {
     aruco_pose = *msg;
 }
 
-void Manager::rcCallback(const mavros_msgs::RCIn::ConstPtr &msg)
+void Manager::rcCallback(const mavros_msgs::msg::RCIn::SharedPtr msg)
 {
     rc_status = *msg;
 }
 
-void Manager::parametersCallback(const iris_land::controllers_gain::ConstPtr &msg)
+void Manager::parametersCallback(const iris_land_msgs::msg::ControllersGain::SharedPtr msg)
 {
     parameters = *msg;
 }
