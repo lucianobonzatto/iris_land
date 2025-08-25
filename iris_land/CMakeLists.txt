@@ -14,6 +14,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(mavros_msgs REQUIRED)
 find_package(iris_land_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -31,7 +32,7 @@ add_executable(iris_mng
   src/follow_controller.cpp
   src/general.cpp
   src/land_controller.cpp
-  # src/manager.cpp
+  src/manager.cpp
   src/PIDlib.cpp
   src/ros_client.cpp
   src/state_machine.cpp
@@ -43,9 +44,10 @@ ament_target_dependencies(iris_mng
   rclcpp
   std_msgs
   sensor_msgs
+  mavros_msgs
   geometry_msgs
   iris_land_msgs
-  mavros_msgs
+  tf2_geometry_msgs
   tf2_ros
   cv_bridge
   OpenCV

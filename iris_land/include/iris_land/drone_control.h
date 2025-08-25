@@ -2,14 +2,12 @@
 #define DRONE_CONTROL_H
 
 #include "general.h"
-#include "ros_client.h"
 
+class ROSClient;
 class DroneControl
 {
 public:
-    DroneControl();
-    ~DroneControl();
-    void Init(ROSClient *drone_control);
+    DroneControl(const rclcpp::Node::SharedPtr &node, ROSClient *ros_client);
     void Setup();
 
     static constexpr float TAKEOFF_ALTITUDE = 5.0;
@@ -19,18 +17,23 @@ public:
     static constexpr double LON_DEG_TO_M = 75000.0;
 
     // The setpoint publishing rate MUST be faster than 2Hz
-    ros::Rate *rate_;
+    rclcpp::Node::SharedPtr nh_;
+    ROSClient *ros_client_;
+    rclcpp::Rate *rate_;
     tf2_ros::Buffer tfBuffer_;
+    tf2_ros::TransformListener tfListener_;
+    tf2_ros::TransformBroadcaster br_;
 
-    mavros_msgs::State current_state_;
-    geometry_msgs::PoseStamped local_position_;
-    sensor_msgs::NavSatFix global_position_;
-    geometry_msgs::TransformStamped transformStamped_;
+    mavros_msgs::msg::State current_state_;
+    geometry_msgs::msg::PoseStamped local_position_;
+    sensor_msgs::msg::NavSatFix global_position_;
+    geometry_msgs::msg::TransformStamped transformStamped_;
+    uint8_t landed_state_;
 
-    void state_cb(const mavros_msgs::State::ConstPtr &msg);
-    void extended_state_cb(const mavros_msgs::ExtendedState::ConstPtr &msg);
-    void local_position_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
-    void global_position_cb(const sensor_msgs::NavSatFix::ConstPtr &msg);
+    void state_cb(const mavros_msgs::msg::State::SharedPtr msg);
+    void extended_state_cb(const mavros_msgs::msg::ExtendedState::SharedPtr msg);
+    void local_position_cb(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
+    void global_position_cb(const sensor_msgs::msg::NavSatFix::SharedPtr msg);
 
     void flyToGlobal(double latitude, double longitude, double altitude, double yaw);
     void flyToLocal(double x, double y, double z, double yaw);
@@ -41,25 +44,27 @@ public:
     void cmd_vel_unstamped(double x, double y, double z, double ang);
     void cmd_vel_base_link(double x, double y, double z, double ang);
 
-    void set_offboardMode();
-    void await_offboardMode();
+    void await_OFFBOARD_Mode();
+    void set_OFFBOARD_Mode();
+
     void takeOff();
     void land();
     void disarm();
+    void arm();
 
     string get_flight_mode();
     int get_landed_state();
-
+    
 private:
-    uint8_t landed_state_ = 0;
-    geometry_msgs::PoseStamped setpoint_pos_ENU_;
-    geometry_msgs::PoseStamped gps_init_pos_;
-    ros::Time last_request_;
-    mavros_msgs::CommandBool arm_cmd_;
-    ROSClient *ros_client_;
+    geometry_msgs::msg::PoseStamped setpoint_pos_ENU_;
+    geometry_msgs::msg::PoseStamped gps_init_pos_;
+
+    rclcpp::Time last_request_;
+
+    mavros_msgs::srv::CommandBool arm_cmd_;
 
     double currentYaw();
-    double distance(const geometry_msgs::PoseStamped &p1, const geometry_msgs::PoseStamped &p2);
+    double distance(const geometry_msgs::msg::PoseStamped &p1, const geometry_msgs::msg::PoseStamped &p2);
 };
 
-#endif // DRONE_CONTROL_H
+#endif /* DRONE_CONTROL_H */

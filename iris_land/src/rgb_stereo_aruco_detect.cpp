@@ -318,7 +318,7 @@ void debugStereoCalibration() {
         sync_->registerCallback(boost::bind(&StereoArucoDetectorNode::imageCallback, this, _1, _2));
 
         // Publishers
-        pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/aruco/pose", 10);
+        pose_pub_ = nh_.advertise<geometry_msgs::msg::PoseStamped>("/aruco/pose", 10);
 
         if (config_.enableVisualization)
         {
@@ -592,7 +592,7 @@ void debugStereoCalibration() {
         cv_bridge::CvImagePtr right_cv = cv_bridge::toCvCopy(right_msg, sensor_msgs::image_encodings::BGR8);
 
         // Process the stereo pair
-        geometry_msgs::PoseStamped pose_msg;
+        geometry_msgs::msg::PoseStamped pose_msg;
         cv::Mat debug_image;
 
         if (detectMarkers(left_cv->image, right_cv->image, pose_msg, debug_image))
@@ -647,7 +647,7 @@ void debugStereoCalibration() {
 }
 
     bool detectMarkers(const cv::Mat &leftImage, const cv::Mat &rightImage,
-                   geometry_msgs::PoseStamped &pose_msg, cv::Mat &debug_image)
+                   geometry_msgs::msg::PoseStamped &pose_msg, cv::Mat &debug_image)
 {
     // Convert to grayscale if needed
     cv::Mat grayLeft, grayRight;
