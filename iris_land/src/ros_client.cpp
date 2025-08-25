@@ -2,37 +2,47 @@
 #include "manager.h"
 #include "drone_control.h"
 
-ROSClient::ROSClient(ros::NodeHandle *handle)
+void ROSClient::init(Manager *const manager, DroneControl *const drone_control)
 {
-    this->nh = handle;
-}
+    // Manager parameters
+    rc_sub = nh_->create_subscription<mavros_msgs::msg::RCIn>("/mavros/rc/in",
+                                                              rclcpp::QoS(1).best_effort(),
+                                                              std::bind(&Manager::rcCallback, manager, std::placeholders::_1));
+    pose_sub = nh_->create_subscription<geometry_msgs::msg::PoseStamped>("/aruco/pose",
+                                                                         rclcpp::QoS(10).best_effort(),
+                                                                         std::bind(&Manager::arucoPoseCallback, manager, std::placeholders::_1));
+    parameters_sub = nh_->create_subscription<iris_land_msgs::msg::ControllersGain>("/PID/parameters",
+                                                                                    rclcpp::QoS(1).best_effort(),
+                                                                                    std::bind(&Manager::parametersCallback, manager, std::placeholders::_1));
 
-void ROSClient::Init(Manager *const manager, DroneControl *const drone_control)
-{
-// Manager parameters
-    rc_sub = nh->subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 1, &Manager::rcCallback, manager);
-    pose_sub = nh->subscribe<geometry_msgs::PoseStamped>("/aruco/pose", 10, &Manager::arucoPoseCallback, manager);
-    parameters_sub = nh->subscribe<iris_land::controllers_gain>("/PID/parameters", 1, &Manager::parametersCallback, manager);
-    status_pub = nh->advertise<std_msgs::String>("/controller/status", 10);
+    status_pub = nh_->create_publisher<std_msgs::msg::String>("/controller/status", 10);
 
-// DroneControl parameters
-    state_sub_ = nh->subscribe<mavros_msgs::State>("/mavros/state", 10, &DroneControl::state_cb, drone_control);
-    extended_state_sub_ = nh->subscribe<mavros_msgs::ExtendedState>("/mavros/extended_state", 10, &DroneControl::extended_state_cb, drone_control);
-    local_pos_sub_ = nh->subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, &DroneControl::local_position_cb, drone_control);
-    global_pos_sub_ = nh->subscribe<sensor_msgs::NavSatFix>("/mavros/global_position/global", 10, &DroneControl::global_position_cb, drone_control);
+    // DroneControl parameters
+    state_sub_ = nh_->create_subscription<mavros_msgs::msg::State>("/mavros/state",
+                                                                   rclcpp::QoS(rclcpp::KeepLast(10)).reliable().transient_local(),
+                                                                   std::bind(&DroneControl::state_cb, drone_control, std::placeholders::_1));
+    extended_state_sub_ = nh_->create_subscription<mavros_msgs::msg::ExtendedState>("/mavros/extended_state",
+                                                                                    rclcpp::QoS(rclcpp::KeepLast(10)).reliable().transient_local(),
+                                                                                    std::bind(&DroneControl::extended_state_cb, drone_control, std::placeholders::_1));
+    local_pos_sub_ = nh_->create_subscription<geometry_msgs::msg::PoseStamped>("/mavros/local_position/pose",
+                                                                               rclcpp::QoS(rclcpp::KeepLast(10)).best_effort(),
+                                                                               std::bind(&DroneControl::local_position_cb, drone_control, std::placeholders::_1));
+    global_pos_sub_ = nh_->create_subscription<sensor_msgs::msg::NavSatFix>("/mavros/global_position/global",
+                                                                            rclcpp::QoS(rclcpp::KeepLast(10)).best_effort(),
+                                                                            std::bind(&DroneControl::global_position_cb, drone_control, std::placeholders::_1));
 
-    global_setpoint_pos_pub_ = nh->advertise<geographic_msgs::GeoPoseStamped>("/mavros/setpoint_position/global", 10);
-    setpoint_pos_pub_ = nh->advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);
-    velocity_pub = nh->advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 10);
-    velocity_unstamped_pub = nh->advertise<geometry_msgs::Twist>("/mavros/setpoint_velocity/cmd_vel_unstamped", 10);
+    global_setpoint_pos_pub_ = nh_->create_publisher<geographic_msgs::msg::GeoPoseStamped>("/mavros/setpoint_position/global", 10);
+    setpoint_pos_pub_ = nh_->create_publisher<geometry_msgs::msg::PoseStamped>("/mavros/setpoint_position/local", 10);
+    velocity_pub = nh_->create_publisher<geometry_msgs::msg::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 10);
+    velocity_unstamped_pub = nh_->create_publisher<geometry_msgs::msg::Twist>("/mavros/setpoint_velocity/cmd_vel_unstamped", 10);
 
-    arming_client_ = nh->serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
-    land_client_ = nh->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
-    takeoff_client_ = nh->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
-    set_mode_client_ = nh->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+    arming_client_ = nh_->create_client<mavros_msgs::srv::CommandBool>("/mavros/cmd/arming");
+    land_client_ = nh_->create_client<mavros_msgs::srv::CommandTOL>("/mavros/cmd/land");
+    takeoff_client_ = nh_->create_client<mavros_msgs::srv::CommandTOL>("/mavros/cmd/takeoff");
+    set_mode_client_ = nh_->create_client<mavros_msgs::srv::SetMode>("/mavros/set_mode");
 }
 
 void ROSClient::setParam(const std::string &key, double d)
 {
-    nh->setParam(key, d);
+    nh_->set_parameter(rclcpp::Parameter(key, d));
 }
