@@ -27,13 +27,13 @@ endif()
 
 add_executable(iris_mng
   src/manager_node.cpp
-  # src/drone_control.cpp
+  src/drone_control.cpp
   src/follow_controller.cpp
   src/general.cpp
   src/land_controller.cpp
   # src/manager.cpp
   src/PIDlib.cpp
-  # src/ros_client.cpp
+  src/ros_client.cpp
   src/state_machine.cpp
 )
 target_include_directories(iris_mng PRIVATE
