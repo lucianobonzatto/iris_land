@@ -8,8 +8,8 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "stereo_camera_node");
     ros::NodeHandle nh;
 
-    int width = 1600;
-    int height = 600;
+    int width = 1280;
+    int height = 480;
     int fps = 120;
 
     ros::Publisher pub_left = nh.advertise<sensor_msgs::Image>("/stereo/left/image_raw", 10);

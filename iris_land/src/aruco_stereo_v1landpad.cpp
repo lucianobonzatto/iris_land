@@ -177,7 +177,7 @@ public:
     void run()
     {
         ROS_INFO("Stereo ArUco Detector Node is running...");
-        ROS_INFO("Monitoring marker IDs: 363 (15cm), 152 (8cm), 417 (25cm)");
+        ROS_INFO("Monitoring marker IDs: 272 (15cm), 682 (8cm), 0 (25cm)");
         ros::spin();
     }
 
@@ -301,7 +301,7 @@ void debugStereoCalibration() {
             ROS_INFO("Debug mode: MINIMAL");
             
         ROS_INFO("Visualization: %s", config_.enableVisualization ? "ENABLED" : "DISABLED");
-        ROS_INFO("Marker sizes: 363(15cm), 152(8cm), 417(25cm)");
+        ROS_INFO("Marker sizes: 272(15cm), 682(8cm), 0(25cm)");
         ROS_INFO("Reprojection threshold: %.1f px", config_.reprojErrorThreshold);
         ROS_INFO("Calibration file: %s", config_.calibrationFile.c_str());
         ROS_INFO("=============================================\n");
@@ -333,11 +333,11 @@ void debugStereoCalibration() {
     void initializeArucoSettings()
     {
         // Define allowed marker IDs and their sizes (in meters)
-        // FIXED: Marker 152 size should be 0.08m (8cm) not 0.088m
-        allowedMarkerIds_ = {363, 152, 417};
-        markerSizes_[363] = 0.15f;  // 15 cm
-        markerSizes_[152] = 0.08f;  // 8 cm (CORRECTED from 0.088f)
-        markerSizes_[417] = 0.25f;    // 25 cm
+        // FIXED: Marker 682 size should be 0.08m (8cm) not 0.088m
+        allowedMarkerIds_ = {272, 682, 0};
+        markerSizes_[272] = 0.15f;  // 15 cm
+        markerSizes_[682] = 0.08f;  // 8 cm (CORRECTED from 0.088f)
+        markerSizes_[0] = 0.25f;    // 25 cm
 
         dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
         parameters_ = cv::aruco::DetectorParameters::create();
@@ -351,7 +351,7 @@ void debugStereoCalibration() {
         parameters_->adaptiveThreshWinSizeMax = 23;
         parameters_->adaptiveThreshWinSizeStep = 10;
 
-        ROS_INFO("ArUco settings initialized for marker IDs: 363 (15cm), 152 (8cm), 417 (25cm)");
+        ROS_INFO("ArUco settings initialized for marker IDs: 272 (15cm), 682 (8cm), 0 (25cm)");
     }
 
     void initializeStereoSettings()
@@ -422,14 +422,14 @@ void debugStereoCalibration() {
         0, -1, 0,
         0,  0, 1);
 
-    cv::Mat rotation_363 = rotation_180_z;  
-    cv::Mat rotation_152 = cv::Mat::eye(3, 3, CV_64F);  
-    cv::Mat rotation_417 = rotation_180_z;
+    cv::Mat rotation_272 = rotation_180_z;  
+    cv::Mat rotation_682 = cv::Mat::eye(3, 3, CV_64F);  
+    cv::Mat rotation_0 = rotation_180_z;
     
     std::vector<MarkerTransform> markers = {
-        {363, cv::Vec3f(-0.275f, -0.208f, 0.0f), rotation_363},  
-        {152, cv::Vec3f(0.043f, 0.038f, 0.0f), rotation_152},     
-        {417, cv::Vec3f(0.255f, 0.160f, 0.0f), rotation_417}        
+        {272, cv::Vec3f(-0.275f, -0.208f, 0.0f), rotation_272},  
+        {682, cv::Vec3f(0.043f, 0.038f, 0.0f), rotation_682},     
+        {0, cv::Vec3f(0.255f, 0.160f, 0.0f), rotation_0}        
     };
 
     if (!config_.enablePerformance)  // CHANGED: Only show if not in performance mode
