@@ -57,6 +57,7 @@ ament_target_dependencies(iris_mng
 ament_python_install_package(scripts)
 install(PROGRAMS
   scripts/aruco_rgb.py
+  scripts/joy_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

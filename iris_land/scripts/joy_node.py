@@ -1,100 +1,102 @@
-import rospy
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
 from mavros_msgs.msg import RCIn, OverrideRCIn
 import tkinter as tk
+import threading
 
-# Variável global para sinalizar quando enviar mensagens
-publish_active = False
+class RCOverrideGUI(Node):
+    def __init__(self):
+        super().__init__('rc_override_gui_publisher')
 
-def publish_loop():
-    rate = rospy.Rate(10)  # Define a frequência de 10 Hz
-    while not rospy.is_shutdown():
-        if publish_active:
-            rc_msg = OverrideRCIn()
-            # rc_msg.header.stamp = rospy.Time.now()
-            rc_msg.channels = [
-                throttle_slider.get(),
-                yaw_slider.get(),
-                pitch_slider.get(),
-                roll_slider.get(),
-                0, 0,
-                channel_7.get(),
-                0,0,0,0,0,0,0,0,0,0,0
-            ]
-            rc_pub.publish(rc_msg)
-            # rospy.loginfo(f"RCIn mensagem publicada: {rc_msg.channels}")
-        rate.sleep()
+        self.publish_active = False
 
-# Função para ativar/desativar a publicação
-def toggle_publish():
-    global publish_active
-    publish_active = not publish_active  # Alterna entre publicar e parar
-    if publish_active:
-        toggle_button.config(text="Parar Publicação")
-    else:
-        toggle_button.config(text="Iniciar Publicação")
+        # Publisher
+        self.rc_pub = self.create_publisher(OverrideRCIn, '/mavros/rc/override', 10)
 
-# Função para criar a interface gráfica
-def create_gui():
-    # Criação da janela principal
-    root = tk.Tk()
-    root.title("Controle RC Override")
+        # Sliders e variável do canal 7
+        self.throttle = 1500
+        self.yaw = 1500
+        self.pitch = 1500
+        self.roll = 1500
+        self.channel_7_val = 0
 
-    # Descrições dos sliders
-    tk.Label(root, text="Throttle").pack()
-    global throttle_slider
-    throttle_slider = tk.Scale(root, from_=1000, to=2000, orient=tk.HORIZONTAL)
-    throttle_slider.set(1500)
-    throttle_slider.pack()
-
-    tk.Label(root, text="Yaw").pack()
-    global yaw_slider
-    yaw_slider = tk.Scale(root, from_=1000, to=2000, orient=tk.HORIZONTAL)
-    yaw_slider.set(1500)
-    yaw_slider.pack()
-
-    tk.Label(root, text="Pitch").pack()
-    global pitch_slider
-    pitch_slider = tk.Scale(root, from_=1000, to=2000, orient=tk.HORIZONTAL)
-    pitch_slider.set(1500)
-    pitch_slider.pack()
-
-    tk.Label(root, text="Roll").pack()
-    global roll_slider
-    roll_slider = tk.Scale(root, from_=1000, to=2000, orient=tk.HORIZONTAL)
-    roll_slider.set(1500)
-    roll_slider.pack()
-
-    # Chave de 2 posições para o canal 7
-    global channel_7
-    channel_7 = tk.IntVar()
-    channel_7.set(0)  # Valor inicial neutro
-    tk.Radiobutton(root, text="p1 - stop", variable=channel_7, value=982).pack()
-    tk.Radiobutton(root, text="p2 - land", variable=channel_7, value=1494).pack()
-    tk.Radiobutton(root, text="p3 - follow", variable=channel_7, value=2006).pack()
-
-    # Botão para alternar a publicação
-    global toggle_button
-    toggle_button = tk.Button(root, text="Iniciar Publicação", command=toggle_publish)
-    toggle_button.pack()
-
-    # Loop principal da interface gráfica
-    root.mainloop()
-
-if __name__ == '__main__':
-    try:
-        # Inicializa o nó ROS
-        rospy.init_node('rc_override_gui_publisher', anonymous=True)
-        
-        # Cria o publisher
-        rc_pub = rospy.Publisher('/mavros/rc/override', OverrideRCIn, queue_size=10)
-
-        # Cria a interface gráfica em um thread separado
-        import threading
-        gui_thread = threading.Thread(target=create_gui)
+        # Cria a interface gráfica em um thread
+        gui_thread = threading.Thread(target=self.create_gui)
         gui_thread.start()
 
-        # Inicia o loop de publicação
-        publish_loop()
+        # Loop de publicação
+        self.timer = self.create_timer(0.1, self.publish_callback)  # 10 Hz
 
-    except rospy.ROSInterruptException:
-        pass
+    def create_gui(self):
+        root = tk.Tk()
+        root.title("Controle RC Override")
+
+        # Throttle
+        tk.Label(root, text="Throttle").pack()
+        self.throttle_slider = tk.Scale(root, from_=1000, to=2000, orient=tk.HORIZONTAL)
+        self.throttle_slider.set(1500)
+        self.throttle_slider.pack()
+
+        # Yaw
+        tk.Label(root, text="Yaw").pack()
+        self.yaw_slider = tk.Scale(root, from_=1000, to=2000, orient=tk.HORIZONTAL)
+        self.yaw_slider.set(1500)
+        self.yaw_slider.pack()
+
+        # Pitch
+        tk.Label(root, text="Pitch").pack()
+        self.pitch_slider = tk.Scale(root, from_=1000, to=2000, orient=tk.HORIZONTAL)
+        self.pitch_slider.set(1500)
+        self.pitch_slider.pack()
+
+        # Roll
+        tk.Label(root, text="Roll").pack()
+        self.roll_slider = tk.Scale(root, from_=1000, to=2000, orient=tk.HORIZONTAL)
+        self.roll_slider.set(1500)
+        self.roll_slider.pack()
+
+        # Canal 7
+        self.channel_7 = tk.IntVar()
+        self.channel_7.set(0)
+        tk.Radiobutton(root, text="p1 - stop", variable=self.channel_7, value=982).pack()
+        tk.Radiobutton(root, text="p2 - land", variable=self.channel_7, value=1494).pack()
+        tk.Radiobutton(root, text="p3 - follow", variable=self.channel_7, value=2006).pack()
+
+        # Botão de alternar publicação
+        self.toggle_button = tk.Button(root, text="Iniciar Publicação", command=self.toggle_publish)
+        self.toggle_button.pack()
+
+        root.mainloop()
+
+    def toggle_publish(self):
+        self.publish_active = not self.publish_active
+        if self.publish_active:
+            self.toggle_button.config(text="Parar Publicação")
+        else:
+            self.toggle_button.config(text="Iniciar Publicação")
+    
+    def publish_callback(self):
+        if self.publish_active:
+            rc_msg = OverrideRCIn()
+            rc_msg.channels = [
+                self.throttle_slider.get(),
+                self.yaw_slider.get(),
+                self.pitch_slider.get(),
+                self.roll_slider.get(),
+                0, 0,
+                self.channel_7.get(),
+                0,0,0,0,0,0,0,0,0,0,0
+            ]
+            self.rc_pub.publish(rc_msg)
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = RCOverrideGUI()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
