@@ -1,34 +1,44 @@
+#!/usr/bin/env python3
+
 import os
-import rospy
-import rospkg 
-import datetime
+import sys
+import rclpy
+from rclpy.node import Node
 import subprocess
 import tkinter as tk
-from tkinter import Label, Entry, Button, Radiobutton, StringVar, Scale
-from iris_land.msg import controllers_gain
+from tkinter import Label, Entry, Button, Scale
+from iris_land_msgs.msg import ControllersGain
+import atexit
+import signal
 
-class ControllerGUI:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Configuração de Controladores")
-        self.root.resizable(False, False)
-        
+class ControllerGUI(Node):
+    def __init__(self):
+        super().__init__('controller_gui')
+
         self.entries = {}
-        self.par_pub = rospy.Publisher('/PID/parameters', controllers_gain, queue_size=10)
-        self.gains = controllers_gain()
+        self.gains = ControllersGain()
+        self.par_pub = self.create_publisher(ControllersGain, '/PID/parameters', 10)
 
-        self.package_path = rospkg.RosPack().get_path("iris_land")
-        self.gains_file = self.package_path + "/config/gains.txt"
-        self.bag_path = self.package_path + "/../bag/"
-
+        self.package_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../src/iris_land/iris_land'))
+        self.gains_file = os.path.join(self.package_path, "config", "gains.txt")
+        self.bag_path = os.path.join(os.path.dirname(self.package_path), "bag")
         if not os.path.exists(self.bag_path):
             os.mkdir(self.bag_path)
 
+        self.bag_process = None
+
+        self.root = tk.Tk()
+        self.root.title("Configuração de Controladores")
+        self.root.resizable(False, False)
+
         self.create_widgets()
         self.load_gains()
-        
-    def create_widgets(self):
 
+        # Para garantir que o bag seja encerrado ao fechar
+        atexit.register(self.stop_bag)
+        self.root.mainloop()
+
+    def create_widgets(self):
         self.action_frame = tk.Frame(self.root)
         self.action_frame.grid(row=1, column=0, columnspan=1, pady=5)
 
@@ -110,19 +120,16 @@ class ControllerGUI:
                 file.write(f"{key}: {value}\n")
 
     def start_bag(self):
-        rosbag_command = f"rosnode kill rosbag_node"
-        process = subprocess.Popen(rosbag_command, shell=True)
-        process.wait()
-
-        bag_filename = self.bag_path + "/" + self.entry_text.get()
-        rosbag_command = f"rosbag record -o {bag_filename} -a __name:=rosbag_node"
-
-        subprocess.Popen(rosbag_command, shell=True)
+        print("start_bag")
+        bag_filename = os.path.join(self.bag_path, self.entry_text.get())
+        self.bag_process = subprocess.Popen(['ros2', 'bag', 'record', '-o', bag_filename, '-a'])
 
     def stop_bag(self):
-        rosbag_command = f"rosnode kill rosbag_node"
-        process = subprocess.Popen(rosbag_command, shell=True)
-        process.wait()
+        if self.bag_process is not None:
+            print("stop")
+            self.bag_process.send_signal(signal.SIGINT)
+            self.bag_process.wait()
+            self.bag_process = None
 
     def load_gains(self):
         try:
@@ -161,12 +168,13 @@ class ControllerGUI:
         return self.entries[f"{controller_type}_{gain}_{dimension}"]
 
 def main():
-    teste = controllers_gain()
+    rclpy.init(args=sys.argv)
+    try:
+        gui_node = ControllerGUI()
+    finally:
+        gui_node.stop_bag()
+        gui_node.destroy_node()
+        rclpy.shutdown()
 
-    rospy.init_node('controller_gui', anonymous=True)
-    root = tk.Tk()
-    app = ControllerGUI(root)
-    root.mainloop()
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

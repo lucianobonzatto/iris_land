@@ -58,6 +58,7 @@ ament_python_install_package(scripts)
 install(PROGRAMS
   scripts/aruco_rgb.py
   scripts/joy_node.py
+  scripts/parameters_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
