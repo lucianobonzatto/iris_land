@@ -47,32 +47,21 @@ class ImageReader(Node):
     def _initialize_transform_matrices(self):
         # Cria a matriz de transformação Landpad -> Aruco
         Position_272 = np.array([-0.255, -0.160, 0])
-        # Rotation_272 = np.array([
-        #     [-1, 0, 0],  # Cos(180) = -1, Sin(180) = 0
-        #     [ 0,-1, 0],  # Cos(180) = -1, Sin(180) = 0
-        #     [ 0, 0, 1]    # Eixo Z permanece o mesmo
-        # ])
-
-        Position_682 = np.array([0.043, 0.038, 0])
-        # Rotation_682 = np.eye(3)
-
-        Position_000 = np.array([0.320, 0.215, 0])
-        # Rotation_000 = np.array([
-        #     [-1, 0, 0],  # Cos(180) = -1, Sin(180) = 0
-        #     [ 0,-1, 0],  # Cos(180) = -1, Sin(180) = 0
-        #     [ 0, 0, 1]    # Eixo Z permanece o mesmo
-        # ])
-
-        teste_A = np.array([
+        Rotation_272 = np.array([
             [-1, 0, 0],  # Cos(180) = -1, Sin(180) = 0
             [ 0,-1, 0],  # Cos(180) = -1, Sin(180) = 0
             [ 0, 0, 1]    # Eixo Z permanece o mesmo
         ])
-        teste_B = np.eye(3)
 
-        Rotation_272 = teste_A
-        Rotation_682 = teste_B
-        Rotation_000 = teste_A
+        Position_682 = np.array([0.043, 0.038, 0])
+        Rotation_682 = np.eye(3)
+
+        Position_000 = np.array([0.320, 0.215, 0])
+        Rotation_000 = np.array([
+            [-1, 0, 0],  # Cos(180) = -1, Sin(180) = 0
+            [ 0,-1, 0],  # Cos(180) = -1, Sin(180) = 0
+            [ 0, 0, 1]    # Eixo Z permanece o mesmo
+        ])
 
         self.TM_Aruco_To_Landpad_272 = np.eye(4)
         self.TM_Aruco_To_Landpad_272[:3, :3] = Rotation_272
@@ -91,7 +80,6 @@ class ImageReader(Node):
         self.TM_Landpad_To_Aruco_000 = np.linalg.inv(self.TM_Aruco_To_Landpad_000)
     
     def image_callback(self, msg):
-        print("image_callback")
         image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8').copy()
         pose_msg, image = self.position_detect(image)
 
@@ -141,29 +129,27 @@ class ImageReader(Node):
                                         rvecs,
                                         tvecs,
                                         marker_length/2)
-                    print('\n----', marker_id, '----\n')
+                    # print('\n----', marker_id, '----\n')
 
                     pos_landpad_to_camera, rot_landpad_to_camera = self._landpad_to_camera(tvecs, rvecs, marker_id)
 
-                    print('\tx\ty\tz', '\t\tx\ty\tz')
-                    print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]), '\t',
-                          "\t{:.2f}\t{:.2f}\t{:.2f}".format(pos_landpad_to_camera[0], pos_landpad_to_camera[1], pos_landpad_to_camera[2]))
-                    print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]), '\t',
-                          "\t{:.2f}\t{:.2f}\t{:.2f}".format(rot_landpad_to_camera[0], rot_landpad_to_camera[1], rot_landpad_to_camera[2]))
+                    # print('\tx\ty\tz', '\t\tx\ty\tz')
+                    # print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]), '\t',
+                    #       "\t{:.2f}\t{:.2f}\t{:.2f}".format(pos_landpad_to_camera[0], pos_landpad_to_camera[1], pos_landpad_to_camera[2]))
+                    # print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]), '\t',
+                    #       "\t{:.2f}\t{:.2f}\t{:.2f}".format(rot_landpad_to_camera[0], rot_landpad_to_camera[1], rot_landpad_to_camera[2]))
 
                     if pos_landpad_to_camera is not None and rot_landpad_to_camera is not None:
                         positions.append(pos_landpad_to_camera)
                         orientations.append(rot_landpad_to_camera)
-
-                        rvec_landpad_marker, _ = cv2.Rodrigues(R.from_euler('ZYX', rot_landpad_to_camera).as_matrix())
-                        tvec_landpad_marker = pos_landpad_to_camera.reshape((3, 1))
-                        return_image = cv2.drawFrameAxes(return_image,
-                                                        self.camera_matrix,
-                                                        self.distortion_coeffs,
-                                                        rvec_landpad_marker,
-                                                        tvec_landpad_marker,
-                                                        0.05)
-
+                        # rvec_landpad_marker, _ = cv2.Rodrigues(R.from_euler('ZYX', rot_landpad_to_camera).as_matrix())
+                        # tvec_landpad_marker = pos_landpad_to_camera.reshape((3, 1))
+                        # return_image = cv2.drawFrameAxes(return_image,
+                        #                                 self.camera_matrix,
+                        #                                 self.distortion_coeffs,
+                        #                                 rvec_landpad_marker,
+                        #                                 tvec_landpad_marker,
+                        #                                 0.05)
 
             # print('\n----------------\n')
             if positions and orientations:
@@ -186,7 +172,7 @@ class ImageReader(Node):
                 # Preenche o pose_msg com os valores médios
                 pose_msg = PoseStamped()
                 pose_msg.pose.position.x = avg_position[0]
-                pose_msg.pose.position.y = avg_position[1]
+                pose_msg.pose.position.y = -avg_position[1]
                 pose_msg.pose.position.z = avg_position[2]
 
                 pose_msg.pose.orientation.x = quaternion[0]
@@ -196,12 +182,12 @@ class ImageReader(Node):
 
                 rvec_landpad, _ = cv2.Rodrigues(R.from_euler('ZYX', avg_orientation).as_matrix())
                 tvec_landpad = avg_position.reshape((3,1))
-                # return_image = cv2.drawFrameAxes(return_image,
-                #                      self.camera_matrix,
-                #                      self.distortion_coeffs,
-                #                      rvec_landpad,
-                #                      tvec_landpad,
-                #                      0.2)
+                return_image = cv2.drawFrameAxes(return_image,
+                                     self.camera_matrix,
+                                     self.distortion_coeffs,
+                                     rvec_landpad,
+                                     tvec_landpad,
+                                     0.2)
 
 
         return pose_msg, return_image
@@ -226,7 +212,7 @@ class ImageReader(Node):
             TM_Landpad_To_Camera = TM_Aruco_To_Camera @ self.TM_Landpad_To_Aruco_000
 
         pos_landpad_to_camera = TM_Landpad_To_Camera[:3, 3]
-        pos_landpad_to_camera[1] = -pos_landpad_to_camera[1]
+        # pos_landpad_to_camera[1] = -pos_landpad_to_camera[1]
 
         rotation_landpad_to_camera = R.from_matrix(TM_Landpad_To_Camera[:3, :3])
         rot_landpad_to_camera = rotation_landpad_to_camera.as_euler('ZYX', degrees=False) # roll, pitch, yaw

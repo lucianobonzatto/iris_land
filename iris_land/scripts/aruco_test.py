@@ -11,6 +11,7 @@ class ImagePublisherAndPoseSubscriber(Node):
     def __init__(self, image_path):
         super().__init__('image_pub_pose_sub_node')
         self.bridge = CvBridge()
+        self.rotation_angle = 0 
 
         # Publicador de imagem
         self.image_pub = self.create_publisher(Image, '/iris/usb_cam/image_raw', 10)
@@ -34,16 +35,27 @@ class ImagePublisherAndPoseSubscriber(Node):
             return
 
         # Publica a imagem a cada 0.1s (10 Hz)
-        timer_period = 1
+        timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.publish_image)
 
     def publish_image(self):
         try:
-            image_msg = self.bridge.cv2_to_imgmsg(self.cv_image, encoding='bgr8')
+
+            if self.rotation_angle != 0:
+                (h, w) = self.cv_image.shape[:2]
+                center = (w // 2, h // 2)
+                M = cv2.getRotationMatrix2D(center, self.rotation_angle, 1.0)
+                cv_image_rot = cv2.warpAffine(self.cv_image, M, (w, h))
+            else:
+                cv_image_rot = self.cv_image.copy()
+
+                
+            image_msg = self.bridge.cv2_to_imgmsg(cv_image_rot, encoding='bgr8')
             self.image_pub.publish(image_msg)
-            # self.get_logger().info("Imagem publicada em /aruco/image")
-            # cv2.imshow("Imagem Publicada", self.cv_image)
-            # cv2.waitKey(1)
+
+            self.rotation_angle = self.rotation_angle + 1
+
+            print(self.rotation_angle)
         except Exception as e:
             self.get_logger().error(f"Erro ao publicar imagem: {e}")
 
@@ -67,7 +79,9 @@ class ImagePublisherAndPoseSubscriber(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_43.jpg'  # ajuste para seu arquivo
+    image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_43.jpg'
+    image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_4.jpg'
+    image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_ex.jpg'
     node = ImagePublisherAndPoseSubscriber(image_path)
 
     try:
