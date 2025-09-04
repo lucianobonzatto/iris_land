@@ -59,6 +59,7 @@ install(PROGRAMS
   scripts/aruco_rgb.py
   scripts/joy_node.py
   scripts/parameters_node.py
+  scripts/aruco_test.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

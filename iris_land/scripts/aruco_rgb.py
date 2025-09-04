@@ -17,7 +17,6 @@ from scipy.stats import circmean
 
 class ImageReader(Node):
     def __init__(self):
-        print("__init__")
         super().__init__('aruco_node')
 
         self._initialize_topics()
@@ -25,21 +24,20 @@ class ImageReader(Node):
         self._initialize_transform_matrices()
 
     def _initialize_topics(self):
-        print("_initialize_topics")
         self.image_sub = self.create_subscription(Image, '/iris/usb_cam/image_raw', self.image_callback, 10)
         self.image_pub = self.create_publisher(Image, '/aruco/image', 10)
         self.pose_pub = self.create_publisher(PoseStamped, '/aruco/pose', 10)
+
     def _initialize_aruco_settings(self):
-        print("_initialize_aruco_settings")
         self.camera_matrix = np.array(
             [
-                [277.191356, 0.        , 320/2],
-                [0.        , 277.191356, 240/2],
-                [0.        , 0.        , 1.   ],
+                [3.02573320e03, 0.00000000e00, 1.02641519e03],
+                [0.00000000e00, 2.98476190e03, 2.69918299e02],
+                [0.00000000e00, 0.00000000e00, 1.00000000e00],
             ]
         )
         self.distortion_coeffs = np.array(
-            [0.0, 0.0, 0.0, 0.0, 0.0]
+            [-0.31855945, -0.04039797, 0.00156687, 0.00949025, 0.09074052]
         )
 
         self.marker_sizes = {272: 0.15, 682: 0.08, 0: 0.25}
@@ -47,21 +45,34 @@ class ImageReader(Node):
         self.bridge = CvBridge()
 
     def _initialize_transform_matrices(self):
-        print("_initialize_transform_matrices")
         # Cria a matriz de transformação Landpad -> Aruco
-
         Position_272 = np.array([-0.255, -0.160, 0])
-        Rotation_272 = np.eye(3)
+        # Rotation_272 = np.array([
+        #     [-1, 0, 0],  # Cos(180) = -1, Sin(180) = 0
+        #     [ 0,-1, 0],  # Cos(180) = -1, Sin(180) = 0
+        #     [ 0, 0, 1]    # Eixo Z permanece o mesmo
+        # ])
 
         Position_682 = np.array([0.043, 0.038, 0])
-        Rotation_682 = np.eye(3)
+        # Rotation_682 = np.eye(3)
 
         Position_000 = np.array([0.320, 0.215, 0])
-        Rotation_000 = np.array([
+        # Rotation_000 = np.array([
+        #     [-1, 0, 0],  # Cos(180) = -1, Sin(180) = 0
+        #     [ 0,-1, 0],  # Cos(180) = -1, Sin(180) = 0
+        #     [ 0, 0, 1]    # Eixo Z permanece o mesmo
+        # ])
+
+        teste_A = np.array([
             [-1, 0, 0],  # Cos(180) = -1, Sin(180) = 0
             [ 0,-1, 0],  # Cos(180) = -1, Sin(180) = 0
             [ 0, 0, 1]    # Eixo Z permanece o mesmo
         ])
+        teste_B = np.eye(3)
+
+        Rotation_272 = teste_A
+        Rotation_682 = teste_B
+        Rotation_000 = teste_A
 
         self.TM_Aruco_To_Landpad_272 = np.eye(4)
         self.TM_Aruco_To_Landpad_272[:3, :3] = Rotation_272
@@ -95,7 +106,6 @@ class ImageReader(Node):
             self.pose_pub.publish(pose_msg)
 
     def position_detect(self, image):
-        print("position_detect")
         pose_msg = None
         return_image = None
         
@@ -121,23 +131,39 @@ class ImageReader(Node):
                     self.distortion_coeffs,
                 )
 
-                return_image = cv2.drawFrameAxes(return_image,self.camera_matrix,self.distortion_coeffs,rvecs,tvecs,marker_length)
                 if rvecs is not None and tvecs is not None:
                     tvecs = np.squeeze(tvecs)
                     rvecs = np.squeeze(rvecs)
-                    # print('\n----', marker_id, '----\n')
+
+                    return_image = cv2.drawFrameAxes(return_image,
+                                        self.camera_matrix,
+                                        self.distortion_coeffs,
+                                        rvecs,
+                                        tvecs,
+                                        marker_length/2)
+                    print('\n----', marker_id, '----\n')
 
                     pos_landpad_to_camera, rot_landpad_to_camera = self._landpad_to_camera(tvecs, rvecs, marker_id)
 
-                    # print('\tx\ty\tz', '\t\tx\ty\tz')
-                    # print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]), '\t',
-                    #       "\t{:.2f}\t{:.2f}\t{:.2f}".format(pos_landpad_to_camera[0], pos_landpad_to_camera[1], pos_landpad_to_camera[2]))
-                    # print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]), '\t',
-                    #       "\t{:.2f}\t{:.2f}\t{:.2f}".format(rot_landpad_to_camera[0], rot_landpad_to_camera[1], rot_landpad_to_camera[2]))
+                    print('\tx\ty\tz', '\t\tx\ty\tz')
+                    print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]), '\t',
+                          "\t{:.2f}\t{:.2f}\t{:.2f}".format(pos_landpad_to_camera[0], pos_landpad_to_camera[1], pos_landpad_to_camera[2]))
+                    print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]), '\t',
+                          "\t{:.2f}\t{:.2f}\t{:.2f}".format(rot_landpad_to_camera[0], rot_landpad_to_camera[1], rot_landpad_to_camera[2]))
 
                     if pos_landpad_to_camera is not None and rot_landpad_to_camera is not None:
                         positions.append(pos_landpad_to_camera)
                         orientations.append(rot_landpad_to_camera)
+
+                        rvec_landpad_marker, _ = cv2.Rodrigues(R.from_euler('ZYX', rot_landpad_to_camera).as_matrix())
+                        tvec_landpad_marker = pos_landpad_to_camera.reshape((3, 1))
+                        return_image = cv2.drawFrameAxes(return_image,
+                                                        self.camera_matrix,
+                                                        self.distortion_coeffs,
+                                                        rvec_landpad_marker,
+                                                        tvec_landpad_marker,
+                                                        0.05)
+
 
             # print('\n----------------\n')
             if positions and orientations:
@@ -168,11 +194,19 @@ class ImageReader(Node):
                 pose_msg.pose.orientation.z = quaternion[2]
                 pose_msg.pose.orientation.w = quaternion[3]
 
+                rvec_landpad, _ = cv2.Rodrigues(R.from_euler('ZYX', avg_orientation).as_matrix())
+                tvec_landpad = avg_position.reshape((3,1))
+                # return_image = cv2.drawFrameAxes(return_image,
+                #                      self.camera_matrix,
+                #                      self.distortion_coeffs,
+                #                      rvec_landpad,
+                #                      tvec_landpad,
+                #                      0.2)
+
 
         return pose_msg, return_image
 
     def _landpad_to_camera(self, Tvec, Rvec, id):
-        print("_landpad_to_camera")
         if id not in [272, 682, 0]:
             return None, None
 
@@ -203,12 +237,7 @@ if __name__ == '__main__':
     opencv_version = cv2.__version__
 
     if opencv_version != '4.6.0':
-        print(f"A versão do OpenCV é {opencv_version}, não é 4.11.0.")
-        print("Para corrigir, use os seguintes comandos:")
-        print("1. Desinstalar as versões existentes do OpenCV:")
-        print("   pip3 uninstall opencv-python opencv-contrib-python")
-        print("2. Instalar a versão 4.11.0 do OpenCV:")
-        print("   pip3 install opencv-python==4.11.0.86 opencv-contrib-python==4.11.0.86")
+        print(f"A versão do OpenCV é {opencv_version}, não é 4.6.0.")
         sys.exit(1)
 
     rclpy.init()
