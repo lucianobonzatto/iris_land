@@ -1,8 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
 
 import sys
 import cv2
-import rospy
 import numpy as np
 import cv2.aruco as aruco
 from math import pi, sin, cos
@@ -13,18 +15,22 @@ from cv_bridge import CvBridge, CvBridgeError
 from scipy.spatial.transform import Rotation as R
 from scipy.stats import circmean
 
-class ImageReader:
+class ImageReader(Node):
     def __init__(self):
+        print("__init__")
+        super().__init__('aruco_node')
+
         self._initialize_topics()
         self._initialize_aruco_settings()
         self._initialize_transform_matrices()
 
     def _initialize_topics(self):
-        self.image_sub = rospy.Subscriber('/iris/usb_cam/image_raw', Image, self.image_callback)
-        self.image_pub = rospy.Publisher('/aruco/image', Image, queue_size=10)
-        self.pose_pub = rospy.Publisher('/aruco/pose', PoseStamped, queue_size=10)
-
+        print("_initialize_topics")
+        self.image_sub = self.create_subscription(Image, '/iris/usb_cam/image_raw', self.image_callback, 10)
+        self.image_pub = self.create_publisher(Image, '/aruco/image', 10)
+        self.pose_pub = self.create_publisher(PoseStamped, '/aruco/pose', 10)
     def _initialize_aruco_settings(self):
+        print("_initialize_aruco_settings")
         self.camera_matrix = np.array(
             [
                 [277.191356, 0.        , 320/2],
@@ -41,6 +47,7 @@ class ImageReader:
         self.bridge = CvBridge()
 
     def _initialize_transform_matrices(self):
+        print("_initialize_transform_matrices")
         # Cria a matriz de transformação Landpad -> Aruco
 
         Position_272 = np.array([-0.255, -0.160, 0])
@@ -73,8 +80,8 @@ class ImageReader:
         self.TM_Landpad_To_Aruco_000 = np.linalg.inv(self.TM_Aruco_To_Landpad_000)
     
     def image_callback(self, msg):
-        # print("---")
-        image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough').copy()
+        print("image_callback")
+        image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8').copy()
         pose_msg, image = self.position_detect(image)
 
         # image message creation
@@ -83,11 +90,12 @@ class ImageReader:
 
         # pose message creation
         if pose_msg is not None:
-            pose_msg.header.stamp = rospy.Time.now()
+            pose_msg.header.stamp = self.get_clock().now().to_msg()
             pose_msg.header.frame_id = "camera_frame"
             self.pose_pub.publish(pose_msg)
 
     def position_detect(self, image):
+        print("position_detect")
         pose_msg = None
         return_image = None
         
@@ -164,6 +172,7 @@ class ImageReader:
         return pose_msg, return_image
 
     def _landpad_to_camera(self, Tvec, Rvec, id):
+        print("_landpad_to_camera")
         if id not in [272, 682, 0]:
             return None, None
 
@@ -190,13 +199,10 @@ class ImageReader:
 
         return pos_landpad_to_camera, rot_landpad_to_camera
 
-    def run(self):
-        rospy.spin()
-
 if __name__ == '__main__':
     opencv_version = cv2.__version__
 
-    if opencv_version != '4.11.0':
+    if opencv_version != '4.6.0':
         print(f"A versão do OpenCV é {opencv_version}, não é 4.11.0.")
         print("Para corrigir, use os seguintes comandos:")
         print("1. Desinstalar as versões existentes do OpenCV:")
@@ -205,7 +211,9 @@ if __name__ == '__main__':
         print("   pip3 install opencv-python==4.11.0.86 opencv-contrib-python==4.11.0.86")
         sys.exit(1)
 
-    rospy.init_node('aruco_node')
+    rclpy.init()
 
-    republisher = ImageReader()
-    republisher.run()
+    node = ImageReader()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()

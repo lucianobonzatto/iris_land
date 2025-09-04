@@ -7,6 +7,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -51,6 +52,12 @@ ament_target_dependencies(iris_mng
   tf2_ros
   cv_bridge
   OpenCV
+)
+
+ament_python_install_package(scripts)
+install(PROGRAMS
+  scripts/aruco_rgb.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 install(TARGETS iris_mng
