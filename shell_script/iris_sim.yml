@@ -5,27 +5,45 @@ windows:
   - simulation:
       layout: tiled
       panes:
-        - cd ~/src/Firmware/; make px4_sitl gazebo_iris
-        - sleep 5; roslaunch mavros px4.launch fcu_url:='udp://:14550@127.0.0.1:14555'
-  - echo:
+        - |
+            cd ~/PX4-Autopilot
+            make px4_sitl gz_x500_mono_cam_down
+        - |
+            cd ~
+            ./QGroundControl-x86_64.AppImage
+  - mavros:
       layout: tiled
       panes:
-        - rostopic echo /mavros/state
-        - rostopic echo /mavros/extended_state
-        - rostopic echo /mavros/rc/in
-  - magni:
+        - |
+            sleep 5
+            ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+        - |
+            sleep 5
+            ros2 run ros_gz_bridge parameter_bridge \
+                /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image \
+                /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo \
+                --ros-args \
+                -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw \
+                -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+  # - echo:
+  #     layout: tiled
+  #     panes:
+  #       - rostopic echo /mavros/state
+  #       - rostopic echo /mavros/extended_state
+  #       - rostopic echo /mavros/rc/in
+  # - magni:
+  #     layout: tiled
+  #     panes:
+  #       - roslaunch magni_gazebo teste.launch
+  - rgb_detect:
       layout: tiled
       panes:
-        - roslaunch magni_gazebo teste.launch
-  - image_transport:
-      layout: tiled
-      panes:
-        - sleep 7; rqt_image_view
-        - sleep 8; rosrun iris_land aruco_node.py
-  - manager:
-      layout: tiled
-      panes:
-        - sleep 7; rosrun iris_land joy_node.py
-        - sleep 7; rosrun iris_land parameters_node.py
-        # - sleep 10; roslaunch iris_land manager.launch
+        - sleep 7; ros2 run rqt_image_view rqt_image_view
+        - sleep 8; ros2 run iris_land aruco_rgb.py
+  # - manager:
+  #     layout: tiled
+  #     panes:
+  #       - sleep 7; rosrun iris_land joy_node.py
+  #       - sleep 7; rosrun iris_land parameters_node.py
+  #       # - sleep 10; roslaunch iris_land manager.launch
         

@@ -24,9 +24,11 @@ class ImageReader(Node):
         self._initialize_transform_matrices()
 
     def _initialize_topics(self):
+        self.image_sub = self.create_subscription(Image, '/rgb_camera/image_raw', self.image_callback, 10)
         # self.image_sub = self.create_subscription(Image, '/iris/usb_cam/image_raw', self.image_callback, 10)
         # self.image_sub = self.create_subscription(Image, '/camera/image_raw', self.image_callback, 10)
-        self.image_sub = self.create_subscription(Image, '/image_raw', self.image_callback, 10)
+        # self.image_sub = self.create_subscription(Image, '/image_raw', self.image_callback, 10)
+        
         self.image_pub = self.create_publisher(Image, '/aruco/image', 10)
         self.pose_pub = self.create_publisher(PoseStamped, '/aruco/pose', 10)
 
