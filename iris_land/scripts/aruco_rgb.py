@@ -24,21 +24,40 @@ class ImageReader(Node):
         self._initialize_transform_matrices()
 
     def _initialize_topics(self):
-        self.image_sub = self.create_subscription(Image, '/iris/usb_cam/image_raw', self.image_callback, 10)
+        # self.image_sub = self.create_subscription(Image, '/iris/usb_cam/image_raw', self.image_callback, 10)
+        # self.image_sub = self.create_subscription(Image, '/camera/image_raw', self.image_callback, 10)
+        self.image_sub = self.create_subscription(Image, '/image_raw', self.image_callback, 10)
         self.image_pub = self.create_publisher(Image, '/aruco/image', 10)
         self.pose_pub = self.create_publisher(PoseStamped, '/aruco/pose', 10)
 
     def _initialize_aruco_settings(self):
-        self.camera_matrix = np.array(
-            [
-                [3.02573320e03, 0.00000000e00, 1.02641519e03],
-                [0.00000000e00, 2.98476190e03, 2.69918299e02],
-                [0.00000000e00, 0.00000000e00, 1.00000000e00],
-            ]
-        )
-        self.distortion_coeffs = np.array(
-            [-0.31855945, -0.04039797, 0.00156687, 0.00949025, 0.09074052]
-        )
+
+        # calibração da camera do guido:
+        # self.camera_matrix = np.array(
+        #     [
+        #         [3.02573320e03, 0.00000000e00, 1.02641519e03],
+        #         [0.00000000e00, 2.98476190e03, 2.69918299e02],
+        #         [0.00000000e00, 0.00000000e00, 1.00000000e00],
+        #     ]
+        # )
+        # self.distortion_coeffs = np.array(
+        #     [-0.31855945, -0.04039797, 0.00156687, 0.00949025, 0.09074052]
+        # )
+
+        # calibração da camera do vitinho:
+        self.camera_matrix = np.array([
+            [419.4286,   0.0,     320.4700],
+            [0.0,     559.2459,   261.7184],
+            [0.0,       0.0,       1.0]
+        ])
+
+        self.distortion_coeffs = np.array([
+            -0.3794,   # k1
+            0.1364,   # k2
+            0.0,      # p1
+            0.0,      # p2
+            0.0       # k3
+        ])
 
         self.marker_sizes = {272: 0.15, 682: 0.08, 0: 0.25}
         self.dictionary = aruco.getPredefinedDictionary(aruco.DICT_ARUCO_ORIGINAL)
@@ -47,11 +66,12 @@ class ImageReader(Node):
     def _initialize_transform_matrices(self):
         # Cria a matriz de transformação Landpad -> Aruco
         Position_272 = np.array([-0.255, -0.160, 0])
-        Rotation_272 = np.array([
-            [-1, 0, 0],  # Cos(180) = -1, Sin(180) = 0
-            [ 0,-1, 0],  # Cos(180) = -1, Sin(180) = 0
-            [ 0, 0, 1]    # Eixo Z permanece o mesmo
-        ])
+        Rotation_272 = np.eye(3)
+        # Rotation_272 = np.array([
+        #     [-1, 0, 0],  # Cos(180) = -1, Sin(180) = 0
+        #     [ 0,-1, 0],  # Cos(180) = -1, Sin(180) = 0
+        #     [ 0, 0, 1]    # Eixo Z permanece o mesmo
+        # ])
 
         Position_682 = np.array([0.043, 0.038, 0])
         Rotation_682 = np.eye(3)

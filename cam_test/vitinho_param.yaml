@@ -1,0 +1,14 @@
+usb_cam:
+  ros__parameters:
+    video_device: "/dev/video0"
+    io_method: "mmap"
+    camera_frame_id: "camera"
+    image_width: 640
+    image_height: 480
+    pixel_format: "yuyv"
+    framerate: 30.0
+
+    brightness: 150
+    contrast: 80
+    saturation: 50
+    white_balance_temperature_auto: 1

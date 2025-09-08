@@ -73,15 +73,17 @@ class ImagePublisherAndPoseSubscriber(Node):
             f"Pose recebida ->\n"
             f"Posição (x, y, z): ({pos.x:.3f}, {pos.y:.3f}, {pos.z:.3f}) |\n"
             f"Orientação (quaternion x, y, z, w): ({ori.x:.3f}, {ori.y:.3f}, {ori.z:.3f}, {ori.w:.3f})\n"
-            f"Euler ZYX (Yaw, Pitch, Roll) em graus: ({euler[0]:.2f}, {euler[1]:.2f}, {euler[2]:.2f})\n\n"
+            f"Euler ZYX (Roll, Pitch, Yaw) em graus: ({euler[0]:.2f}, {euler[1]:.2f}, {euler[2]:.2f})\n\n"
         )
 
 def main(args=None):
     rclpy.init(args=args)
 
-    image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_43.jpg'
-    image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_4.jpg'
-    image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_ex.jpg'
+    # image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_4.jpg'
+    # image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_ex.jpg'
+    # image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_ex-.jpg'
+    # image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_ey.jpg'
+    image_path = '/home/lukn23/ros2_ws/src/iris_land/frame_ey-.jpg'
     node = ImagePublisherAndPoseSubscriber(image_path)
 
     try:
