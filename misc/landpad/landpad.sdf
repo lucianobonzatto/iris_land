@@ -7,14 +7,14 @@
       <collision name="caixa_collision">
         <geometry>
           <mesh>
-            <uri>file:///home/lukn23/ros2_ws/src/iris_land/landpad/landpad.dae</uri>
+            <uri>file:///home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.dae</uri>
           </mesh>
         </geometry>
       </collision>
       <visual name="caixa_visual">
         <geometry>
           <mesh>
-            <uri>file:///home/lukn23/ros2_ws/src/iris_land/landpad/landpad.dae</uri>
+            <uri>file:///home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.dae</uri>
           </mesh>
         </geometry>
       </visual>
