@@ -1,5 +1,5 @@
 joy_node:
   ros__parameters:
-    dev: "/dev/input/event20"
+    dev: "/dev/input/event18"
     deadzone: 0.05
     autorepeat_rate: 20.0

@@ -72,3 +72,63 @@ se for otimizar algo, mexe somente no struct config que tem no .cpp, recomendo
 mexer somente no jointmaxpnpiterations
 
 
+## radio connection
+
+
+## Identificar o Dispositivo de Entrada
+
+Execute o comando abaixo para listar todos os dispositivos de entrada disponíveis:
+
+```bash
+sudo evtest
+````
+
+Procure por uma linha semelhante a:
+
+```
+/dev/input/event18:	OpenTX FrSky Taranis Joystick
+```
+
+Esse será o dispositivo usado para leitura dos comandos do controle.
+
+> /dev/input/event18
+
+---
+
+## 2. Executar o joy_node
+
+Com o dispositivo identificado (ex: `/dev/input/event18`), execute:
+
+```bash
+ros2 run joy joy_node --ros-args -p dev:=/dev/input/event18
+```
+
+Você verá a seguinte saída indicando que o dispositivo foi carregado com sucesso:
+
+```
+[INFO] [xxxx.xxxxxxx] [joy_node]: Opened joystick: 8BitDo Ultimate 2C Wireless Controller.  deadzone: 0.050000
+```
+
+---
+
+
+## Arquivo de Parâmetros
+
+Crie um arquivo `joy_params.yaml` para configurar o joy_node` com mais flexibilidade
+
+```yaml
+joy_node:
+  ros__parameters:
+    dev: "/dev/input/event18"
+    deadzone: 0.05
+    autorepeat_rate: 20.0
+```
+
+Execute com:
+
+```bash
+ros2 run joy joy_node --ros-args --params-file /home/lukn23/ros2_ws/src/iris_land/misc/joy/joy_params
+```
+
+
+yaml
