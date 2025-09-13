@@ -3,7 +3,7 @@
   <model name="caixa_mesh">
     <static>true</static>
     <link name="caixa_link">
-      <pose>0 0 0.5 0 0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
       <collision name="caixa_collision">
         <geometry>
           <mesh>

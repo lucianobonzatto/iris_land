@@ -11,6 +11,9 @@ windows:
         - |
             cd ~
             ./QGroundControl-x86_64.AppImage
+        - |
+            sleep 5
+            gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
   - mavros:
       layout: tiled
       panes:
