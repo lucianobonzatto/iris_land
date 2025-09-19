@@ -47,21 +47,36 @@ class ImageReader(Node):
         # )
 
         # calibração da camera do vitinho:
+        # self.camera_matrix = np.array([
+        #     [419.4286,   0.0,     320.4700],
+        #     [0.0,     559.2459,   261.7184],
+        #     [0.0,       0.0,       1.0]
+        # ])
+
+        # self.distortion_coeffs = np.array([
+        #     -0.3794,   # k1
+        #     0.1364,   # k2
+        #     0.0,      # p1
+        #     0.0,      # p2
+        #     0.0       # k3
+        # ])
+
+        # calibração da simulação:
         self.camera_matrix = np.array([
-            [419.4286,   0.0,     320.4700],
-            [0.0,     559.2459,   261.7184],
-            [0.0,       0.0,       1.0]
+            [745.6, 0.0,   640],    # width / (2 * np.tan(fov_x / 2)) | 0 | width / 2
+            [0.0,   559.2, 480],    # 0 | f_x * (height / width) | height / 2
+            [0.0,   0.0,   1.0]     # 0 | 0 | 1
         ])
 
         self.distortion_coeffs = np.array([
-            -0.3794,   # k1
-            0.1364,   # k2
-            0.0,      # p1
-            0.0,      # p2
-            0.0       # k3
+            0.0,  # k1 (radial)
+            0.0,  # k2 (radial)
+            0.0,  # p1 (tangencial)
+            0.0,  # p2 (tangencial)
+            0.0   # k3 (radial)
         ])
 
-        self.marker_sizes = {272: 0.15, 682: 0.08, 0: 0.25}
+        self.marker_sizes = {272: 0.22, 682: 0.11, 0: 0.35}
         self.dictionary = aruco.getPredefinedDictionary(aruco.DICT_ARUCO_ORIGINAL)
         self.bridge = CvBridge()
 
@@ -151,15 +166,15 @@ class ImageReader(Node):
                                         rvecs,
                                         tvecs,
                                         marker_length/2)
-                    # print('\n----', marker_id, '----\n')
+                    print('\n----', marker_id, '----\n')
 
                     pos_landpad_to_camera, rot_landpad_to_camera = self._landpad_to_camera(tvecs, rvecs, marker_id)
 
-                    # print('\tx\ty\tz', '\t\tx\ty\tz')
-                    # print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]), '\t',
-                    #       "\t{:.2f}\t{:.2f}\t{:.2f}".format(pos_landpad_to_camera[0], pos_landpad_to_camera[1], pos_landpad_to_camera[2]))
-                    # print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]), '\t',
-                    #       "\t{:.2f}\t{:.2f}\t{:.2f}".format(rot_landpad_to_camera[0], rot_landpad_to_camera[1], rot_landpad_to_camera[2]))
+                    print('\tx\ty\tz', '\t\tx\ty\tz')
+                    print("tvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(tvecs[0], tvecs[1], tvecs[2]), '\t',
+                          "\t{:.2f}\t{:.2f}\t{:.2f}".format(pos_landpad_to_camera[0], pos_landpad_to_camera[1], pos_landpad_to_camera[2]))
+                    print("rvecs:\t{:.2f}\t{:.2f}\t{:.2f}".format(rvecs[0], rvecs[1], rvecs[2]), '\t',
+                          "\t{:.2f}\t{:.2f}\t{:.2f}".format(rot_landpad_to_camera[0], rot_landpad_to_camera[1], rot_landpad_to_camera[2]))
 
                     if pos_landpad_to_camera is not None and rot_landpad_to_camera is not None:
                         positions.append(pos_landpad_to_camera)
