@@ -12,8 +12,10 @@ windows:
             cd ~
             ./QGroundControl-x86_64.AppImage
         - |
-            sleep 5
+            sleep 7
             gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+            ros2 run rqt_image_view rqt_image_view
+            
   - mavros:
       layout: tiled
       panes:
@@ -41,12 +43,11 @@ windows:
   - rgb_detect:
       layout: tiled
       panes:
-        - sleep 7; ros2 run rqt_image_view rqt_image_view
         - sleep 8; ros2 run iris_land aruco_rgb.py
-  # - manager:
-  #     layout: tiled
-  #     panes:
-  #       - sleep 7; rosrun iris_land joy_node.py
-  #       - sleep 7; rosrun iris_land parameters_node.py
-  #       # - sleep 10; roslaunch iris_land manager.launch
+  - manager:
+      layout: tiled
+      panes:
+        - sleep 7; ros2 run iris_land joy_node.py
+        - sleep 7; ros2 run iris_land parameters_node.py
+        - sleep 10; ros2 run iris_land iris_mng
         
