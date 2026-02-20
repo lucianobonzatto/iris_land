@@ -1,0 +1,931 @@
+ 1071  ros2 run rqt_image_view rqt_image_view
+ 1072  ros2 run usb_cam usb_cam_node_exe 
+ 1073  ros2 launch usb_cam camera.launch.py 
+ 1074  ros2 run usb_cam usb_cam_node_exe 
+ 1075  ros2 run usb_cam usb_cam_node_exe --ros-args --show-params
+ 1076  ros2 run usb_cam usb_cam_node_exe --ros-args
+ 1077  ros2 param list /usb_cam
+ 1078  ros2 run usb_cam usb_cam_node_exe --ros-args
+ 1079  ros2 run usb_cam usb_cam_node_exe 
+ 1080  ros2 run rqt_image_view rqt_image_view
+ 1081  sudo apt-get install ros-jazzy-camera-calibration
+ 1082  ros2 run camera_calibration cameracalibrator.py --size 8x6 --square 0.108 image:=/my_camera/image camera:=/my_camera
+ 1083  ros2 run camera_calibration cameracalibrator
+ 1084  sudo apt upgrade 
+ 1085  sudo apt update 
+ 1086  ros2 run usb_cam usb_cam_node_exe 
+ 1087  code .
+ 1088  ros2 run rqt_image_view rqt_image_view
+ 1089  v4l2-ctl -d /dev/video0 --all
+ 1090  ros2 run rqt_image_view rqt_image_view
+ 1091  rviz
+ 1092  rviz2
+ 1093  rviz
+ 1094  ros2 run rqt_image_view rqt_image_view
+ 1095  v4l2-ctl --list-devices
+ 1096  v4l2-ctl --list-formats-ext -d /dev/video0
+ 1097  nano usb_cam_params.yaml
+ 1098  ros2 run usb_cam usb_cam_node_exe --ros-args --params-file usb_cam_params.yaml
+ 1099  /bin/python3 "/home/lukn23/Área de trabalho/fiducial_analysis/detection/calibration/calibration.py"
+ 1100  ls
+ 1101  /bin/python3 "/home/lukn23/Área de trabalho/fiducial_analysis/detection/calibration/calibration.py"
+ 1102  cd detection/calibration/
+ 1103  /bin/python3 "/home/lukn23/Área de trabalho/fiducial_analysis/detection/calibration/calibration.py"
+ 1104  sudo apt install python3 python3-pip
+ 1105  sudo /bin/python3 "/home/lukn23/Área de trabalho/fiducial_analysis/detection/calibration/calibration.py"
+ 1106  ros2 topic echo /aruco/pose 
+ 1107  ros2 run iris_land aruco_rgb.py 
+ 1108  cd ros2_ws/
+ 1109  colcon build
+ 1110  ros2 run iris_land aruco_rgb.py 
+ 1111  colcon build
+ 1112  ros2 run iris_land aruco_rgb.py 
+ 1113  colcon build
+ 1114  ros2 run iris_land aruco_rgb.py 
+ 1115  colcon build
+ 1116  ros2 run iris_land aruco_rgb.py 
+ 1117  colcon build
+ 1118  ros2 run iris_land aruco_rgb.py 
+ 1119  colcon build
+ 1120  ros2 run iris_land aruco_rgb.py 
+ 1121  ros2 run rqt_image_view rqt_image_view
+ 1122  cd detection/calibration/imagens/
+ 1123  ls
+ 1124  mogrify -format jpg -path imagens_jpg imagens/*.png
+ 1125  sudo apt install imagemagick-6.q16 
+ 1126  mogrify -format jpg -path imagens_jpg imagens/*.png
+ 1127  mkdir -p ../imagens_jpg
+ 1128  mogrify -format jpg -path ../imagens_jpg *.png
+ 1129  ros2 run usb_cam usb_cam_node_exe --ros-args --params-file usb_cam_params.yaml
+ 1130  ls
+ 1131  cd PX4-Autopilot/
+ 1132  make px4_sitl gz_x500_windy
+ 1133  ls
+ 1134  cd ..
+ 1135  ls
+ 1136  cd PX4-Autopilot/
+ 1137  make px4_sitl gz_x500_windy
+ 1138  ls
+ 1139  sudo apt install ros-jazzy-sdformat14
+ 1140  sudo apt install libsdformat14
+ 1141  make px4_sitl gz_x500_windy
+ 1142  ls
+ 1143  make px4_sitl gz_x500
+ 1144  cd
+ 1145  bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
+ 1146  cd PX4-Autopilot/
+ 1147  make px4_sitl gz_x500
+ 1148  sudo apt update
+ 1149  sudo apt install libsdformat14
+ 1150  make px4_sitl gz_x500
+ 1151  sudo apt install libgstreamer1.0-0
+ 1152  make px4_sitl gz_x500
+ 1153  sudo apt install liblzma-dev lzma
+ 1154  pip3 install toml numpy packaging jinja2
+ 1155  sudo apt install libgstreamer1.0-dev
+ 1156  sudo apt install genromfs ninja-build exiftool astyle
+ 1157  sudo apt install libgstreamer-plugins-base1.0-dev
+ 1158  make px4_sitl gz_x500
+ 1159  bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
+ 1160  cd
+ 1161  bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
+ 1162  sudo apt autoremove
+ 1163  bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
+ 1164  cd PX4-Autopilot/
+ 1165  make px4_sitl gz_x500
+ 1166  sudo apt update
+ 1167  sudo apt-get update 
+ 1168  sudo apt-get upgrade 
+ 1169  ros2 topic list
+ 1170  sudo apt-get install tmuxinator 
+ 1171  history
+ 1172  ros2 topic echo /aruco/pose 
+ 1173  ros2 run iris_land aruco_rgb.py 
+ 1174  ros2 run rqt_image_view rqt_image_view
+ 1175  ros2 run usb_cam usb_cam_node_exe --ros-args --params-file usb_cam_params.yaml
+ 1176  cd ros2_ws/src/iris_land/cam_test/
+ 1177  ros2 run usb_cam usb_cam_node_exe --ros-args --params-file usb_cam_params.yaml
+ 1178  ros2 run usb_cam usb_cam_node_exe --ros-args --params-file vitinho_param.yaml 
+ 1179  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1180  echo "oi"
+ 1181  echo "tchau"
+ 1182  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1183  echo "oi"
+ 1184  tmux kill-session
+ 1185  cd
+ 1186  nano .bashrc 
+ 1187  tk
+ 1188  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1189  echo "oi"
+ 1190  echo "tchau"
+ 1191  roscd
+ 1192  roscd iris_land
+ 1193  nano .bashrc 
+ 1194  roscd iris_land
+ 1195  nano .bashrc 
+ 1196  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1197  cd ~/PX4-Autopilot
+ 1198  make px4_sitl gz_x500_mono_cam_down
+ 1199  sleep 5
+ 1200  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1201  sleep 5
+ 1202  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1203  tk
+ 1204  tmux kill-session
+ 1205  ros2 run rqt_image_view rqt_image_view
+ 1206  cd ros2_ws/src/iris_land/shell_script/
+ 1207  ./iris_sim.sh 
+ 1208  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1209  cd ~/PX4-Autopilot
+ 1210  make px4_sitl gz_x500_mono_cam_down
+ 1211  cd ~
+ 1212  ./QGroundControl-x86_64.AppImage
+ 1213  sleep 5
+ 1214  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1215  sleep 5
+ 1216  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1217  tk
+ 1218  sudo apt-get update 
+ 1219  sudo apt-get upgrade 
+ 1220  sudo apt-get update 
+ 1221  sudo apt-get upgrade 
+ 1222  cd PX4-Autopilot/
+ 1223  make px4_sitl gz_x500
+ 1224  gz sim
+ 1225  sudo apt-get install ros-${ROS_DISTRO}-ros-gz
+ 1226  make px4_sitl gz_x500
+ 1227  bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
+ 1228  cd
+ 1229  bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
+ 1230  cd PX4-Autopilot/
+ 1231  arm-none-eabi-gcc --version
+ 1232  bash ./PX4-Autopilot/Tools/setup/
+ 1233  cd
+ 1234  bash ./PX4-Autopilot/Tools/setup/optional-requirements.txt 
+ 1235  nano ./PX4-Autopilot/Tools/setup/optional-requirements.txt 
+ 1236  nano ./PX4-Autopilot/Tools/setup/requirements.txt 
+ 1237  cd PX4-Autopilot/
+ 1238  make px4_sitl gz_x500
+ 1239  make px4_sitl gazebo-classic
+ 1240  sudo make px4_sitl gz_x500
+ 1241  sudo apt-get install ros-jazzy-sdformat-vendor
+ 1242  sudo apt-get install ros-jazzy-sdformat-vendor --version
+ 1243  apt-cache policy ros-jazzy-sdformat-vendor
+ 1244  code .
+ 1245  make px4_sitl gz_x500
+ 1246  make px4_sitl gz_x500_mono_cam_down
+ 1247  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1248  cd
+ 1249  ./QGroundControl-x86_64.AppImage 
+ 1250  cd ros2_ws/src/iris_land/shell_script/
+ 1251  ./iris_sim.sh 
+ 1252  ros2 run ros_gz_bridge parameter_bridge /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo --ros-args -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1253  ros2 run rqt_image_view rqt_image_view
+ 1254  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1255  cd ~/PX4-Autopilot
+ 1256  make px4_sitl gz_x500_mono_cam_down
+ 1257  cd ~
+ 1258  ./QGroundControl-x86_64.AppImage
+ 1259  sleep 5
+ 1260  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1261  sleep 5
+ 1262  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1263  tk
+ 1264  sleep 5
+ 1265  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1266  sleep 5
+ 1267  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1268  sleep 7; ros2 run rqt_image_view rqt_image_view
+ 1269  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1270  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1271  cd ~/PX4-Autopilot
+ 1272  make px4_sitl gz_x500_mono_cam_down
+ 1273  cd ~
+ 1274  ./QGroundControl-x86_64.AppImage
+ 1275  sleep 5
+ 1276  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1277  sleep 5
+ 1278  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1279  sleep 7; ros2 run rqt_image_view rqt_image_view
+ 1280  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1281  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1282  cd ~/PX4-Autopilot
+ 1283  make px4_sitl gz_x500_mono_cam_down
+ 1284  cd ~
+ 1285  ./QGroundControl-x86_64.AppImage
+ 1286  sleep 5
+ 1287  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1288  sleep 5
+ 1289  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1290  sleep 7; ros2 run rqt_image_view rqt_image_view
+ 1291  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1292  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1293  cd ~/PX4-Autopilot
+ 1294  make px4_sitl gz_x500_mono_cam_down
+ 1295  cd ~
+ 1296  ./QGroundControl-x86_64.AppImage
+ 1297  git push --force
+ 1298  cd shell_script/
+ 1299  ./iris_sim.sh 
+ 1300  tmux kill-session
+ 1301  ./iris_sim.sh 
+ 1302  tk
+ 1303  sleep 5
+ 1304  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1305  sleep 5
+ 1306  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1307  sleep 7; ros2 run rqt_image_view rqt_image_view
+ 1308  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1309  sleep 7; ros2 run iris_land joy_node.py
+ 1310  sleep 7; ros2 run iris_land parameters_node.py
+ 1311  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1312  cd ~/PX4-Autopilot
+ 1313  make px4_sitl gz_x500_mono_cam_down
+ 1314  cd ~
+ 1315  ./QGroundControl-x86_64.AppImage
+ 1316  cd ../../../
+ 1317  cb
+ 1318  tk
+ 1319  rqt
+ 1320  cd ros2_ws/src/iris_land/shell_script/
+ 1321  ./iris_sim.sh 
+ 1322  cd
+ 1323  nano caixa.sdf
+ 1324  rm caixa.sdf 
+ 1325  gz
+ 1326  cd PX4-Autopilot/
+ 1327  make px4_sitl gz_x500_mono_cam_down
+ 1328  ls
+ 1329  gz model --spawn-file=~/caixa.sdf --model-name=caixa_vermelha --x=1 --y=2 --z=0
+ 1330  ign topic -l
+ 1331  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "caixa.sdf", name: "sdf_model", pose: {position: {x: -5, y: 0, z: 1}}'
+ 1332  gz topic -e -t /world/default/model/info
+ 1333  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "caixa.sdf", name: "sdf_model", pose: {position: {x: -5, y: 0, z: 1}}'
+ 1334  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/caixa.sdf", name: "sdf_model", pose: {position: {x: -5, y: 0, z: 1}}'
+ 1335  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad.sdf", name: "caixa_texturizada", pose: {position: {x: 0, y: 0, z: 0.5}}'
+ 1336  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad.sdf", name: "caixa_texturizada", pose: {position: {x: 1, y: 0, z: 0.5}}'
+ 1337  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad.sdf", name: "caixa_texturizada", pose: {position: {x: 1, y: 1, z: 0.5}}'
+ 1338  gz sim
+ 1339  cd PX4-Autopilot/
+ 1340  make px4_sitl gz_x500_mono_cam_down
+ 1341  gz sim
+ 1342  gz service -l
+ 1343  clear
+ 1344  gz service -l
+ 1345  gz service -is /world/default/create
+ 1346  nano teste.urdf
+ 1347  gz service -s /world/empty/create --reqtype gz.msgs.EntityFactory --reptype gz.msgs.Boolean --timeout 1000 --req 'sdf_filename: "teste.urdf", name: "urdf_model"'
+ 1348  nano teste.urdf 
+ 1349  gz service -l
+ 1350  gz service -is /world/default/create
+ 1351  gz service -s /world/empty/create --reqtype gz.msgs.EntityFactory --reptype gz.msgs.Boolean --timeout 1000 --req 'sdf_filename: "teste.urdf", name: "urdf_model"'
+ 1352  ls
+ 1353  gz service -s /world/default/create --reqtype gz.msgs.EntityFactory --reptype gz.msgs.Boolean --timeout 1000 --req 'sdf_filename: "teste.urdf", name: "urdf_model"'
+ 1354  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/caminho/absoluto/arquivo.urdf", name: "urdf_model", pose: {position: {x: 1, y: 2, z: 0.5}}'
+ 1355  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "teste.urdf", name: "urdf_model", pose: {position: {x: 1, y: 2, z: 0.5}}'
+ 1356  ls
+ 1357  nano teste.urdf 
+ 1358  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "teste.urdf", name: "urdf_model", pose: {position: {x: 1, y: 2, z: 0.5}}'
+ 1359  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "teste.urdf", name: "urdf_model", pose: {position: {x: 0, y: 0, z: 1}}'
+ 1360  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "teste.urdf", name: "urdf_model", pose: {position: {x: -5, y: 0, z: 1}}'
+ 1361  gz service -l
+ 1362  gz topic -e -t /world/default/state
+ 1363  gz topic -e -t /world/default/state | grep 'name:' | grep -v '__' | awk '{print $2}' | sort | uniq
+ 1364  gz service -l
+ 1365  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "teste.urdf", name: "urdf_model", pose: {position: {x: -5, y: 0, z: 1}}'
+ 1366  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "~/teste.urdf", name: "urdf_model", pose: {position: {x: -5, y: 0, z: 1}}'
+ 1367  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "./teste.urdf", name: "urdf_model", pose: {position: {x: -5, y: 0, z: 1}}'
+ 1368  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/teste.urdf", name: "urdf_model", pose: {position: {x: 0, y: 0, z: 1}}'
+ 1369  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad.sdf", name: "caixa_mesh_textura", pose: {position: {x: 0, y: 0, z: 0.5}}'
+ 1370  sudo snap install blender --classic
+ 1371  gz sim
+ 1372  cd PX4-Autopilot/
+ 1373  make px4_sitl gz_x500_mono_cam_down
+ 1374  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad.sdf", name: "caixa_mesh_textura", pose: {position: {x: 1, y: 1, z: 1}}'
+ 1375  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad.sdf", name: "caixa_mesh_textura", pose: {position: {x: 2, y: 2, z: 1}}'
+ 1376  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1377  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1378  ros2 run drone_control drone_test 
+ 1379  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "caixa_mesh_textura", pose: {position: {x: 2, y: 2, z: 1}}'
+ 1380  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "caixa_mesh_textura", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1381  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 0, y: 0, z: 0}}'
+ 1382  gz sim
+ 1383  sleep 5
+ 1384  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1385  sleep 5
+ 1386  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1387  sleep 7; ros2 run rqt_image_view rqt_image_view
+ 1388  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1389  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1390  cd ~/PX4-Autopilot
+ 1391  make px4_sitl gz_x500_mono_cam_down
+ 1392  cd ~
+ 1393  ./QGroundControl-x86_64.AppImage
+ 1394  sleep 5
+ 1395  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1396  tk
+ 1397  sleep 5
+ 1398  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1399  sleep 5
+ 1400  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1401  sleep 7; ros2 run rqt_image_view rqt_image_view
+ 1402  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1403  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1404  cd ~/PX4-Autopilot
+ 1405  make px4_sitl gz_x500_mono_cam_down
+ 1406  cd ~
+ 1407  ./QGroundControl-x86_64.AppImage
+ 1408  sleep 5
+ 1409  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1410  tk
+ 1411  cd ros2_ws/src/iris_land/shell_script/
+ 1412  ./iris_sim.sh 
+ 1413  cd ~/PX4-Autopilot
+ 1414  make px4_sitl gz_x500_mono_cam_down
+ 1415  cd ~
+ 1416  ./QGroundControl-x86_64.AppImage
+ 1417  gz sim
+ 1418  gz sim
+ 1419  htop
+ 1420  sudo snap install htop
+ 1421  htop
+ 1422  sleep 5
+ 1423  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1424  sleep 5
+ 1425  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1426  sleep 7; ros2 run rqt_image_view rqt_image_view
+ 1427  ros2 run rqt_image_view rqt_image_view
+ 1428  tk
+ 1429  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1430  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1431  cd ~/PX4-Autopilot
+ 1432  make px4_sitl gz_x500_mono_cam_down
+ 1433  cd ~
+ 1434  ./QGroundControl-x86_64.AppImage
+ 1435  sleep 5
+ 1436  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1437  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'~
+ 1438  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'~
+ 1439  gz sim
+ 1440  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "landpad2", pose: {position: {x: 2, y: 2, z: 0}}'~
+ 1441  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/landpad/landpad.sdf", name: "landpad2", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1442  ros2 run drone_control drone_test 
+ 1443  ros2 run iris_land aruco_rgb.py~
+ 1444  ros2 run iris_land aruco_rgb.py
+ 1445  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1446  ros2 run rqt_image_view rqt_image_view
+ 1447  make px4_sitl gz_x500_mono_cam_down
+ 1448  cd PX4-Autopilot/
+ 1449  make px4_sitl gz_x500_mono_cam_down
+ 1450  ./iris_sim.sh 
+ 1451  lsusb -l
+ 1452  lsusb 
+ 1453  lsusb -v
+ 1454  lsusb 
+ 1455  lsusb -v -d 2dc8:310a
+ 1456  dmesg | grep tty
+ 1457  lsusb -v -d 2dc8:310a
+ 1458  sudo apt install minicom
+ 1459  sudo lsusb -v -d 2dc8:310a
+ 1460  dmesg | grep -i 8bitdo
+ 1461  dmesg | grep -i usb
+ 1462  sudo dmesg | grep -i usb
+ 1463  sudo dmesg | grep -i 8bitdo
+ 1464  sudo evtest
+ 1465  minicom -s
+ 1466  sudo evtest
+ 1467  sudo apt-get install evtest 
+ 1468  sudo apt install ros-jazzy-joy
+ 1469  sudo evtest
+ 1470  ros2 run joy joy_node --ros-args -p dev:="/dev/input/event20"
+ 1471  ros2 topic echo /joy
+ 1472  ros2 run joy joy_node --ros-args --params-file ./misc/joy/joy_params.yaml 
+ 1473  ls /dev/input/js*
+ 1474  sudo evtest
+ 1475  sudo apt install joystick
+ 1476  sudo evtest /dev/input/event18
+ 1477  sudo evtest
+ 1478  1
+ 1479  sudo evtest
+ 1480  dmesg | tail -n 20
+ 1481  sudo dmesg | tail -n 20
+ 1482  sudo evtest
+ 1483  sudo evtest /dev/input/event18
+ 1484  sudo apt install joystick
+ 1485  jstest /dev/input/event18
+ 1486  sudo ln -s /dev/input/event18 /dev/input/js0
+ 1487  sudo ln -s /dev/input/event18 /dev/input/js1
+ 1488  jstest /dev/input/js1
+ 1489  ros2 run joy joy_node --ros-args -p dev:=/dev/input/event18
+ 1490  ros2 topic echo /joy
+ 1491  sudo apt install dfu-util
+ 1492  mount | grep Taranis
+ 1493  cp ./opentx-x9d+.bin /media/lukn23/Taranis/FIRMWARE.BIN
+ 1494  sudo cp ./opentx-x9d+.bin /media/lukn23/Taranis/FIRMWARE.BIN
+ 1495  mount | grep Taranis
+ 1496  sudo chown -R $USER:$USER /media/lukn23/Taranis
+ 1497  ls
+ 1498  ls -a
+ 1499  rm -rf .Trash-1000/
+ 1500  rsync --progress ./opentx-x9d+.bin /media/lukn23/Taranis/FIRMWARE.BIN
+ 1501  sudo cp ./opentx-x9d+.bin /media/lukn23/Taranis/FIRMWARE.BIN
+ 1502  rsync --progress ./opentx-x9d+.bin /media/lukn23/Taranis/FIRMWARE.BIN
+ 1503  ls -lh /media/lukn23/Taranis/FIRMWARE.BIN
+ 1504  sync
+ 1505  ros2 topic echo /joy
+ 1506  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1507  ros2 run joy joy_node --ros-args -p dev:="/dev/input/event20"
+ 1508  ros2 run joy joy_node --ros-args --params-file /home/lukn23/ros2_ws/src/iris_land/misc/joy/joy_params.yaml
+ 1509  ros2 pkg prefix iris_land
+ 1510  ros2 run joy joy_node --ros-args --params-file $(ros2 pkg prefix iris_land)/misc/joy/joy_params.yaml
+ 1511  ros2 run joy joy_node --ros-args --params-file /home/lukn23/ros2_ws/src/iris_land/misc/joy/joy_params.yaml
+ 1512  gz sim
+ 1513  nano teste.txt
+ 1514  sudo evtest
+ 1515  ros2 run joy joy_node --ros-args -p dev:=/dev/input/event18
+ 1516  ros2 run joy joy_node --ros-args --params-file /home/lukn23/ros2_ws/src/iris_land/misc/joy/joy_params.yaml
+ 1517  history | grep home
+ 1518  ros2 run joy joy_node --ros-args --params-file /home/lukn23/ros2_ws/src/iris_land/misc/joy/joy_params.yaml
+ 1519  ros2 topic echo /joy
+ 1520  ros2 topic list
+ 1521  ros2 topic info /mavros/manual_control/control
+ 1522  ros2 topic echo /mavros/manual_control/control
+ 1523  ros2 topic echo /mavros/manual_control/send
+ 1524  ros2 topic info /mavros/manual_control/send
+ 1525  ros2 topic list
+ 1526  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1527  cd
+ 1528  ./QGroundControl-x86_64.AppImage
+ 1529  cd PX4-Autopilot/
+ 1530  make px4_sitl gz_x500_mono_cam_down
+ 1531  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1532  cd ~/PX4-Autopilot
+ 1533  make px4_sitl gz_x500_mono_cam_down
+ 1534  cd ~
+ 1535  ./QGroundControl-x86_64.AppImage
+ 1536  sleep 5
+ 1537  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1538  sleep 5
+ 1539  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1540  sleep 5
+ 1541  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1542  sleep 5
+ 1543  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1544  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1545  cd ~/PX4-Autopilot
+ 1546  make px4_sitl gz_x500_mono_cam_down
+ 1547  cd ~
+ 1548  ./QGroundControl-x86_64.AppImage
+ 1549  cd ros2_ws/src/iris_land/
+ 1550  cd shell_script/
+ 1551  ./iris_sim.sh 
+ 1552  sleep 5
+ 1553  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1554  sleep 5
+ 1555  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1556  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1557  cd ~/PX4-Autopilot
+ 1558  make px4_sitl gz_x500_mono_cam_down
+ 1559  cd ~
+ 1560  ./QGroundControl-x86_64.AppImage
+ 1561  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1562  cd ~/PX4-Autopilot
+ 1563  make px4_sitl gz_x500_mono_cam_down
+ 1564  tk
+ 1565  cd ~
+ 1566  ./QGroundControl-x86_64.AppImage
+ 1567  sleep 5
+ 1568  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1569  sleep 5
+ 1570  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1571  code .
+ 1572  mavproxy.py --version
+ 1573  pip3 install MAVProxy
+ 1574  sudo apt install python3-mavproxy
+ 1575  pipx install MAVProxy
+ 1576  mavproxy.py --version
+ 1577  mavproxy --version
+ 1578  mavproxy.py --version
+ 1579  pipx inject MAVProxy future
+ 1580  mavproxy.py --version
+ 1581  ros2 topic list
+ 1582  ros2 topic info /mavros/rc/in
+ 1583  ros2 topic info /mavros/rc/out
+ 1584  ros2 topic echo /mavros/rc/in
+ 1585  ros2 topic echo /mavros/
+ 1586  ros2 topic list
+ 1587  ros2 topic info /mavros/manual_control/send
+ 1588  ros2 topic info /mavros/manual_control/control
+ 1589  ros2 topic echo /mavros/manual_control/control
+ 1590  gz sim
+ 1591  ros2 topic echo /mavros/rc/in
+ 1592  ros2 topic echo /mavros/rc/out
+ 1593  ros2 topic echo /mavros/rc/in
+ 1594  ros2 topic echo /mavros/rc/override 
+ 1595  rostopic echo /mavros/manual_control/control
+ 1596  ros2 topic echo /mavros/manual_control/control
+ 1597  ros2 topic echo /mavros/manual_control/send
+ 1598  sudo evtest
+ 1599  k
+ 1600  tk
+ 1601  ./iris_sim.sh 
+ 1602  sudo evtest
+ 1603  ros2 topic echo /mavros/status
+ 1604  ros2 topic echo /mavros/state
+ 1605  ros2 topic echo /mavros/manual_control/send
+ 1606  ros2 topic info /mavros/manual_control/send
+ 1607  ros2 topic info /mavros/manual_control/control
+ 1608  ros2 topic echo /mavros/manual_control/control
+ 1609  sleep 5
+ 1610  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1611  sleep 5
+ 1612  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1613  cd ros2_ws/src/iris_land/shell_script/
+ 1614  ./iris_sim.sh 
+ 1615  ros2 topic info /mavros/rc/override 
+ 1616  ros2 topic info /mavros/rc/in
+ 1617  ros2 topic info /mavros/rc/out
+ 1618  ros2 topic echo /mavros/rc/in
+ 1619  ros2 topic echo /mavros/rc/out
+ 1620  ros2 topic echo /mavros/rc/in
+ 1621  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1622  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1623  cd ~/PX4-Autopilot
+ 1624  make px4_sitl gz_x500_mono_cam_down
+ 1625  sleep 5
+ 1626  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1627  cd ~
+ 1628  ./QGroundControl-x86_64.AppImage
+ 1629  sleep 5
+ 1630  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1631  sleep 5
+ 1632  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1633  cd ros2_ws/src/iris_land/shell_script/
+ 1634  ./iris_sim.sh 
+ 1635  ros2 run rqt_image_view rqt_image_view
+ 1636  ros2 run iris_land aruco_rgb.py
+ 1637  cd ../../../
+ 1638  cb
+ 1639  ros2 run iris_land aruco_rgb.py
+ 1640  cb
+ 1641  ros2 run iris_land aruco_rgb.py
+ 1642  ros2 topic echo /aruco/pose 
+ 1643  gz sim
+ 1644  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 0, y: 0, z: 0}}'
+ 1645  ros2 topic echo /aruco/pose 
+ 1646  ros2 run iris_land aruco_rgb.py
+ 1647  cd ../../../
+ 1648  cb
+ 1649  ros2 run iris_land aruco_rgb.py
+ 1650  cb
+ 1651  ros2 run iris_land aruco_rgb.py
+ 1652  cb
+ 1653  ros2 run iris_land aruco_rgb.py
+ 1654  cb
+ 1655  ros2 run iris_land aruco_rgb.py
+ 1656  cb
+ 1657  ros2 run iris_land aruco_rgb.py
+ 1658  cb
+ 1659  ros2 run iris_land aruco_rgb.py
+ 1660  cb
+ 1661  ros2 run iris_land aruco_rgb.py
+ 1662  sleep 5
+ 1663  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1664  sleep 5
+ 1665  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1666  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1667  cd ~/PX4-Autopilot
+ 1668  make px4_sitl gz_x500_mono_cam_down
+ 1669  sleep 7
+ 1670  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1671  ros2 run rqt_image_view rqt_image_view
+ 1672  cd ~
+ 1673  ./QGroundControl-x86_64.AppImage
+ 1674  cd ros2_ws/src/iris_land/shell_script/
+ 1675  ./iris_sim.sh 
+ 1676  ros2 run iris_land joy_node.py
+ 1677  ros2 run iris_land parameters_node.py
+ 1678  ros2 run iris_land iris_mng 
+ 1679  ros2 topic echo /mavros/state
+ 1680  sleep 7; ros2 run iris_land joy_node.py
+ 1681  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1682  cd ~/PX4-Autopilot
+ 1683  make px4_sitl gz_x500_mono_cam_down
+ 1684  sleep 7
+ 1685  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1686  ros2 run rqt_image_view rqt_image_view
+ 1687  cd ~
+ 1688  ./QGroundControl-x86_64.AppImage
+ 1689  sleep 7; ros2 run iris_land parameters_node.py
+ 1690  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1691  sleep 5
+ 1692  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1693  sleep 5
+ 1694  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1695  ros2 run iris_land iris_mng 
+ 1696  cd ros2_ws/
+ 1697  cb
+ 1698  ros2 run iris_land iris_mng 
+ 1699  cb
+ 1700  ros2 run iris_land iris_mng 
+ 1701  sleep 7; ros2 run iris_land joy_node.py
+ 1702  sleep 10; ros2 run iris_land iris_mng
+ 1703  sleep 7; ros2 run iris_land parameters_node.py
+ 1704  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1705  sleep 5
+ 1706  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1707  sleep 5
+ 1708  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1709  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1710  cd ~/PX4-Autopilot
+ 1711  make px4_sitl gz_x500_mono_cam_down
+ 1712  sleep 7
+ 1713  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1714  ros2 run rqt_image_view rqt_image_view
+ 1715  cd ~
+ 1716  ./QGroundControl-x86_64.AppImage
+ 1717  cd ros2_ws/src/iris_land/shell_script/
+ 1718  ./iris_sim.sh 
+ 1719  sleep 5
+ 1720  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1721  sleep 5
+ 1722  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1723  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1724  sleep 7; ros2 run iris_land joy_node.py
+ 1725  sleep 7; ros2 run iris_land parameters_node.py
+ 1726  sleep 10; ros2 run iris_land iris_mng
+ 1727  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1728  cd ~/PX4-Autopilot
+ 1729  make px4_sitl gz_x500_mono_cam_down
+ 1730  cd ~
+ 1731  ./QGroundControl-x86_64.AppImage
+ 1732  sleep 7
+ 1733  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1734  ros2 run rqt_image_view rqt_image_view
+ 1735  sleep 5
+ 1736  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1737  sleep 5
+ 1738  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1739  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1740  sleep 7; ros2 run iris_land joy_node.py
+ 1741  tk
+ 1742  sleep 7; ros2 run iris_land parameters_node.py
+ 1743  sleep 10; ros2 run iris_land iris_mng
+ 1744  sleep 7
+ 1745  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1746  ros2 run rqt_image_view rqt_image_view
+ 1747  cd ~
+ 1748  ./QGroundControl-x86_64.AppImage
+ 1749  sleep 5
+ 1750  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1751  sleep 5
+ 1752  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1753  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1754  sleep 7; ros2 run iris_land joy_node.py
+ 1755  sleep 7; ros2 run iris_land parameters_node.py
+ 1756  sleep 10; ros2 run iris_land iris_mng
+ 1757  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1758  cd ~/PX4-Autopilot
+ 1759  make px4_sitl gz_x500_mono_cam_down
+ 1760  cd ~
+ 1761  ./QGroundControl-x86_64.AppImage
+ 1762  sleep 7
+ 1763  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1764  ros2 run rqt_image_view rqt_image_view
+ 1765  sleep 5
+ 1766  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1767  sleep 5
+ 1768  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1769  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1770  sleep 7; ros2 run iris_land joy_node.py
+ 1771  tk
+ 1772  sleep 7; ros2 run iris_land parameters_node.py
+ 1773  sleep 10; ros2 run iris_land iris_mng
+ 1774  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1775  cd ~/PX4-Autopilot
+ 1776  make px4_sitl gz_x500_mono_cam_down
+ 1777  cd ~
+ 1778  ./QGroundControl-x86_64.AppImage
+ 1779  sleep 7
+ 1780  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1781  ros2 run rqt_image_view rqt_image_view
+ 1782  k
+ 1783  cd
+ 1784  nano .bashrc 
+ 1785  tk
+ 1786  clear
+ 1787  gz
+ 1788  gz gui
+ 1789  cl
+ 1790  gz sim
+ 1791  nano .bashrc 
+ 1792  exec bash -lc 'sleep 7; ros2 run iris_land joy_node.py'
+ 1793  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1794  exec bash -lc 'cd ~/PX4-Autopilot && make px4_sitl gz_x500_mono_cam_down'
+ 1795  exec bash -lc 'sleep 8; ros2 run iris_land aruco_rgb.py'
+ 1796  exec bash -lc 'cd ~ && ./QGroundControl-x86_64.AppImage'
+ 1797  exec bash -lc 'sleep 10; ros2 run iris_land iris_mng'
+ 1798  exec bash -lc 'sleep 7; ros2 run iris_land parameters_node.py'
+ 1799  sleep 5
+ 1800  exec bash -lc 'ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"'
+ 1801  sleep 5
+ 1802  exec bash -lc 'ros2 run ros_gz_bridge parameter_bridge \
+ 1803      /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image \
+ 1804      /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo \
+ 1805      --ros-args \
+ 1806      -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw \
+ 1807      -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info'
+ 1808  sleep 7
+ 1809  exec bash -lc 'gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req '\''sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'\'' && ros2 run rqt_image_view rqt_image_view'
+ 1810  cd ros2_ws/src/iris_land/shell_script/
+ 1811  ./iris_sim.sh 
+ 1812  la
+ 1813  xs ..
+ 1814  cd ..
+ 1815  ls
+ 1816  history
+ 1817  ./iris_sim.sh 
+ 1818  cd shell_script/
+ 1819  ./iris_sim.sh 
+ 1820  clear
+ 1821  history
+ 1822  ./iris_sim.sh 
+ 1823  bash -lc 'chmod +x /home/lukn23/ros2_ws/src/iris_land/shell_script/teardown_iris_sim.sh && shellcheck --version || true'
+ 1824  bash -lc 'shellcheck /home/lukn23/ros2_ws/src/iris_land/shell_script/teardown_iris_sim.sh || true'
+ 1825  cd shell_script/
+ 1826  ./teardown_iris_sim.sh 
+ 1827  sleep 5
+ 1828  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1829  sleep 5
+ 1830  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1831  sleep 7; ros2 run rqt_image_view rqt_image_view
+ 1832  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1833  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1834  cd ~/PX4-Autopilot
+ 1835  make px4_sitl gz_x500_mono_cam_down
+ 1836  cd ~
+ 1837  ./QGroundControl-x86_64.AppImage
+ 1838  sleep 5
+ 1839  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1840  cd ros2_ws/src/iris_land/shell_script/
+ 1841  gz sim
+ 1842  tk
+ 1843  sleep 5
+ 1844  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1845  sleep 7; ros2 run rqt_image_view rqt_image_view
+ 1846  tk
+ 1847  sleep 5
+ 1848  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1849  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1850  cd ~/PX4-Autopilot
+ 1851  make px4_sitl gz_x500_mono_cam_down
+ 1852  cd ~
+ 1853  ./QGroundControl-x86_64.AppImage
+ 1854  sleep 5
+ 1855  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1856  sleep 5
+ 1857  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1858  tk
+ 1859  ros2 run iris_land iris_mng 
+ 1860  sleep 5
+ 1861  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1862  sleep 5
+ 1863  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1864  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1865  sleep 7; ros2 run iris_land joy_node.py
+ 1866  tk
+ 1867  sleep 7; ros2 run iris_land parameters_node.py
+ 1868  sleep 10; ros2 run iris_land iris_mng
+ 1869  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1870  cd ~/PX4-Autopilot
+ 1871  make px4_sitl gz_x500_mono_cam_down
+ 1872  sleep 7
+ 1873  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1874  ros2 run rqt_image_view rqt_image_view
+ 1875  sleep 5
+ 1876  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1877  sleep 5
+ 1878  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1879  sleep 8; ros2 run iris_land aruco_rgb.py
+ 1880  sleep 7; ros2 run iris_land joy_node.py
+ 1881  sleep 7; ros2 run iris_land parameters_node.py
+ 1882  sleep 10; ros2 run iris_land iris_mng
+ 1883  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1884  cd ~/PX4-Autopilot
+ 1885  make px4_sitl gz_x500_mono_cam_down
+ 1886  cd ~
+ 1887  ./QGroundControl-x86_64.AppImage
+ 1888  sleep 7
+ 1889  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1890  ros2 run rqt_image_view rqt_image_view
+ 1891  ros2 service call /mavros/set_mode mavros_msgs/srv/SetMode '{custom_mode: "OFFBOARD"}'
+ 1892  tk
+ 1893  cd ros2_ws/src/iris_land/shell_script/
+ 1894  ./iris_sim.sh 
+ 1895  roscore
+ 1896  sleep 5
+ 1897  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1898  sleep 5
+ 1899  ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1900  cd /home/lukn23/ros2_ws/src/iris_land/shell_script
+ 1901  cd ~/PX4-Autopilot
+ 1902  make px4_sitl gz_x500_mono_cam_down
+ 1903  sleep 7
+ 1904  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1905  ros2 run rqt_image_view rqt_image_view
+ 1906  cd ~
+ 1907  ./QGroundControl-x86_64.AppImage
+ 1908  cd shell_script/
+ 1909  ./iris_sim.sh 
+ 1910  nano .bashrc 
+ 1911  cd ..
+ 1912  cb
+ 1913  cd ../../
+ 1914  cb
+ 1915  ros2 run iris_land iris_mng
+ 1916  ros2 service call /mavros/set_mode mavros_msgs/srv/SetMode '{custom_mode: "OFFBOARD"}'
+ 1917  ros2 run iris_land parameters_node.py
+ 1918  ros2 run iris_land joy_node.py
+ 1919  ros2 run iris_land aruco_rgb.py
+ 1920  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1921  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1922  ros2 run rqt_image_view rqt_image_view
+ 1923  cd ~
+ 1924  ./QGroundControl-x86_64.AppImage
+ 1925  cd ~/PX4-Autopilot
+ 1926  make px4_sitl gz_x500_mono_cam_down
+ 1927  cd ..
+ 1928  cb
+ 1929  bash -lc 'ros2 launch mavros px4.launch fcu_url:"udp://:14540@127.0.0.1:14557"'
+ 1930  bash -lc '/home/lukn23/QGroundControl-x86_64.AppImage'
+ 1931  bash -lc 'ros2 run ros_gz_bridge parameter_bridge     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image     /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo     --ros-args     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw     -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info'
+ 1932  bash -lc 'ros2 run rqt_image_view rqt_image_view'
+ 1933  bash -lc 'gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req '\''sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'\'''
+ 1934  bash -lc 'ros2 run iris_land parameters_node.py'
+ 1935  bash -lc 'ros2 run iris_land joy_node.py'
+ 1936  bash -lc 'ros2 run iris_land aruco_rgb.py'
+ 1937  cd '/home/lukn23/PX4-Autopilot' || exit 1
+ 1938  make px4_sitl gz_x500_mono_cam_down
+ 1939  cd ~/PX4-Autopilot
+ 1940  make px4_sitl gz_x500_mono_cam_down
+ 1941  ./QGroundControl-x86_64.AppImage
+ 1942  cd
+ 1943  ./QGroundControl-x86_64.AppImage
+ 1944  history
+ 1945  tmux session
+ 1946  tmux kill-session
+ 1947  ps aux | egrep 'gzserver|gzclient|gazebo|px4' --color=never
+ 1948  echo DISPLAY=$DISPLAY; echo XAUTHORITY=$XAUTHORITY; echo XDG_SESSION_TYPE=$XDG_SESSION_TYPE; env | egrep 'WAYLAND|DISPLAY|XAUTH' --color=never
+ 1949  loginctl show-session $(loginctl | awk '/^ *[0-9]+/ {print $1; exit}') -p Type; whoami; xhost
+ 1950  gz client -v
+ 1951  gz gui --verbose
+ 1952  which gazebo || true; gazebo --help || true
+ 1953  ls -la /tmp/.X11-unix || true; stat /run/user/1000/gdm/Xauthority || true
+ 1954  ps aux | egrep 'gzserver|gzclient|ign|ignition|gazebo' --color=never || true
+ 1955  ls -la /tmp | egrep 'ign|gazebo|gz' --color=never || true
+ 1956  ls -la ~/.gazebo || true
+ 1957  ls -la ~/.ign* || true
+ 1958  ss -ltnp 2>/dev/null | egrep '11345|gazebo|gz' --color=never || true
+ 1959  which -a gz || true; ls -l $(which gz 2>/dev/null) || true
+ 1960  echo '=== procurando processos relacionados a gazebo/ign ==='; ps aux | egrep 'gzserver|gzclient|ign|ignition|gazebo' --color=never || true
+ 1961  PIDS=$(ps aux | egrep 'gzserver|gzclient|ign|ignition|gazebo' --color=never | awk '{print $2}' | tr '\n' ' ')
+ 1962  if [ -n "$PIDS" ]; then   echo "encerrando pids: $PIDS";   kill $PIDS 2>/dev/null || true;   sleep 2;   for p in $PIDS; do     if kill -0 $p 2>/dev/null; then       echo "forçando kill -9 $p";       kill -9 $p 2>/dev/null || true;     fi;   done; else   echo "nenhum processo de gazebo/ign encontrado"; fi
+ 1963  echo
+ 1964  # remover arquivos temporarios possivelmente deixados por sessões antigas (apenas padrões conhecidos)
+ 1965  FILES_REMOVED=0
+ 1966  for f in /tmp/.gazebo /tmp/ign* /tmp/gazebo*; do   if [ -e "$f" ]; then     echo "removendo: $f";     rm -rf "$f" || true;     FILES_REMOVED=$((FILES_REMOVED+1));   fi; done
+ 1967  if [ "$FILES_REMOVED" -eq 0 ]; then   echo "nenhum arquivo temporario de gazebo/ign encontrado para remover"; else   echo "arquivos temporarios removidos: $FILES_REMOVED"; fi
+ 1968  echo
+ 1969  ps aux | egrep 'gzserver|gzclient|ign|ignition|gazebo' --color=never || true
+ 1970  ls -la /tmp | egrep 'ign|gazebo|gz' --color=never || true
+ 1971  cm
+ 1972  cb
+ 1973  cd /home/lukn23/ros2_ws && colcon build --packages-select iris_land --cmake-args -DCMAKE_BUILD_TYPE=Release
+ 1974  cb
+ 1975  /usr/bin/python3 /home/lukn23/ros2_ws/src/iris_land/iris_land/scripts/smc_test.py
+ 1976  history
+ 1977  ros2 run iris_land iris_mng
+ 1978  ros2 run iris_land parameters_node.py
+ 1979  ros2 run iris_land joy_node.py
+ 1980  ros2 run iris_land aruco_rgb.py
+ 1981  ros2 run ros_gz_bridge parameter_bridge                 /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image                 /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo                 --ros-args                 -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image:=/rgb_camera/image_raw                 -r /world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info:=/rgb_camera/camera_info
+ 1982  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1983  gz service -s /world/default/create   --reqtype gz.msgs.EntityFactory   --reptype gz.msgs.Boolean   --timeout 2000   --req 'sdf_filename: "/home/lukn23/ros2_ws/src/iris_land/misc/landpad/landpad.sdf", name: "landpad", pose: {position: {x: 2, y: 2, z: 0}}'
+ 1984  ros2 run rqt_image_view rqt_image_view
+ 1985  ./QGroundControl-x86_64.AppImage
+ 1986  cd
+ 1987  ./QGroundControl-x86_64.AppImage
+ 1988  ros2 launch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+ 1989  cd ~/PX4-Autopilot
+ 1990  make px4_sitl gz_x500_mono_cam_down
+ 1991  cd
+ 1992  ./QGroundControl-x86_64.AppImage
+ 1993  sudo apt-get update 
+ 1994  sudo apt-get upgrade 
+ 1995  sudo apt install ./amdgpu-install_7.1.1.70101-1_all.deb 
+ 1996  glxinfo -B
+ 1997  sudo apt-get update 
+ 1998  sudo apt install ./amdgpu-install_7.1.1.70101-1_all.deb 
+ 1999  sudo apt-get update 
+ 2000  sudo apt-get upgrade 
+ 2001  history
