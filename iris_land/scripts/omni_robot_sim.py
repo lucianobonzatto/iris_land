@@ -60,7 +60,7 @@ class OmniRobotSimulator(Node):
         """Callback para atualizar as velocidades do robô"""
         self.vel_x = msg.linear.x
         self.vel_y = -msg.linear.y
-        self.get_logger().debug(f'Velocidade recebida - X: {self.vel_x:.2f}, Y: {self.vel_y:.2f}')
+        self.get_logger().info(f'Velocidade recebida - linear.x: {msg.linear.x:.2f}, linear.y: {msg.linear.y:.2f}')
     
     def publish_pose(self):
         """Publica a posição atual do robô em metros"""
@@ -72,7 +72,7 @@ class OmniRobotSimulator(Node):
         
         # Converter posição de pixels para metros (centralizado na origem)
         pose_msg.pose.position.x = -(self.pos_y - self.height / 2) / self.scale
-        pose_msg.pose.position.y = (self.pos_x - self.width / 2) / self.scale
+        pose_msg.pose.position.y = -(self.pos_x - self.width / 2) / self.scale
         pose_msg.pose.position.z = 0.0
         
         # Orientação (quaternion identidade - sem rotação)
@@ -95,11 +95,10 @@ class OmniRobotSimulator(Node):
                 sys.exit()
                 
         # Atualizar posição baseado na velocidade
-        # No ROS, Y positivo é para frente, X positivo é para esquerda
-        # No pygame, Y positivo é para baixo, X positivo é para direita
-        # Ajustamos a direção do Y e invertemos X e Y para corresponder ao movimento do robô
-        self.pos_x += self.vel_y * self.scale * self.dt  # vel_y do ROS move em X na tela
-        self.pos_y -= self.vel_x * self.scale * self.dt  # vel_x do ROS move em Y na tela (invertido)
+        # ROS: linear.x = frente/trás, linear.y = esquerda/direita
+        # pygame: pos_x = horizontal, pos_y = vertical (Y cresce para baixo)
+        self.pos_y -= self.vel_x * self.scale * self.dt  # vel_x move verticalmente (invertido porque Y cresce para baixo)
+        self.pos_x += self.vel_y * self.scale * self.dt  # vel_y move horizontalmente
         
         # Limitar posição dentro da janela
         self.pos_x = max(self.robot_radius, min(self.width - self.robot_radius, self.pos_x))
