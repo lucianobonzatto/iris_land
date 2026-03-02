@@ -11,6 +11,11 @@ class OmniRobotSimulator(Node):
     def __init__(self):
         super().__init__('omni_robot_simulator')
         
+        # Modelo dinâmico: Sistema de 1ª ordem
+        # Função de transferência: G(s) = K / (tau*s + 1)
+        # Equação: tau * d(vel_real)/dt + vel_real = K * vel_cmd
+        # A velocidade real é integrada para obter a posição
+        
         # Subscriber para receber comandos de velocidade
         self.subscription = self.create_subscription(
             Twist,
@@ -29,8 +34,17 @@ class OmniRobotSimulator(Node):
         # Variáveis de estado do robô
         self.pos_x = 400.0  # Posição inicial X (centro da janela)
         self.pos_y = 300.0  # Posição inicial Y (centro da janela)
-        self.vel_x = 0.0
-        self.vel_y = 0.0
+        self.vel_x = 0.0  # Velocidade comandada X
+        self.vel_y = 0.0  # Velocidade comandada Y
+        
+        # Estados internos do sistema de 1ª ordem (velocidade real)
+        self.vel_real_x = 0.0
+        self.vel_real_y = 0.0
+        
+        # Parâmetros do sistema de 1ª ordem
+        self.K = 1.0  # Ganho
+        self.tau_x = 0.5  # Constante de tempo em X (segundos)
+        self.tau_y = 0.5  # Constante de tempo em Y (segundos)
         
         # Configuração do pygame
         pygame.init()
@@ -57,10 +71,10 @@ class OmniRobotSimulator(Node):
         self.get_logger().info(f'Publicando posição no tópico: /robot_pose')
         
     def velocity_callback(self, msg):
-        """Callback para atualizar as velocidades do robô"""
-        self.vel_x = msg.linear.x
-        self.vel_y = -msg.linear.y
-        self.get_logger().info(f'Velocidade recebida - linear.x: {msg.linear.x:.2f}, linear.y: {msg.linear.y:.2f}')
+        """Callback para atualizar as velocidades comandadas do robô"""
+        self.vel_x = msg.linear.x     # Velocidade comandada em X
+        self.vel_y = -msg.linear.y    # Velocidade comandada em Y (invertido para pygame)
+        self.get_logger().info(f'Velocidade comandada - linear.x: {msg.linear.x:.2f}, linear.y: {msg.linear.y:.2f}')
     
     def publish_pose(self):
         """Publica a posição atual do robô em metros"""
@@ -83,6 +97,7 @@ class OmniRobotSimulator(Node):
         
         self.pose_publisher.publish(pose_msg)
         self.get_logger().debug(f'Posição: X={pose_msg.pose.position.x:.2f}m, Y={pose_msg.pose.position.y:.2f}m')
+        self.get_logger().debug(f'Vel cmd: ({self.vel_x:.2f}, {self.vel_y:.2f}) | Vel real: ({self.vel_real_x:.2f}, {self.vel_real_y:.2f})')
         
     def update_simulation(self):
         """Atualiza a posição do robô e redesenha a tela"""
@@ -94,11 +109,16 @@ class OmniRobotSimulator(Node):
                 pygame.quit()
                 sys.exit()
                 
-        # Atualizar posição baseado na velocidade
+        # Dinâmica de 1ª ordem: d(vel_real)/dt = (1/tau) * (-vel_real + K * vel_cmd)
+        # Integração numérica (Euler forward)
+        self.vel_real_x += (self.dt / self.tau_x) * (-self.vel_real_x + self.K * self.vel_x)
+        self.vel_real_y += (self.dt / self.tau_y) * (-self.vel_real_y + self.K * self.vel_y)
+        
+        # Atualizar posição integrando a velocidade real
         # ROS: linear.x = frente/trás, linear.y = esquerda/direita
         # pygame: pos_x = horizontal, pos_y = vertical (Y cresce para baixo)
-        self.pos_y -= self.vel_x * self.scale * self.dt  # vel_x move verticalmente (invertido porque Y cresce para baixo)
-        self.pos_x += self.vel_y * self.scale * self.dt  # vel_y move horizontalmente
+        self.pos_y -= self.vel_real_x * self.scale * self.dt  # vel_real_x move verticalmente
+        self.pos_x += self.vel_real_y * self.scale * self.dt  # vel_real_y move horizontalmente
         
         # Limitar posição dentro da janela
         self.pos_x = max(self.robot_radius, min(self.width - self.robot_radius, self.pos_x))
@@ -127,10 +147,10 @@ class OmniRobotSimulator(Node):
                          (int(self.pos_x), int(self.pos_y)), 
                          self.robot_radius)
         
-        # Desenhar indicador de direção (linha pequena mostrando orientação)
-        if abs(self.vel_x) > 0.01 or abs(self.vel_y) > 0.01:
-            end_x = int(self.pos_x + self.vel_y * 15)
-            end_y = int(self.pos_y - self.vel_x * 15)
+        # Desenhar indicador de direção (linha mostrando velocidade real)
+        if abs(self.vel_real_x) > 0.01 or abs(self.vel_real_y) > 0.01:
+            end_x = int(self.pos_x + self.vel_real_y * 15)
+            end_y = int(self.pos_y - self.vel_real_x * 15)
             pygame.draw.line(self.screen, (255, 0, 0), 
                            (int(self.pos_x), int(self.pos_y)), 
                            (end_x, end_y), 3)
