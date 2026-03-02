@@ -60,6 +60,7 @@ install(PROGRAMS
   scripts/joy_node.py
   scripts/parameters_node.py
   scripts/aruco_test.py
+  scripts/omni_robot_sim.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
