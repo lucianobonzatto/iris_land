@@ -2,7 +2,7 @@
 
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, PoseStamped
 import pygame
 import sys
 
@@ -16,6 +16,13 @@ class OmniRobotSimulator(Node):
             Twist,
             '/cmd_vel',
             self.velocity_callback,
+            10
+        )
+        
+        # Publisher para publicar a posição atual
+        self.pose_publisher = self.create_publisher(
+            PoseStamped,
+            '/robot_pose',
             10
         )
         
@@ -47,12 +54,35 @@ class OmniRobotSimulator(Node):
         
         self.get_logger().info('Simulador de robô omnidirecional iniciado')
         self.get_logger().info(f'Ouvindo comandos de velocidade no tópico: /cmd_vel')
+        self.get_logger().info(f'Publicando posição no tópico: /robot_pose')
         
     def velocity_callback(self, msg):
         """Callback para atualizar as velocidades do robô"""
         self.vel_x = msg.linear.x
         self.vel_y = -msg.linear.y
         self.get_logger().debug(f'Velocidade recebida - X: {self.vel_x:.2f}, Y: {self.vel_y:.2f}')
+    
+    def publish_pose(self):
+        """Publica a posição atual do robô em metros"""
+        pose_msg = PoseStamped()
+        
+        # Header com timestamp
+        pose_msg.header.stamp = self.get_clock().now().to_msg()
+        pose_msg.header.frame_id = 'world'
+        
+        # Converter posição de pixels para metros (centralizado na origem)
+        pose_msg.pose.position.x = -(self.pos_y - self.height / 2) / self.scale
+        pose_msg.pose.position.y = (self.pos_x - self.width / 2) / self.scale
+        pose_msg.pose.position.z = 0.0
+        
+        # Orientação (quaternion identidade - sem rotação)
+        pose_msg.pose.orientation.x = 0.0
+        pose_msg.pose.orientation.y = 0.0
+        pose_msg.pose.orientation.z = 0.0
+        pose_msg.pose.orientation.w = 1.0
+        
+        self.pose_publisher.publish(pose_msg)
+        self.get_logger().debug(f'Posição: X={pose_msg.pose.position.x:.2f}m, Y={pose_msg.pose.position.y:.2f}m')
         
     def update_simulation(self):
         """Atualiza a posição do robô e redesenha a tela"""
@@ -74,6 +104,9 @@ class OmniRobotSimulator(Node):
         # Limitar posição dentro da janela
         self.pos_x = max(self.robot_radius, min(self.width - self.robot_radius, self.pos_x))
         self.pos_y = max(self.robot_radius, min(self.height - self.robot_radius, self.pos_y))
+        
+        # Publicar posição atual (converter pixels para metros)
+        self.publish_pose()
         
         # Desenhar
         self.draw()
