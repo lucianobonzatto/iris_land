@@ -23,10 +23,15 @@ if fit_x < 50 || fit_y < 50 || fit_z < 50 || fit_yaw < 50
 end
 fprintf('\n');
 
-goto_pose_x = [3, -3, -3,  3];    % Posição X desejada
-goto_pose_y = [3,  3, -3, -3];    % Posição Y desejada
-goto_pose_z = [0,  0,  0,  0];    % Posição Z desejada (altitude)
-goto_pose_yaw = [0,  0,  0,  0];  % Yaw desejado (orientação)
+% Trajetória circular (raio = 3m, 16 pontos)
+n_points = 16;
+radius = 3;
+theta = linspace(0, 2*pi, n_points+1);
+theta = theta(1:end-1);  % Remover último ponto (igual ao primeiro)
+goto_pose_x = radius * cos(theta);      % Posição X desejada
+goto_pose_y = radius * sin(theta);      % Posição Y desejada
+goto_pose_z = zeros(1, n_points);       % Posição Z desejada (altitude)
+goto_pose_yaw = zeros(1, n_points);     % Yaw desejado (orientação)
 
 % Inicializar estado do MPC
 xmpc = mpcstate(mpcobj);
