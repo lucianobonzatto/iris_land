@@ -416,12 +416,6 @@ void debugStereoCalibration() {
 
    void initializeTransformMatrices()
 {
-
-    /*cv::Mat rotation_180_z = (cv::Mat_<double>(3, 3) << 
-       -1,  0, 0,   
-        0, -1, 0,
-        0,  0, 1);*/
-
     cv::Mat rotation_363 = cv::Mat::eye(3, 3, CV_64F);  
     cv::Mat rotation_682 = cv::Mat::eye(3, 3, CV_64F);  
     cv::Mat rotation_417 = cv::Mat::eye(3, 3, CV_64F);
@@ -1580,7 +1574,6 @@ return true;
         TM_Aruco_To_Camera.at<double>(1, 3) = marker.tvec.at<double>(1);
         TM_Aruco_To_Camera.at<double>(2, 3) = marker.tvec.at<double>(2);
 
-        // EXACTLY match Python: TM_Aruco_To_Camera @ TM_Landpad_To_Aruco
         cv::Mat TM_Landpad_To_Camera = TM_Aruco_To_Camera * TM_Landpad_To_Aruco_[marker.id];
         
         // Apply camera->landpad frame correction (camera backwards) (180deg around X)
@@ -1591,7 +1584,7 @@ return true;
         cv::Mat TM_correction = cv::Mat::eye(4,4,CV_64F);
         R_correction.copyTo(TM_correction(cv::Rect(0,0,3,3)));
         TM_Landpad_To_Camera = TM_correction * TM_Landpad_To_Camera;
-
+        // --------------------------------
 
         // Extract position
         position[0] = static_cast<float>(TM_Landpad_To_Camera.at<double>(0, 3));
