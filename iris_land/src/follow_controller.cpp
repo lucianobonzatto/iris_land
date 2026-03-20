@@ -5,18 +5,24 @@ Follow_Controller::Follow_Controller()
     setpoint.x = 0;
     setpoint.y = 0;
     setpoint.z = 1;
-    setpoint.theta = 0;
+    setpoint.theta = M_PI; // Braun: Now with landpad orientation fixed, the setpoint is PI because the camera is assembled backwards in drone frame
 
     PID::Builder builder;
     builder.setDt(0.05);
     builder.setOutMax(1);
     builder.setConditionalIntegration(true);
 
+    PID::Builder builder_theta;
+    builder_theta.setDt(0.05);
+    builder_theta.setOutMax(1);
+    builder_theta.setConditionalIntegration(true);
+    builder_theta.setAngularInput(true); // Braun: only theta needs this
+
     PID_velocity_ctl pid_Controller(
         builder,
         builder,
         builder,
-        builder);
+        builder_theta);
     pidController = pid_Controller;
 }
 
