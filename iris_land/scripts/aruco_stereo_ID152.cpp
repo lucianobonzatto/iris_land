@@ -177,7 +177,7 @@ public:
     void run()
     {
         ROS_INFO("Stereo ArUco Detector Node is running...");
-        ROS_INFO("Monitoring marker IDs: 363 (15cm), 682 (8cm), 417 (25cm)");
+        ROS_INFO("Monitoring marker IDs: 363 (15cm), 152 (8cm), 417 (25cm)");
         ros::spin();
     }
 
@@ -301,7 +301,7 @@ void debugStereoCalibration() {
             ROS_INFO("Debug mode: MINIMAL");
             
         ROS_INFO("Visualization: %s", config_.enableVisualization ? "ENABLED" : "DISABLED");
-        ROS_INFO("Marker sizes: 363(15cm), 682(8cm), 417(25cm)");
+        ROS_INFO("Marker sizes: 363(15cm), 152(8cm), 417(25cm)");
         ROS_INFO("Reprojection threshold: %.1f px", config_.reprojErrorThreshold);
         ROS_INFO("Calibration file: %s", config_.calibrationFile.c_str());
         ROS_INFO("=============================================\n");
@@ -333,11 +333,11 @@ void debugStereoCalibration() {
     void initializeArucoSettings()
     {
         // Define allowed marker IDs and their sizes (in meters)
-        // FIXED: Marker 682 size should be 0.08m (8cm) not 0.088m
-        allowedMarkerIds_ = {363, 682, 417};
+        // FIXED: Marker 152 size should be 0.08m (8cm) not 0.088m
+        allowedMarkerIds_ = {363, 152, 417};
         markerSizes_[363] = 0.15f;  // 15 cm
-        markerSizes_[682] = 0.08f;  // 8 cm (CORRECTED from 0.088f)
-        markerSizes_[417] = 0.245f;    // 25 cm
+        markerSizes_[152] = 0.08f;  // 8 cm (CORRECTED from 0.088f)
+        markerSizes_[417] = 0.25f;    // 25 cm
 
         dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
         parameters_ = cv::aruco::DetectorParameters::create();
@@ -351,7 +351,7 @@ void debugStereoCalibration() {
         parameters_->adaptiveThreshWinSizeMax = 23;
         parameters_->adaptiveThreshWinSizeStep = 10;
 
-        ROS_INFO("ArUco settings initialized for marker IDs: 363 (15cm), 682 (8cm), 417 (25cm)");
+        ROS_INFO("ArUco settings initialized for marker IDs: 363 (15cm), 152 (8cm), 417 (25cm)");
     }
 
     void initializeStereoSettings()
@@ -417,20 +417,19 @@ void debugStereoCalibration() {
    void initializeTransformMatrices()
 {
 
-    /*cv::Mat rotation_180_z = (cv::Mat_<double>(3, 3) << 
+    cv::Mat rotation_180_z = (cv::Mat_<double>(3, 3) << 
        -1,  0, 0,   
         0, -1, 0,
-        0,  0, 1);*/
+        0,  0, 1);
 
-    cv::Mat rotation_363 = cv::Mat::eye(3, 3, CV_64F);  
-    cv::Mat rotation_682 = cv::Mat::eye(3, 3, CV_64F);  
-    cv::Mat rotation_417 = cv::Mat::eye(3, 3, CV_64F);
-    
+    cv::Mat rotation_363 = rotation_180_z;  
+    cv::Mat rotation_152 = cv::Mat::eye(3, 3, CV_64F);  
+    cv::Mat rotation_417 = rotation_180_z;
     
     std::vector<MarkerTransform> markers = {
-        {363, cv::Vec3f(0.275f, 0.208f, 0.0f), rotation_363},  
-        {682, cv::Vec3f(0.043f, 0.038f, 0.0f), rotation_682},     
-        {417, cv::Vec3f(-0.255f, -0.160f, 0.0f), rotation_417}        
+        {363, cv::Vec3f(-0.275f, -0.208f, 0.0f), rotation_363},  
+        {152, cv::Vec3f(0.043f, 0.038f, 0.0f), rotation_152},     
+        {417, cv::Vec3f(0.255f, 0.160f, 0.0f), rotation_417}        
     };
 
     if (!config_.enablePerformance)  // CHANGED: Only show if not in performance mode
@@ -507,6 +506,7 @@ void debugStereoCalibration() {
     fs["right_distortion_coefficients"] >> calib.rightDistCoeffs;
     fs["R"] >> calib.R;
     fs["T"] >> calib.T;
+
     if (fs["E"].isNone() == false)
         fs["E"] >> calib.E;
     if (fs["F"].isNone() == false)
@@ -1582,21 +1582,14 @@ return true;
 
         // EXACTLY match Python: TM_Aruco_To_Camera @ TM_Landpad_To_Aruco
         cv::Mat TM_Landpad_To_Camera = TM_Aruco_To_Camera * TM_Landpad_To_Aruco_[marker.id];
-        
-        // Apply camera->landpad frame correction (camera backwards) (180deg around X)
-        cv::Mat R_correction = (cv::Mat_<double>(3,3) <<
-        	1, 0, 0,
-        	0, -1, 0,
-        	0, 0, 1);
-        cv::Mat TM_correction = cv::Mat::eye(4,4,CV_64F);
-        R_correction.copyTo(TM_correction(cv::Rect(0,0,3,3)));
-        TM_Landpad_To_Camera = TM_correction * TM_Landpad_To_Camera;
-
 
         // Extract position
         position[0] = static_cast<float>(TM_Landpad_To_Camera.at<double>(0, 3));
         position[1] = static_cast<float>(TM_Landpad_To_Camera.at<double>(1, 3));
         position[2] = static_cast<float>(TM_Landpad_To_Camera.at<double>(2, 3));
+
+        // EXACTLY match Python: Y-axis flip
+        // position[1] = -position[1];
 
         // Extract rotation
         cv::Mat rotPart = TM_Landpad_To_Camera(cv::Rect(0, 0, 3, 3)).clone();
@@ -1620,7 +1613,7 @@ return true;
     {
         // Use raw marker pose if no transform defined
         position[0] = static_cast<float>(marker.tvec.at<double>(0));
-        position[1] = static_cast<float>(marker.tvec.at<double>(1));
+        position[1] = -static_cast<float>(marker.tvec.at<double>(1));
         position[2] = static_cast<float>(marker.tvec.at<double>(2));
         orientation[0] = static_cast<float>(marker.rvec.at<double>(0));
         orientation[1] = static_cast<float>(marker.rvec.at<double>(1));
