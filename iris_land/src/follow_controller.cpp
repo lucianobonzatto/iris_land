@@ -24,7 +24,7 @@ Follow_Controller::~Follow_Controller()
 {
 }
 
-void Follow_Controller::append_parameters(std::stringstream& ss)
+void Follow_Controller::append_parameters(std::stringstream &ss)
 {
     ss << "Follow Controller:\n";
     ss << "\tx: " << setpoint.x << "\ty: " << setpoint.y
@@ -82,7 +82,7 @@ geometry_msgs::Twist Follow_Controller::get_velocity(geometry_msgs::PoseStamped 
     vel = pidController.control(setpoint, measurement);
 
     velocity.linear.x = -vel.vy;
-    velocity.linear.y = vel.vx;
+    velocity.linear.y = -vel.vx;
     velocity.linear.z = vel.vz;
     velocity.angular.z = vel.vtheta;
 

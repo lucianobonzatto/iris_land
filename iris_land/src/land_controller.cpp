@@ -27,7 +27,7 @@ Land_Controller::~Land_Controller()
 {
 }
 
-void Land_Controller::append_parameters(std::stringstream& ss)
+void Land_Controller::append_parameters(std::stringstream &ss)
 {
     ss << "Land Controller:\n";
     ss << "\tx: " << setpoint.x << "\ty: " << setpoint.y
@@ -50,18 +50,18 @@ void Land_Controller::append_parameters(std::stringstream& ss)
 
 void Land_Controller::update_parameters(iris_land::controllers_gain newParameters)
 {
-    pidController.update_x( newParameters.pid_ctrl.x.p_gain,
-                            newParameters.pid_ctrl.x.i_gain,
-                            newParameters.pid_ctrl.x.d_gain);
-    pidController.update_y( newParameters.pid_ctrl.y.p_gain,
-                            newParameters.pid_ctrl.y.i_gain,
-                            newParameters.pid_ctrl.y.d_gain);
-    pidController.update_z( newParameters.pid_ctrl.z.p_gain,
-                            newParameters.pid_ctrl.z.i_gain,
-                            newParameters.pid_ctrl.z.d_gain);
-    pidController.update_theta( newParameters.pid_ctrl.yaw.p_gain,
-                                newParameters.pid_ctrl.yaw.i_gain,
-                                newParameters.pid_ctrl.yaw.d_gain);
+    pidController.update_x(newParameters.pid_ctrl.x.p_gain,
+                           newParameters.pid_ctrl.x.i_gain,
+                           newParameters.pid_ctrl.x.d_gain);
+    pidController.update_y(newParameters.pid_ctrl.y.p_gain,
+                           newParameters.pid_ctrl.y.i_gain,
+                           newParameters.pid_ctrl.y.d_gain);
+    pidController.update_z(newParameters.pid_ctrl.z.p_gain,
+                           newParameters.pid_ctrl.z.i_gain,
+                           newParameters.pid_ctrl.z.d_gain);
+    pidController.update_theta(newParameters.pid_ctrl.yaw.p_gain,
+                               newParameters.pid_ctrl.yaw.i_gain,
+                               newParameters.pid_ctrl.yaw.d_gain);
 }
 
 void Land_Controller::reset_altitude(double altitude)
@@ -71,7 +71,7 @@ void Land_Controller::reset_altitude(double altitude)
 
 bool Land_Controller::completed_approach()
 {
-    if(setpoint.z < 0.4)
+    if (setpoint.z < 0.4)
         return true;
     return false;
 }
@@ -109,7 +109,7 @@ geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped po
     Speed vel = get_align_velocity(measurement);
 
     velocity.linear.x = -vel.vy;
-    velocity.linear.y = vel.vx;
+    velocity.linear.y = -vel.vx;
     velocity.linear.z = vel.vz;
     velocity.angular.z = vel.vtheta;
     return velocity;
