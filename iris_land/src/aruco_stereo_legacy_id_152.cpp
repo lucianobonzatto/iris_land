@@ -116,9 +116,6 @@ struct Config
     // Marker parameters
     float markerSize = 0.08f;
 
-    // -1 = all markers, otherwise filter to this ID
-    int singleMarkerFilter = -1;  
-
     // Error thresholds
     float reprojErrorThreshold = 10.0f;
     float geometryTolerance = 0.15f;
@@ -140,7 +137,7 @@ struct Config
     bool enablePerformance = false;    // Nothing
     
     // Calibration file path
-    std::string calibrationFile = "/home/berger/catkin_ws/src/iris_land/iris_land/config/stereo_camera_params_1600_600.yml";
+    std::string calibrationFile = "/home/jetson/catkin_ws/src/iris_land/iris_land/config/stereo_camera_params_1600_600.yml";
 };
 
 // MarkerTransform helper struct
@@ -179,7 +176,7 @@ public:
     void run()
     {
         ROS_INFO("Stereo ArUco Detector Node is running...");
-        ROS_INFO("Monitoring marker IDs: 363 (15cm), 682 (8cm), 417 (25cm)");
+        ROS_INFO("Monitoring marker IDs: 363 (15cm), 152 (8cm), 417 (25cm)");
         ros::spin();
     }
 
@@ -200,9 +197,6 @@ private:
     ros::Publisher debug_image_pub_;
     ros::Publisher debug_left_pub_;
     ros::Publisher debug_right_pub_;
-
-    // Per-marker individual publishers
-    std::map<int, ros::Publisher> per_marker_pose_pubs_;
 
     // Configuration and calibration
     StereoCalibration stereoCalib_;
@@ -306,7 +300,7 @@ void debugStereoCalibration() {
             ROS_INFO("Debug mode: MINIMAL");
             
         ROS_INFO("Visualization: %s", config_.enableVisualization ? "ENABLED" : "DISABLED");
-        ROS_INFO("Marker sizes: 363(15cm), 682(8cm), 417(25cm)");
+        ROS_INFO("Marker sizes: 363(15cm), 152(8cm), 417(25cm)");
         ROS_INFO("Reprojection threshold: %.1f px", config_.reprojErrorThreshold);
         ROS_INFO("Calibration file: %s", config_.calibrationFile.c_str());
         ROS_INFO("=============================================\n");
@@ -325,14 +319,6 @@ void debugStereoCalibration() {
         // Publishers
         pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/aruco/pose", 10);
 
-        // Per-marker publishers for individual analysis
-        for (int id : allowedMarkerIds_) {
-            per_marker_pose_pubs_[id] = nh_.advertise<geometry_msgs::PoseStamped>(
-                "/aruco/pose/marker_" + std::to_string(id), 10
-            );
-            ROS_INFO("Publishing per-marker topic: /aruco/pose/marker_%d", id);
-        }
-
         if (config_.enableVisualization)
         {
             debug_image_pub_ = nh_.advertise<sensor_msgs::Image>("/aruco/image", 10);
@@ -346,9 +332,10 @@ void debugStereoCalibration() {
     void initializeArucoSettings()
     {
         // Define allowed marker IDs and their sizes (in meters)
-        allowedMarkerIds_ = {363, 682, 417};
+        // FIXED: Marker 152 size should be 0.08m (8cm) not 0.088m
+        allowedMarkerIds_ = {363, 152, 417};
         markerSizes_[363] = 0.15f;  // 15 cm
-        markerSizes_[682] = 0.08f;  // 8 cm (CORRECTED from 0.088f)
+        markerSizes_[152] = 0.08f;  // 8 cm (CORRECTED from 0.088f)
         markerSizes_[417] = 0.245f;    // 25 cm
 
         dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
@@ -363,7 +350,7 @@ void debugStereoCalibration() {
         parameters_->adaptiveThreshWinSizeMax = 23;
         parameters_->adaptiveThreshWinSizeStep = 10;
 
-        ROS_INFO("ArUco settings initialized for marker IDs: 363 (15cm), 682 (8cm), 417 (25cm)");
+        ROS_INFO("ArUco settings initialized for marker IDs: 363 (15cm), 152 (8cm), 417 (25cm)");
     }
 
     void initializeStereoSettings()
@@ -429,18 +416,18 @@ void debugStereoCalibration() {
    void initializeTransformMatrices()
 {
 
-    // cv::Mat rotation_180_z = (cv::Mat_<double>(3, 3) << 
-    //    -1,  0, 0,   
-    //     0, -1, 0,
-    //     0,  0, 1);
+    cv::Mat rotation_180_z = (cv::Mat_<double>(3, 3) << 
+       -1,  0, 0,   
+        0, -1, 0,
+        0,  0, 1);
  
     cv::Mat rotation_363 = cv::Mat::eye(3, 3, CV_64F);
-    cv::Mat rotation_682 = cv::Mat::eye(3, 3, CV_64F);
+    cv::Mat rotation_152 = rotation_180_z;
     cv::Mat rotation_417 = cv::Mat::eye(3, 3, CV_64F);
     
     std::vector<MarkerTransform> markers = {
         {363, cv::Vec3f(0.275f, 0.208f, 0.0f), rotation_363},  
-        {682, cv::Vec3f(0.043f, 0.038f, 0.0f), rotation_682},     
+        {152, cv::Vec3f(0.043f, 0.038f, 0.0f), rotation_152},     
         {417, cv::Vec3f(-0.255f, -0.160f, 0.0f), rotation_417}        
     };
 
@@ -780,46 +767,6 @@ void debugStereoCalibration() {
             {
                 positions.push_back(position);
                 orientations.push_back(orientation);
-
-                // publish this marker's individual pose
-                if (per_marker_pose_pubs_.count(marker.id)) {
-                    geometry_msgs::PoseStamped individual_msg;
-                    individual_msg.header.stamp = ros::Time::now();
-                    individual_msg.header.frame_id = "stereo_camera_frame";
-                    
-                    // Build rotation matrix from orientation vector
-                    cv::Mat indivRotMat;
-                    cv::Mat oriVec = (cv::Mat_<double>(3,1) << 
-                        orientation[0], orientation[1], orientation[2]);
-                    cv::Rodrigues(oriVec, indivRotMat);
-                    
-                    // Convert to quaternion (reuse same logic as main pose)
-                    double trace = indivRotMat.at<double>(0,0) 
-                                + indivRotMat.at<double>(1,1) 
-                                + indivRotMat.at<double>(2,2);
-                    double w, x, y, z;
-                    if (trace > 0) {
-                        double s = sqrt(trace + 1.0) * 2;
-                        w = 0.25 * s;
-                        x = (indivRotMat.at<double>(2,1) - indivRotMat.at<double>(1,2)) / s;
-                        y = (indivRotMat.at<double>(0,2) - indivRotMat.at<double>(2,0)) / s;
-                        z = (indivRotMat.at<double>(1,0) - indivRotMat.at<double>(0,1)) / s;
-                    } else {
-                        // fallback to identity
-                        x = 0; y = 0; z = 0; w = 1;
-                    }
-                    double norm = sqrt(x*x + y*y + z*z + w*w);
-                    
-                    individual_msg.pose.position.x = position[0];
-                    individual_msg.pose.position.y = position[1];
-                    individual_msg.pose.position.z = position[2];
-                    individual_msg.pose.orientation.x = (norm > 0) ? x/norm : 0;
-                    individual_msg.pose.orientation.y = (norm > 0) ? y/norm : 0;
-                    individual_msg.pose.orientation.z = (norm > 0) ? z/norm : 0;
-                    individual_msg.pose.orientation.w = (norm > 0) ? w/norm : 1;
-                    
-                    per_marker_pose_pubs_[marker.id].publish(individual_msg);
-                }
                 
                 // Store result for final summary
                 char result[200];
@@ -833,7 +780,7 @@ void debugStereoCalibration() {
             {
                 float markerSize = markerSizes_.count(marker.id) ? markerSizes_[marker.id] : config_.markerSize;
                 drawPose(debug_image, marker.rvec, marker.tvec, stereoCalib_.leftCameraMatrix,
-                         cv::Mat(), markerSize / 2);
+                         stereoCalib_.leftDistCoeffs, markerSize / 2);
 
                 // Add marker info text
                 cv::putText(debug_image,
@@ -1028,12 +975,12 @@ return true;
 
         // Calculate raw left camera pose
         bool leftSuccess = cv::solvePnP(objectPoints, marker.leftCorners,
-                                       stereoCalib_.leftCameraMatrix, cv::Mat(),
+                                       stereoCalib_.leftCameraMatrix, stereoCalib_.leftDistCoeffs,
                                        marker.rawLeftRvec, marker.rawLeftTvec, false, cv::SOLVEPNP_AP3P);
 
         // Calculate raw right camera pose  
         bool rightSuccess = cv::solvePnP(objectPoints, marker.rightCorners,
-                                        stereoCalib_.rightCameraMatrix, cv::Mat(),
+                                        stereoCalib_.rightCameraMatrix, stereoCalib_.rightDistCoeffs,
                                         marker.rawRightRvec, marker.rawRightTvec, false, cv::SOLVEPNP_AP3P);
 
         if (config_.enableDebugTrace && leftSuccess)
@@ -1219,16 +1166,6 @@ return true;
             continue;
         }
 
-        // Single marker filter (for debugging individual markers)
-        if (config_.singleMarkerFilter != -1 && markerId != config_.singleMarkerFilter) {
-            MatchedMarker m;
-            m.id = markerId;
-            m.valid = false;
-            m.status = MarkerStatus::FILTERED_OUT;
-            matched.push_back(m);
-            continue;
-        }
-
         // Check if marker exists in right camera
         auto it = rightIdMap.find(markerId);
         if (it != rightIdMap.end())  // REMOVED: || config_.enableSingleCameraMode
@@ -1376,7 +1313,7 @@ return true;
 
             // Initial estimate using left camera with actual distortion coefficients
             bool success = cv::solvePnP(objectPoints, marker.leftCorners,
-                                        stereoCalib_.leftCameraMatrix, cv::Mat(),
+                                        stereoCalib_.leftCameraMatrix, stereoCalib_.leftDistCoeffs,
                                         rvec, tvec, false, cv::SOLVEPNP_AP3P);
 
             if (!success)
@@ -1412,7 +1349,7 @@ return true;
 
                 // Stage 1: Refine using left camera
                 cv::solvePnPRefineLM(objectPoints, marker.leftCorners,
-                                     stereoCalib_.leftCameraMatrix, cv::Mat(),
+                                     stereoCalib_.leftCameraMatrix, stereoCalib_.leftDistCoeffs,
                                      iterRvec, iterTvec, criteria);
 
                 // Stage 2: Transform to right camera and refine
@@ -1424,7 +1361,7 @@ return true;
                 cv::Mat tvec_right = stereoCalib_.R * iterTvec + stereoCalib_.T;
 
                 cv::solvePnPRefineLM(objectPoints, marker.rightCorners,
-                                     stereoCalib_.rightCameraMatrix, cv::Mat(),
+                                     stereoCalib_.rightCameraMatrix, stereoCalib_.rightDistCoeffs,
                                      rvec_right, tvec_right, criteria);
 
                 // Transform back to left camera coordinate system
@@ -1436,7 +1373,7 @@ return true;
 
                 // Stage 3: Final refinement using left camera
                 cv::solvePnPRefineLM(objectPoints, marker.leftCorners,
-                                     stereoCalib_.leftCameraMatrix, cv::Mat(),
+                                     stereoCalib_.leftCameraMatrix, stereoCalib_.leftDistCoeffs,
                                      iterRvec, iterTvec, criteria);
 
                 // Calculate combined error
@@ -1492,7 +1429,7 @@ return true;
         // Left camera error with Huber loss
         std::vector<cv::Point2f> projectedLeft;
         cv::projectPoints(objectPoints, rvec, tvec,
-                          stereoCalib_.leftCameraMatrix, cv::Mat(), projectedLeft);
+                          stereoCalib_.leftCameraMatrix, stereoCalib_.leftDistCoeffs, projectedLeft);
 
         double leftError = 0.0;
         for (size_t i = 0; i < marker.leftCorners.size(); i++)
@@ -1514,7 +1451,7 @@ return true;
 
         std::vector<cv::Point2f> projectedRight;
         cv::projectPoints(objectPoints, rvec_right, tvec_right,
-                          stereoCalib_.rightCameraMatrix, cv::Mat(), projectedRight);
+                          stereoCalib_.rightCameraMatrix, stereoCalib_.rightDistCoeffs, projectedRight);
 
         double rightError = 0.0;
         for (size_t i = 0; i < marker.rightCorners.size(); i++)
@@ -1534,7 +1471,7 @@ return true;
         // Project perfect model to image using actual distortion coefficients
         std::vector<cv::Point2f> projectedCorners;
         cv::projectPoints(markerModel, marker.rvec, marker.tvec,
-                          stereoCalib_.leftCameraMatrix, cv::Mat(), projectedCorners);
+                          stereoCalib_.leftCameraMatrix, stereoCalib_.leftDistCoeffs, projectedCorners);
 
         // Check side lengths consistency
         std::vector<float> sides;
@@ -1583,7 +1520,7 @@ return true;
         std::vector<cv::Point2f> projectedLeft, projectedRight;
 
         cv::projectPoints(objectPoints, marker.rvec, marker.tvec,
-                          stereoCalib_.leftCameraMatrix, cv::Mat(), projectedLeft);
+                          stereoCalib_.leftCameraMatrix, stereoCalib_.leftDistCoeffs, projectedLeft);
 
         // Transform pose to right camera
         cv::Mat R_marker;
@@ -1594,7 +1531,7 @@ return true;
         cv::Mat tvec_right = stereoCalib_.R * marker.tvec + stereoCalib_.T;
 
         cv::projectPoints(objectPoints, rvec_right, tvec_right,
-                          stereoCalib_.rightCameraMatrix, cv::Mat(), projectedRight);
+                          stereoCalib_.rightCameraMatrix, stereoCalib_.rightDistCoeffs, projectedRight);
 
         // Calculate errors with Huber loss
         double leftError = 0.0, rightError = 0.0;
@@ -1820,7 +1757,6 @@ int main(int argc, char **argv)
     bool enableDebug = false;
     bool enableDebugTrace = false;
     bool enablePerformance = false;
-    int filterMarkerId = -1;  // ← MUST be declared here, before the loop
 
     for (int i = 1; i < argc; i++)
     {
@@ -1845,13 +1781,6 @@ int main(int argc, char **argv)
             forceNoViz = true;
             ROS_INFO("Command line: Visualization DISABLED");
         }
-        if (arg == "--marker" && i + 1 < argc)
-        {
-            filterMarkerId = std::stoi(argv[i + 1]);
-            i++;  // skip next arg
-            ROS_INFO("Command line: SINGLE MARKER MODE - only processing marker %d", 
-                    filterMarkerId);
-        }
         else if (arg == "--help")
         {
             std::cout << "Usage: " << argv[0] << " [options]\n"
@@ -1867,11 +1796,6 @@ int main(int argc, char **argv)
     try
     {
         StereoArucoDetectorNode node;
-        if (filterMarkerId != -1) {
-            // Override allowed markers to only the requested one
-            node.config_.singleMarkerFilter = filterMarkerId;
-            ROS_INFO("Single marker filter active: ID %d", filterMarkerId);
-        }
         
         // Apply command line overrides
         if (enablePerformance)

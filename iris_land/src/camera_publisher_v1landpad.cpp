@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <chrono>
 
+
 int main(int argc, char** argv) {
     ros::init(argc, argv, "stereo_camera_node");
     ros::NodeHandle nh;

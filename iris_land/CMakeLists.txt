@@ -16,12 +16,28 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
-find_package(OpenCV REQUIRED)
+set(OpenCV_DIR "/usr/local/lib/cmake/opencv4" CACHE PATH "Path to OpenCV cmake config" FORCE)
+
+find_package(OpenCV 4.2 REQUIRED
+  COMPONENTS
+    core
+    imgproc
+    imgcodecs
+    highgui
+    videoio
+    calib3d
+)
+
+message(STATUS "========== OpenCV Configuration ==========")
+message(STATUS "OpenCV Version: ${OpenCV_VERSION}")
+message(STATUS "OpenCV Libraries: ${OpenCV_LIBS}")
+message(STATUS "OpenCV Include Dirs: ${OpenCV_INCLUDE_DIRS}")
+message(STATUS "OpenCV Install Path: ${OpenCV_INSTALL_PATH}")
+message(STATUS "==========================================")
 
 ## Encontra o GStreamer usando pkg-config
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GST REQUIRED gstreamer-1.0)
-
 
 add_message_files(
   FILES
@@ -56,6 +72,8 @@ catkin_package(
     message_runtime
 )
 
+link_directories(/usr/local/lib)
+
 include_directories(
   include
   include/iris_land
@@ -65,7 +83,7 @@ include_directories(
 )
 
 ## ------------------------------------------------------------------
-## Executável “iris_mng”
+## Executável "iris_mng"
 ## ------------------------------------------------------------------
 add_executable(iris_mng
   src/manager_node.cpp
@@ -80,10 +98,15 @@ add_executable(iris_mng
 )
 
 target_link_libraries(iris_mng
-  ${catkin_LIBRARIES}
   ${OpenCV_LIBS}
-  
+  ${catkin_LIBRARIES}
 )
+
+set_target_properties(iris_mng PROPERTIES
+  INSTALL_RPATH "/usr/local/lib"
+  BUILD_WITH_INSTALL_RPATH TRUE
+)
+
 add_dependencies(iris_mng ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## ------------------------------------------------------------------
@@ -94,9 +117,15 @@ add_executable(aruco_stereo
 )
 
 target_link_libraries(aruco_stereo
-  ${catkin_LIBRARIES}
   ${OpenCV_LIBS}
+  ${catkin_LIBRARIES}
 )
+
+set_target_properties(aruco_stereo PROPERTIES
+  INSTALL_RPATH "/usr/local/lib"
+  BUILD_WITH_INSTALL_RPATH TRUE
+)
+
 add_dependencies(aruco_stereo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## ------------------------------------------------------------------
@@ -105,10 +134,17 @@ add_dependencies(aruco_stereo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPOR
 add_executable(stereo_camera_publisher_node src/camera_publisher.cpp)
 
 target_link_libraries(stereo_camera_publisher_node
+  ${OpenCV_LIBS}
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
   ${GST_LIBRARIES}
 )
+
+set_target_properties(stereo_camera_publisher_node PROPERTIES
+  INSTALL_RPATH "/usr/local/lib"
+  BUILD_WITH_INSTALL_RPATH TRUE
+)
+
+add_dependencies(stereo_camera_publisher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## ------------------------------------------------------------------
 ## Executaveis Python
