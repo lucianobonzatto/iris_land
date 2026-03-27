@@ -5,7 +5,7 @@ Land_Controller::Land_Controller()
     setpoint.x = 0;
     setpoint.y = 0;
     setpoint.z = 2;
-    setpoint.theta = 0;
+    setpoint.theta = M_PI; // Braun: Now with landpad orientation fixed, the setpoint is PI because the camera is assembled backwards in drone frame
     controller_mode = 0;
     distance_threshold = 0.2;
     angular_threshold = 0.2;
@@ -15,11 +15,17 @@ Land_Controller::Land_Controller()
     builder.setOutMax(1);
     builder.setConditionalIntegration(true);
 
+    PID::Builder builder_theta;
+    builder_theta.setDt(0.05);
+    builder_theta.setOutMax(1);
+    builder_theta.setConditionalIntegration(true);
+    builder_theta.setAngularInput(true); // Braun: only theta needs this
+
     PID_velocity_ctl pid_Controller(
         builder,
         builder,
         builder,
-        builder);
+        builder_theta);
     pidController = pid_Controller;
 }
 
@@ -27,7 +33,7 @@ Land_Controller::~Land_Controller()
 {
 }
 
-void Land_Controller::append_parameters(std::stringstream& ss)
+void Land_Controller::append_parameters(std::stringstream &ss)
 {
     ss << "Land Controller:\n";
     ss << "\tx: " << setpoint.x << "\ty: " << setpoint.y
@@ -50,18 +56,18 @@ void Land_Controller::append_parameters(std::stringstream& ss)
 
 void Land_Controller::update_parameters(iris_land::controllers_gain newParameters)
 {
-    pidController.update_x( newParameters.pid_ctrl.x.p_gain,
-                            newParameters.pid_ctrl.x.i_gain,
-                            newParameters.pid_ctrl.x.d_gain);
-    pidController.update_y( newParameters.pid_ctrl.y.p_gain,
-                            newParameters.pid_ctrl.y.i_gain,
-                            newParameters.pid_ctrl.y.d_gain);
-    pidController.update_z( newParameters.pid_ctrl.z.p_gain,
-                            newParameters.pid_ctrl.z.i_gain,
-                            newParameters.pid_ctrl.z.d_gain);
-    pidController.update_theta( newParameters.pid_ctrl.yaw.p_gain,
-                                newParameters.pid_ctrl.yaw.i_gain,
-                                newParameters.pid_ctrl.yaw.d_gain);
+    pidController.update_x(newParameters.pid_ctrl.x.p_gain,
+                           newParameters.pid_ctrl.x.i_gain,
+                           newParameters.pid_ctrl.x.d_gain);
+    pidController.update_y(newParameters.pid_ctrl.y.p_gain,
+                           newParameters.pid_ctrl.y.i_gain,
+                           newParameters.pid_ctrl.y.d_gain);
+    pidController.update_z(newParameters.pid_ctrl.z.p_gain,
+                           newParameters.pid_ctrl.z.i_gain,
+                           newParameters.pid_ctrl.z.d_gain);
+    pidController.update_theta(newParameters.pid_ctrl.yaw.p_gain,
+                               newParameters.pid_ctrl.yaw.i_gain,
+                               newParameters.pid_ctrl.yaw.d_gain);
 }
 
 void Land_Controller::reset_altitude(double altitude)
@@ -71,7 +77,7 @@ void Land_Controller::reset_altitude(double altitude)
 
 bool Land_Controller::completed_approach()
 {
-    if(setpoint.z < 0.3)
+    if (setpoint.z < 0.4)
         return true;
     return false;
 }
@@ -92,9 +98,14 @@ geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped po
     measurement.theta = get_yaw(poseStamped.pose.orientation);
 
     double distance = calculate_distance(measurement, setpoint);
-    double angle_distance = measurement.theta - setpoint.theta;
-    if (angle_distance < 0)
-        angle_distance *= -1;
+    // double angle_distance = measurement.theta - setpoint.theta;
+    // if (angle_distance < 0)
+    //     angle_distance *= -1;
+
+    // Braun: handles angle wrap around correctly, e.g. if setpoint is 179 degrees and measurement is -179 degrees, the angle distance is 2 degrees, not 358 degrees
+
+    double angle_distance = fabs(atan2(sin(measurement.theta - setpoint.theta),
+                                       cos(measurement.theta - setpoint.theta)));
 
     cout << "distance:\t" << distance << "\t" << distance_threshold << endl;
     cout << "angle_distance:\t" << angle_distance << "\t" << angular_threshold << endl;
