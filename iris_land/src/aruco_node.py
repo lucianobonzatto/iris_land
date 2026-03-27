@@ -17,11 +17,11 @@ class ImageRepublisher:
         self.pose_pub = rospy.Publisher('/aruco/pose', PoseStamped, queue_size=10)
 
         # intrínsecos/dist. (iguais ao seu arquivo)
-        self.camera_matrix = np.array([[571.81579811,   0,          189.0118068],
-                                       [0,         575.39583804,  134.69661555],
+        self.camera_matrix = np.array([[574.73088734,   0,          170.32277285],
+                                       [0,         577.94407662,  127.017184],
                                        [0        , 0        , 1   ]])
 
-        self.distortion_coeffs = np.array([[-0.40615593,  0.15172498, -0.0043972, -0.00370684, -0.12293532]])
+        self.distortion_coeffs = np.array([[-5.05221930e-01,  3.23562340e+00, -3.42074830e-03, 1.48988358e-04, -2.51851873e+01]])
         self.dictionary = aruco.getPredefinedDictionary(aruco.DICT_ARUCO_ORIGINAL)
         self.parameters = aruco.DetectorParameters()
         self.bridge = CvBridge()

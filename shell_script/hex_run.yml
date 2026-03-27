@@ -5,15 +5,12 @@ windows:
   - image_transport:
       layout: tiled
       panes:
-        #- sleep 1; roslaunch mavros px4.launch #executa pacote MAVROS
-        #- sleep 1; rqt_image_view
-         - sleep 1; rosrun iris_land stereo_camera_publisher_node #abre a camera sterea
+        - sleep 1; rqt_image_view
+        #- sleep 1; rosrun iris_land stereo_camera_publisher_node
         #- sleep 1; rosrun iris_land aruco_stereo --performance #este modo é a versão otimizada
-         - sleep 1; rosrun iris_land aruco_stereo #modo debug para visualização eixos rviz
-        #- sleep 1; rosrun seekcamera_ros get_seekthermal.py #abre a camera termica
-        #- sleep 1; rosrun iris_land aruco_node.py #executa pacote aruco da camera termica
-        #- sleep 1; roslaunch uwb_tracking_ros uwb_tracking_dwm1001.launch #executa pacote do modulo uwb
-
+        #- sleep 1; rosrun iris_land aruco_stereo
+        - sleep 1; rosrun seekcamera_ros get_seekthermal.py
+        - sleep 1; rosrun iris_land aruco_node.py 
   - manager:
       layout: tiled
       panes:
