@@ -34,6 +34,7 @@ enum class MarkerStatus
     REPROJECTION_ERROR_LEFT_TOO_HIGH,
     REPROJECTION_ERROR_RIGHT_TOO_HIGH,
     REPROJECTION_ERROR_AVERAGE_TOO_HIGH,
+    PIXEL_SPAN_TOO_SMALL,
     UNKNOWN
 };
 
@@ -61,6 +62,8 @@ const char *statusToString(MarkerStatus status)
         return "Right camera reprojection error too high";
     case MarkerStatus::REPROJECTION_ERROR_AVERAGE_TOO_HIGH:
         return "Average reprojection error too high";
+    case MarkerStatus::PIXEL_SPAN_TOO_SMALL:
+        return "Marker too small in image (pixel span below threshold)";
     default:
         return "Unknown error";
     }
@@ -120,7 +123,7 @@ struct Config
     int singleMarkerFilter = -1;
 
     // Error thresholds
-    float reprojErrorThreshold = 10.0f;
+    float reprojErrorThreshold = 7.0f; // best trade-off value that I've found for reliable detection without too much noise (Python reprojection error is usually around 3-5px for good detections, but can be higher for smaller markers or at longer ranges)
     float geometryTolerance = 0.15f;
     float huberDelta = 1.5f;
 
@@ -132,6 +135,7 @@ struct Config
     int cornerRefinementWinSize = 7;
     int cornerRefinementMaxIterations = 50;
     float cornerRefinementMinAccuracy = 0.005f;
+    float minPixelSpan = 120.0f;  // Minimum marker diagonal in pixels for reliable PnP
 
     // Debug levels - controlled by command line only
     bool enableVisualization = true;
@@ -167,8 +171,8 @@ public:
         ROS_INFO("Initializing Stereo ArUco Detector Node...");
 
         initializeParameters();
-        initializeTopics();
         initializeArucoSettings();
+        initializeTopics();
         initializeStereoSettings();
         initializeTransformMatrices();
 
@@ -617,21 +621,10 @@ private:
 
             if (detectMarkers(left_cv->image, right_cv->image, pose_msg, debug_image))
             {
-                // Publish pose
+                // Publish best single marker on /aruco/pose (backward compat, not used by EKF)
                 pose_msg.header.stamp = ros::Time::now();
                 pose_msg.header.frame_id = "stereo_camera_frame";
                 pose_pub_.publish(pose_msg);
-
-                if (config_.enableDebug)
-                {
-                    ROS_INFO("\n");
-                    ROS_INFO(" PUBLISHED LANDPAD POSE:");
-                    ROS_INFO("  Position: [%7.3f, %7.3f, %7.3f] meters",
-                             pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z);
-                    ROS_INFO("  Quaternion: [%6.3f, %6.3f, %6.3f, %6.3f]",
-                             pose_msg.pose.orientation.x, pose_msg.pose.orientation.y,
-                             pose_msg.pose.orientation.z, pose_msg.pose.orientation.w);
-                }
             }
 
             // Publish debug images if visualization is enabled
@@ -743,6 +736,33 @@ private:
             return false;
         }
 
+        // Pixel span gate: reject markers that are too small for reliable PnP
+        float focalLength = stereoCalib_.leftCameraMatrix.at<double>(0, 0);
+        for (auto& marker : matched)
+        {
+            if (!marker.valid) continue;
+
+            float apparentSize = getApparentSize(marker.leftCorners);
+            float markerSize = markerSizes_.count(marker.id) ? markerSizes_[marker.id] : config_.markerSize;
+            float maxRange = markerSize * focalLength / config_.minPixelSpan;
+
+            if (apparentSize < config_.minPixelSpan)
+            {
+                marker.valid = false;
+                marker.status = MarkerStatus::PIXEL_SPAN_TOO_SMALL;
+                if (config_.enableDebug)
+                {
+                    ROS_INFO("  Marker %d rejected: %.1f px < %.1f px minimum (max reliable range: %.2fm)",
+                            marker.id, apparentSize, config_.minPixelSpan, maxRange);
+                }
+            }
+            else if (config_.enableDebugTrace)
+            {
+                ROS_INFO("  Marker %d pixel span: %.1f px (min: %.1f, max range: %.2fm)",
+                        marker.id, apparentSize, config_.minPixelSpan, maxRange);
+            }
+        }
+
         totalMarkers_ += matched.size();
 
         if (config_.enableDebugTrace)
@@ -769,10 +789,10 @@ private:
             ROS_INFO("--- LANDPAD POSE CALCULATION ---");
         }
 
-        // Process results and create pose message
-        std::vector<cv::Vec3f> positions;
-        std::vector<cv::Vec3f> orientations;
+        // Process results and publish per-marker poses
         std::vector<std::string> markerResults;
+        bool anyValidPublished = false;
+        double bestReprojError = std::numeric_limits<double>::max();
 
         for (const auto &marker : matched)
         {
@@ -782,72 +802,106 @@ private:
             {
                 validMarkers_++;
 
-                // Apply transform if defined for this marker
+                // Apply transform to get landpad pose
                 cv::Vec3f position, orientation;
-                if (applyMarkerTransform(marker, position, orientation))
+                if (!applyMarkerTransform(marker, position, orientation))
+                    continue;
+
+                // === Build rotation matrix and full quaternion conversion ===
+                cv::Mat indivRotMat;
+                cv::Mat oriVec = (cv::Mat_<double>(3, 1) <<
+                    orientation[0], orientation[1], orientation[2]);
+                cv::Rodrigues(oriVec, indivRotMat);
+
+                if (indivRotMat.type() != CV_64F)
+                    indivRotMat.convertTo(indivRotMat, CV_64F);
+
+                double trace = indivRotMat.at<double>(0, 0)
+                            + indivRotMat.at<double>(1, 1)
+                            + indivRotMat.at<double>(2, 2);
+                double w, x, y, z;
+
+                if (trace > 0)
                 {
-                    positions.push_back(position);
-                    orientations.push_back(orientation);
-
-                    // publish this marker's individual pose
-                    if (per_marker_pose_pubs_.count(marker.id))
-                    {
-                        geometry_msgs::PoseStamped individual_msg;
-                        individual_msg.header.stamp = ros::Time::now();
-                        individual_msg.header.frame_id = "stereo_camera_frame";
-
-                        // Build rotation matrix from orientation vector
-                        cv::Mat indivRotMat;
-                        cv::Mat oriVec = (cv::Mat_<double>(3, 1) << orientation[0], orientation[1], orientation[2]);
-                        cv::Rodrigues(oriVec, indivRotMat);
-
-                        // Convert to quaternion (reuse same logic as main pose)
-                        double trace = indivRotMat.at<double>(0, 0) + indivRotMat.at<double>(1, 1) + indivRotMat.at<double>(2, 2);
-                        double w, x, y, z;
-                        if (trace > 0)
-                        {
-                            double s = sqrt(trace + 1.0) * 2;
-                            w = 0.25 * s;
-                            x = (indivRotMat.at<double>(2, 1) - indivRotMat.at<double>(1, 2)) / s;
-                            y = (indivRotMat.at<double>(0, 2) - indivRotMat.at<double>(2, 0)) / s;
-                            z = (indivRotMat.at<double>(1, 0) - indivRotMat.at<double>(0, 1)) / s;
-                        }
-                        else
-                        {
-                            // fallback to identity
-                            x = 0;
-                            y = 0;
-                            z = 0;
-                            w = 1;
-                        }
-                        double norm = sqrt(x * x + y * y + z * z + w * w);
-
-                        individual_msg.pose.position.x = position[0];
-                        individual_msg.pose.position.y = position[1];
-                        individual_msg.pose.position.z = position[2];
-                        individual_msg.pose.orientation.x = (norm > 0) ? x / norm : 0;
-                        individual_msg.pose.orientation.y = (norm > 0) ? y / norm : 0;
-                        individual_msg.pose.orientation.z = (norm > 0) ? z / norm : 0;
-                        individual_msg.pose.orientation.w = (norm > 0) ? w / norm : 1;
-
-                        per_marker_pose_pubs_[marker.id].publish(individual_msg);
-                    }
-
-                    // Store result for final summary
-                    char result[200];
-                    sprintf(result, "Marker %d: [%7.3f, %7.3f, %7.3f]",
-                            marker.id, position[0], position[1], position[2]);
-                    markerResults.push_back(std::string(result));
+                    double s = sqrt(trace + 1.0) * 2;
+                    w = 0.25 * s;
+                    x = (indivRotMat.at<double>(2, 1) - indivRotMat.at<double>(1, 2)) / s;
+                    y = (indivRotMat.at<double>(0, 2) - indivRotMat.at<double>(2, 0)) / s;
+                    z = (indivRotMat.at<double>(1, 0) - indivRotMat.at<double>(0, 1)) / s;
                 }
+                else if ((indivRotMat.at<double>(0, 0) > indivRotMat.at<double>(1, 1)) &&
+                        (indivRotMat.at<double>(0, 0) > indivRotMat.at<double>(2, 2)))
+                {
+                    double s = sqrt(1.0 + indivRotMat.at<double>(0, 0)
+                                - indivRotMat.at<double>(1, 1)
+                                - indivRotMat.at<double>(2, 2)) * 2;
+                    w = (indivRotMat.at<double>(2, 1) - indivRotMat.at<double>(1, 2)) / s;
+                    x = 0.25 * s;
+                    y = (indivRotMat.at<double>(0, 1) + indivRotMat.at<double>(1, 0)) / s;
+                    z = (indivRotMat.at<double>(0, 2) + indivRotMat.at<double>(2, 0)) / s;
+                }
+                else if (indivRotMat.at<double>(1, 1) > indivRotMat.at<double>(2, 2))
+                {
+                    double s = sqrt(1.0 + indivRotMat.at<double>(1, 1)
+                                - indivRotMat.at<double>(0, 0)
+                                - indivRotMat.at<double>(2, 2)) * 2;
+                    w = (indivRotMat.at<double>(0, 2) - indivRotMat.at<double>(2, 0)) / s;
+                    x = (indivRotMat.at<double>(0, 1) + indivRotMat.at<double>(1, 0)) / s;
+                    y = 0.25 * s;
+                    z = (indivRotMat.at<double>(1, 2) + indivRotMat.at<double>(2, 1)) / s;
+                }
+                else
+                {
+                    double s = sqrt(1.0 + indivRotMat.at<double>(2, 2)
+                                - indivRotMat.at<double>(0, 0)
+                                - indivRotMat.at<double>(1, 1)) * 2;
+                    w = (indivRotMat.at<double>(1, 0) - indivRotMat.at<double>(0, 1)) / s;
+                    x = (indivRotMat.at<double>(0, 2) + indivRotMat.at<double>(2, 0)) / s;
+                    y = (indivRotMat.at<double>(1, 2) + indivRotMat.at<double>(2, 1)) / s;
+                    z = 0.25 * s;
+                }
+
+                double norm = sqrt(x * x + y * y + z * z + w * w);
+
+                // === Publish per-marker pose ===
+                if (per_marker_pose_pubs_.count(marker.id))
+                {
+                    geometry_msgs::PoseStamped individual_msg;
+                    individual_msg.header.stamp = ros::Time::now();
+                    individual_msg.header.frame_id = "stereo_camera_frame";
+                    individual_msg.pose.position.x = position[0];
+                    individual_msg.pose.position.y = position[1];
+                    individual_msg.pose.position.z = position[2];
+                    individual_msg.pose.orientation.x = (norm > 0) ? x / norm : 0;
+                    individual_msg.pose.orientation.y = (norm > 0) ? y / norm : 0;
+                    individual_msg.pose.orientation.z = (norm > 0) ? z / norm : 0;
+                    individual_msg.pose.orientation.w = (norm > 0) ? w / norm : 1;
+
+                    per_marker_pose_pubs_[marker.id].publish(individual_msg);
+                    anyValidPublished = true;
+
+                    // Track best marker for optional averaged topic
+                    if (marker.reprojectionError < bestReprojError)
+                    {
+                        bestReprojError = marker.reprojectionError;
+                        pose_msg.pose = individual_msg.pose;
+                    }
+                }
+
+                // Store result for debug summary
+                char result[256];
+                sprintf(result, "Marker %d: [%7.3f, %7.3f, %7.3f] (reproj: %.2fpx, span: %.0fpx)",
+                        marker.id, position[0], position[1], position[2],
+                        marker.reprojectionError, getApparentSize(marker.leftCorners));
+                markerResults.push_back(std::string(result));
 
                 // Draw pose visualization if enabled
                 if (config_.enableVisualization && !debug_image.empty())
                 {
                     float markerSize = markerSizes_.count(marker.id) ? markerSizes_[marker.id] : config_.markerSize;
                     drawPose(debug_image, marker.rvec, marker.tvec, stereoCalib_.leftCameraMatrix,
-                             cv::Mat(), markerSize / 2);
+                            cv::Mat(), markerSize / 2);
 
-                    // Add marker info text
                     cv::putText(debug_image,
                                 "ID:" + std::to_string(marker.id) +
                                     " E:" + std::to_string(marker.reprojectionError).substr(0, 4) + "px",
@@ -864,172 +918,24 @@ private:
             }
         }
 
-        if (positions.empty())
+        if (!anyValidPublished)
         {
             if (config_.enableDebugTrace)
-                ROS_INFO("No valid marker transformations found");
+                ROS_INFO("No valid marker poses published");
             return false;
         }
 
-        // Calculate average position and orientation
-        cv::Vec3f avgPosition(0, 0, 0);
-        cv::Vec3f avgOrientation(0, 0, 0);
-
-        for (const auto &pos : positions)
-        {
-            avgPosition += pos;
-        }
-        avgPosition /= static_cast<float>(positions.size());
-
-        // FIXED: Proper rotation averaging using rotation matrices instead of direct vector averaging
-        if (orientations.size() == 1)
-        {
-            // Single orientation - no averaging needed
-            avgOrientation = orientations[0];
-        }
-        else if (orientations.size() > 1)
-        {
-            // Convert rotation vectors to rotation matrices
-            std::vector<cv::Mat> rotationMatrices;
-            for (const auto &ori : orientations)
-            {
-                cv::Mat R;
-                cv::Rodrigues(ori, R);
-
-                // IMPORTANT: force R into double‐precision before adding
-                if (R.type() != CV_64F)
-                    R.convertTo(R, CV_64F);
-
-                rotationMatrices.push_back(R);
-            }
-
-            // Average rotation matrices (now all CV_64F)
-            cv::Mat avgRotMat = cv::Mat::zeros(3, 3, CV_64F);
-            for (const auto &R : rotationMatrices)
-            {
-                avgRotMat += R; // safe, both are CV_64F
-            }
-            avgRotMat /= static_cast<double>(rotationMatrices.size());
-
-            // Ensure result is a proper rotation matrix using SVD
-            cv::Mat U, S, Vt;
-            cv::SVD::compute(avgRotMat, S, U, Vt);
-            avgRotMat = U * Vt;
-
-            if (cv::determinant(avgRotMat) < 0)
-            {
-                Vt.row(2) *= -1;
-                avgRotMat = U * Vt;
-            }
-
-            // Convert the averaged rotation matrix back to a rotation vector
-            cv::Mat avgRotVec;
-            cv::Rodrigues(avgRotMat, avgRotVec);
-            avgOrientation[0] = avgRotVec.at<double>(0);
-            avgOrientation[1] = avgRotVec.at<double>(1);
-            avgOrientation[2] = avgRotVec.at<double>(2);
-
-            if (config_.enableDebugTrace)
-            {
-                ROS_INFO("  Averaged %zu rotations using matrix averaging", orientations.size());
-            }
-        }
-
-        // Convert to quaternion (robust conversion)
-        cv::Mat rotMat;
-        cv::Rodrigues(avgOrientation, rotMat);
-
-        if (rotMat.type() != CV_64F)
-        {
-            rotMat.convertTo(rotMat, CV_64F);
-        }
-
-        // Create pose message - set position first (always needed)
-        pose_msg.pose.position.x = avgPosition[0];
-        pose_msg.pose.position.y = avgPosition[1];
-        pose_msg.pose.position.z = avgPosition[2];
-
-        // Validate rotation matrix
-        double det = cv::determinant(rotMat);
-        if (std::abs(det - 1.0) > 0.1)
-        {
-            ROS_WARN("Invalid rotation matrix determinant: %.3f, using identity", det);
-            pose_msg.pose.orientation.x = 0.0;
-            pose_msg.pose.orientation.y = 0.0;
-            pose_msg.pose.orientation.z = 0.0;
-            pose_msg.pose.orientation.w = 1.0;
-        }
-        else
-        {
-            // Robust rotation matrix to quaternion conversion
-            double trace = rotMat.at<double>(0, 0) + rotMat.at<double>(1, 1) + rotMat.at<double>(2, 2);
-            double w, x, y, z;
-
-            if (trace > 0)
-            {
-                double s = sqrt(trace + 1.0) * 2; // s=4*w
-                w = 0.25 * s;
-                x = (rotMat.at<double>(2, 1) - rotMat.at<double>(1, 2)) / s;
-                y = (rotMat.at<double>(0, 2) - rotMat.at<double>(2, 0)) / s;
-                z = (rotMat.at<double>(1, 0) - rotMat.at<double>(0, 1)) / s;
-            }
-            else if ((rotMat.at<double>(0, 0) > rotMat.at<double>(1, 1)) && (rotMat.at<double>(0, 0) > rotMat.at<double>(2, 2)))
-            {
-                double s = sqrt(1.0 + rotMat.at<double>(0, 0) - rotMat.at<double>(1, 1) - rotMat.at<double>(2, 2)) * 2; // s=4*x
-                w = (rotMat.at<double>(2, 1) - rotMat.at<double>(1, 2)) / s;
-                x = 0.25 * s;
-                y = (rotMat.at<double>(0, 1) + rotMat.at<double>(1, 0)) / s;
-                z = (rotMat.at<double>(0, 2) + rotMat.at<double>(2, 0)) / s;
-            }
-            else if (rotMat.at<double>(1, 1) > rotMat.at<double>(2, 2))
-            {
-                double s = sqrt(1.0 + rotMat.at<double>(1, 1) - rotMat.at<double>(0, 0) - rotMat.at<double>(2, 2)) * 2; // s=4*y
-                w = (rotMat.at<double>(0, 2) - rotMat.at<double>(2, 0)) / s;
-                x = (rotMat.at<double>(0, 1) + rotMat.at<double>(1, 0)) / s;
-                y = 0.25 * s;
-                z = (rotMat.at<double>(1, 2) + rotMat.at<double>(2, 1)) / s;
-            }
-            else
-            {
-                double s = sqrt(1.0 + rotMat.at<double>(2, 2) - rotMat.at<double>(0, 0) - rotMat.at<double>(1, 1)) * 2; // s=4*z
-                w = (rotMat.at<double>(1, 0) - rotMat.at<double>(0, 1)) / s;
-                x = (rotMat.at<double>(0, 2) + rotMat.at<double>(2, 0)) / s;
-                y = (rotMat.at<double>(1, 2) + rotMat.at<double>(2, 1)) / s;
-                z = 0.25 * s;
-            }
-
-            // Normalize and assign quaternion
-            double norm = sqrt(x * x + y * y + z * z + w * w);
-            if (norm > 0)
-            {
-                pose_msg.pose.orientation.x = x / norm;
-                pose_msg.pose.orientation.y = y / norm;
-                pose_msg.pose.orientation.z = z / norm;
-                pose_msg.pose.orientation.w = w / norm;
-            }
-            else
-            {
-                // Default to identity quaternion
-                pose_msg.pose.orientation.x = 0.0;
-                pose_msg.pose.orientation.y = 0.0;
-                pose_msg.pose.orientation.z = 0.0;
-                pose_msg.pose.orientation.w = 1.0;
-            }
-        }
-
-        // Final summary for debug modes
+        // Debug summary
         if (config_.enableDebug)
         {
             ROS_INFO("\n");
-            ROS_INFO("--- FINAL LANDPAD POSE ESTIMATES ---");
+            ROS_INFO("--- PER-MARKER POSE ESTIMATES (no averaging) ---");
             for (const auto &result : markerResults)
             {
                 ROS_INFO("  %s", result.c_str());
             }
-            ROS_INFO("-------------------------------------------");
-            ROS_INFO("  AVERAGED: [%7.3f, %7.3f, %7.3f] <- PUBLISHED",
-                     avgPosition[0], avgPosition[1], avgPosition[2]);
-            ROS_INFO("  Used %zu markers for averaging", positions.size());
+            ROS_INFO("  Published %zu individual marker poses", markerResults.size());
+            ROS_INFO("------------------------------------------------");
         }
 
         return true;
@@ -1719,6 +1625,22 @@ private:
 
             return true;
         }
+    }
+
+    float getApparentSize(const std::vector<cv::Point2f>& corners)
+    {
+        // Calculate the maximum diagonal distance between any two corners
+        // This represents the apparent size of the marker in pixels
+        float maxDist = 0;
+        for (size_t i = 0; i < corners.size(); i++)
+        {
+            for (size_t j = i + 1; j < corners.size(); j++)
+            {
+                float dist = cv::norm(corners[i] - corners[j]);
+                maxDist = std::max(maxDist, dist);
+            }
+        }
+        return maxDist;
     }
 
     std::vector<cv::Point3f> createMarkerModel(float markerSize)
