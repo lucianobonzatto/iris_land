@@ -123,7 +123,7 @@ struct Config
     int singleMarkerFilter = -1;
 
     // Error thresholds
-    float reprojErrorThreshold = 7.0f; // best trade-off value that I've found for reliable detection without too much noise (Python reprojection error is usually around 3-5px for good detections, but can be higher for smaller markers or at longer ranges)
+    float reprojErrorThreshold = 4.0f; // best trade-off value that I've found for reliable detection without too much noise (Python reprojection error is usually around 3-5px for good detections, but can be higher for smaller markers or at longer ranges)
     float geometryTolerance = 0.15f;
     float huberDelta = 1.5f;
 
@@ -135,7 +135,7 @@ struct Config
     int cornerRefinementWinSize = 7;
     int cornerRefinementMaxIterations = 50;
     float cornerRefinementMinAccuracy = 0.005f;
-    float minPixelSpan = 120.0f;  // Minimum marker diagonal in pixels for reliable PnP
+    float minPixelSpan = 90.0f;  // Minimum marker diagonal in pixels for reliable PnP
 
     // Debug levels - controlled by command line only
     bool enableVisualization = true;
@@ -162,11 +162,12 @@ public:
     Config config_;
 
     // Constructor
-    StereoArucoDetectorNode() : nh_(),
+    StereoArucoDetectorNode(const Config& cfg = Config()) : nh_(),
                                 pnh_("~"),
                                 frameCounter_(0),
                                 totalMarkers_(0),
-                                validMarkers_(0)
+                                validMarkers_(0),
+                                config_(cfg)
     {
         ROS_INFO("Initializing Stereo ArUco Detector Node...");
 
@@ -952,12 +953,12 @@ private:
             float markerSize = markerSizes_.count(marker.id) ? markerSizes_[marker.id] : config_.markerSize;
             std::vector<cv::Point3f> objectPoints = createMarkerModel(markerSize);
 
-            // Calculate raw left camera pose
+            // Calculate raw left camera pose on undistorted image (zero distortion model)
             bool leftSuccess = cv::solvePnP(objectPoints, marker.leftCorners,
                                             stereoCalib_.leftCameraMatrix, cv::Mat(),
                                             marker.rawLeftRvec, marker.rawLeftTvec, false, cv::SOLVEPNP_AP3P);
 
-            // Calculate raw right camera pose
+            // Calculate raw right camera pose on undistorted image (zero distortion model)
             bool rightSuccess = cv::solvePnP(objectPoints, marker.rightCorners,
                                              stereoCalib_.rightCameraMatrix, cv::Mat(),
                                              marker.rawRightRvec, marker.rawRightTvec, false, cv::SOLVEPNP_AP3P);
@@ -1235,17 +1236,16 @@ private:
                              marker.rvec.at<double>(2) * 180.0 / M_PI);
                 }
 
-                // Geometry validation
-                if (!validateMarkerGeometry(marker, currentMarkerModel, markerSize))
-                {
-                    marker.valid = false;
-                    if (config_.enableDebugTrace)
-                        ROS_INFO("     Geometry validation failed");
-                    continue;
-                }
-
                 // Final error validation
                 calculateFinalErrors(marker, currentMarkerModel);
+
+                if (config_.enableDebug)
+                {
+                    ROS_INFO("    Marker %d errors: L=%.2fpx R=%.2fpx Avg=%.2fpx (threshold=%.1fpx)",
+                            marker.id, marker.leftReprojectionError, 
+                            marker.rightReprojectionError, marker.reprojectionError,
+                            config_.reprojErrorThreshold);
+                }
 
                 if (marker.reprojectionError > config_.reprojErrorThreshold)
                 {
@@ -1253,24 +1253,6 @@ private:
                     marker.status = MarkerStatus::REPROJECTION_ERROR_AVERAGE_TOO_HIGH;
                     if (config_.enableDebugTrace)
                         ROS_INFO("     Average reprojection error too high: %.2fpx", marker.reprojectionError);
-                    continue;
-                }
-
-                if (marker.leftReprojectionError > config_.reprojErrorThreshold)
-                {
-                    marker.valid = false;
-                    marker.status = MarkerStatus::REPROJECTION_ERROR_LEFT_TOO_HIGH;
-                    if (config_.enableDebugTrace)
-                        ROS_INFO("     Left reprojection error too high: %.2fpx", marker.leftReprojectionError);
-                    continue;
-                }
-
-                if (marker.rightReprojectionError > config_.reprojErrorThreshold)
-                {
-                    marker.valid = false;
-                    marker.status = MarkerStatus::REPROJECTION_ERROR_RIGHT_TOO_HIGH;
-                    if (config_.enableDebugTrace)
-                        ROS_INFO("     Right reprojection error too high: %.2fpx", marker.rightReprojectionError);
                     continue;
                 }
 
@@ -1303,7 +1285,7 @@ private:
                 ROS_INFO("  Running sequential joint stereo PnP...");
             }
 
-            // Initial estimate using left camera with actual distortion coefficients
+            // Initial estimate using left camera on undistorted image (zero distortion model)
             bool success = cv::solvePnP(objectPoints, marker.leftCorners,
                                         stereoCalib_.leftCameraMatrix, cv::Mat(),
                                         rvec, tvec, false, cv::SOLVEPNP_AP3P);
@@ -1458,57 +1440,9 @@ private:
         return (leftError + rightError) / 2.0;
     }
 
-    bool validateMarkerGeometry(MatchedMarker &marker, const std::vector<cv::Point3f> &markerModel, float expectedSize)
-    {
-        // Project perfect model to image using actual distortion coefficients
-        std::vector<cv::Point2f> projectedCorners;
-        cv::projectPoints(markerModel, marker.rvec, marker.tvec,
-                          stereoCalib_.leftCameraMatrix, cv::Mat(), projectedCorners);
-
-        // Check side lengths consistency
-        std::vector<float> sides;
-        for (size_t i = 0; i < 4; i++)
-        {
-            cv::Point2f diff = projectedCorners[(i + 1) % 4] - projectedCorners[i];
-            sides.push_back(cv::norm(diff));
-        }
-
-        marker.avgSideLength = std::accumulate(sides.begin(), sides.end(), 0.0f) / 4.0f;
-
-        // Check diagonal ratio
-        float diag1 = cv::norm(projectedCorners[2] - projectedCorners[0]);
-        float diag2 = cv::norm(projectedCorners[3] - projectedCorners[1]);
-        marker.avgDiagonalLength = (diag1 + diag2) / 2.0f;
-        marker.diagonalRatio = marker.avgDiagonalLength / marker.avgSideLength;
-
-        float expectedDiagRatio = std::sqrt(2.0f);
-
-        // Validate side consistency
-        for (const auto &side : sides)
-        {
-            if (std::abs(side - marker.avgSideLength) > config_.geometryTolerance * marker.avgSideLength)
-            {
-                marker.status = MarkerStatus::GEOMETRY_VALIDATION_SIDES_FAILED;
-                marker.detailedFailureReason = "Side length inconsistency detected";
-                return false;
-            }
-        }
-
-        // Validate diagonal ratio
-        if (std::abs(marker.diagonalRatio - expectedDiagRatio) > config_.geometryTolerance)
-        {
-            marker.status = MarkerStatus::GEOMETRY_VALIDATION_DIAGONALS_FAILED;
-            marker.detailedFailureReason = "Diagonal ratio inconsistent with square geometry";
-            return false;
-        }
-
-        marker.geometryValidationPassed = true;
-        return true;
-    }
-
     void calculateFinalErrors(MatchedMarker &marker, const std::vector<cv::Point3f> &objectPoints)
     {
-        // Calculate reprojection errors using actual distortion coefficients with Huber loss
+        // Calculate reprojection errors on undistorted images using zero distortion model with Huber loss
         std::vector<cv::Point2f> projectedLeft, projectedRight;
 
         cv::projectPoints(objectPoints, marker.rvec, marker.tvec,
@@ -1804,7 +1738,7 @@ int main(int argc, char **argv)
             forceNoViz = true;
             ROS_INFO("Command line: Visualization DISABLED");
         }
-        if (arg == "--marker" && i + 1 < argc)
+        else if (arg == "--marker" && i + 1 < argc)
         {
             filterMarkerId = std::stoi(argv[i + 1]);
             i++; // skip next arg
