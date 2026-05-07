@@ -153,5 +153,6 @@ catkin_install_python(PROGRAMS
   scripts/parameters_node.py
   scripts/joy_node.py
   scripts/aruco_rgb.py
+  scripts/aruco_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

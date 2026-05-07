@@ -5,7 +5,7 @@ Land_Controller::Land_Controller()
     setpoint.x = 0;
     setpoint.y = 0;
     setpoint.z = 2;
-    setpoint.theta = M_PI; // Braun: Now with landpad orientation fixed, the setpoint is PI because the camera is assembled backwards in drone frame
+    setpoint.theta = M_PI / 2.0; // Desired: drone +X/front aligned with landing-pad +Y/front
     controller_mode = 0;
     distance_threshold = 0.2;
     angular_threshold = 0.2;
@@ -119,8 +119,12 @@ geometry_msgs::Twist Land_Controller::get_velocity(geometry_msgs::PoseStamped po
 
     Speed vel = get_align_velocity(measurement);
 
-    velocity.linear.x = -vel.vy;
-    velocity.linear.y = -vel.vx;
+    // The EKF pose is drone-in-landpad, so PID x/y outputs are corrections
+    // in the landing-pad/world frame. Manager::send_velocity() converts this
+    // landpad/world-frame x/y command into drone/body frame before calling
+    // DroneControl::cmd_vel(). Do not swap or negate axes here.
+    velocity.linear.x = vel.vx;
+    velocity.linear.y = vel.vy;
     velocity.linear.z = vel.vz;
     velocity.angular.z = vel.vtheta;
     return velocity;

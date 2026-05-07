@@ -2,6 +2,7 @@
 #define ROS_CLIENT_H
 
 #include "general.h"
+#include <geometry_msgs/TwistStamped.h>
 
 class Manager;
 class DroneControl;
@@ -26,6 +27,9 @@ public:
     ros::Publisher setpoint_pos_pub_;
     ros::Publisher velocity_pub;
     ros::Publisher velocity_unstamped_pub;
+    // Pre-transform controller command passed into DroneControl::cmd_vel().
+    // Bag this with /mavros/setpoint_velocity/cmd_vel to diagnose frame mapping.
+    ros::Publisher raw_velocity_pub;
 
     ros::ServiceClient arming_client_;
     ros::ServiceClient land_client_;

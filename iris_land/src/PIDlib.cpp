@@ -35,11 +35,26 @@ void PID::compute(double new_reference_process_variable, double new_estimated_pr
     estimated_process_variable = new_estimated_process_variable;
 
     error = reference_process_variable - estimated_process_variable;
+    if (is_angular_input) {
+        // Use the shortest signed angular error in [-pi, pi]. Normalizing the
+        // reference and measurement separately is not enough near wraparound
+        // (for example +179 deg vs -179 deg).
+        error = atan2(sin(error), cos(error));
+    }
+
     // Calculate the derivative of the error or measurement
     if (is_derivative_on_measurement) {
-        differential_error = (estimated_process_variable - last_process_variable) / dt;
+        double measurement_delta = estimated_process_variable - last_process_variable;
+        if (is_angular_input) {
+            measurement_delta = atan2(sin(measurement_delta), cos(measurement_delta));
+        }
+        differential_error = measurement_delta / dt;
     } else {
-        differential_error = (error - last_error) / dt;
+        double error_delta = error - last_error;
+        if (is_angular_input) {
+            error_delta = atan2(sin(error_delta), cos(error_delta));
+        }
+        differential_error = error_delta / dt;
     }
 
     differential_last_error = differential_error;

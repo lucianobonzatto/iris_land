@@ -29,8 +29,6 @@ enum class MarkerStatus
     FILTERED_OUT,
     JOINT_PNP_FAILED,
     JOINT_PNP_NO_CONVERGENCE,
-    GEOMETRY_VALIDATION_SIDES_FAILED,
-    GEOMETRY_VALIDATION_DIAGONALS_FAILED,
     REPROJECTION_ERROR_LEFT_TOO_HIGH,
     REPROJECTION_ERROR_RIGHT_TOO_HIGH,
     REPROJECTION_ERROR_AVERAGE_TOO_HIGH,
@@ -52,10 +50,6 @@ const char *statusToString(MarkerStatus status)
         return "Joint stereo PnP failed to initialize";
     case MarkerStatus::JOINT_PNP_NO_CONVERGENCE:
         return "Joint stereo PnP did not converge";
-    case MarkerStatus::GEOMETRY_VALIDATION_SIDES_FAILED:
-        return "Geometry validation: side lengths inconsistent";
-    case MarkerStatus::GEOMETRY_VALIDATION_DIAGONALS_FAILED:
-        return "Geometry validation: diagonal ratios incorrect";
     case MarkerStatus::REPROJECTION_ERROR_LEFT_TOO_HIGH:
         return "Left camera reprojection error too high";
     case MarkerStatus::REPROJECTION_ERROR_RIGHT_TOO_HIGH:
@@ -124,7 +118,6 @@ struct Config
 
     // Error thresholds
     float reprojErrorThreshold = 4.0f; // best trade-off value that I've found for reliable detection without too much noise (Python reprojection error is usually around 3-5px for good detections, but can be higher for smaller markers or at longer ranges)
-    float geometryTolerance = 0.15f;
     float huberDelta = 1.5f;
 
     // Iteration control
@@ -745,7 +738,7 @@ private:
 
             float apparentSize = getApparentSize(marker.leftCorners);
             float markerSize = markerSizes_.count(marker.id) ? markerSizes_[marker.id] : config_.markerSize;
-            float maxRange = markerSize * focalLength / config_.minPixelSpan;
+            float maxRange = markerSize * focalLength * std::sqrt(2.0f) / config_.minPixelSpan;
 
             if (apparentSize < config_.minPixelSpan)
             {
@@ -956,12 +949,12 @@ private:
             // Calculate raw left camera pose on undistorted image (zero distortion model)
             bool leftSuccess = cv::solvePnP(objectPoints, marker.leftCorners,
                                             stereoCalib_.leftCameraMatrix, cv::Mat(),
-                                            marker.rawLeftRvec, marker.rawLeftTvec, false, cv::SOLVEPNP_AP3P);
+                                            marker.rawLeftRvec, marker.rawLeftTvec, false, cv::SOLVEPNP_IPPE_SQUARE);
 
             // Calculate raw right camera pose on undistorted image (zero distortion model)
             bool rightSuccess = cv::solvePnP(objectPoints, marker.rightCorners,
                                              stereoCalib_.rightCameraMatrix, cv::Mat(),
-                                             marker.rawRightRvec, marker.rawRightTvec, false, cv::SOLVEPNP_AP3P);
+                                             marker.rawRightRvec, marker.rawRightTvec, false, cv::SOLVEPNP_IPPE_SQUARE);
 
             if (config_.enableDebugTrace && leftSuccess)
             {
@@ -1288,7 +1281,7 @@ private:
             // Initial estimate using left camera on undistorted image (zero distortion model)
             bool success = cv::solvePnP(objectPoints, marker.leftCorners,
                                         stereoCalib_.leftCameraMatrix, cv::Mat(),
-                                        rvec, tvec, false, cv::SOLVEPNP_AP3P);
+                                        rvec, tvec, false, cv::SOLVEPNP_IPPE_SQUARE);
 
             if (!success)
             {

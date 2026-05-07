@@ -11,7 +11,16 @@ void ROSClient::Init(Manager *const manager, DroneControl *const drone_control)
 {
 // Manager parameters
     rc_sub = nh->subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 1, &Manager::rcCallback, manager);
-    pose_sub = nh->subscribe<geometry_msgs::PoseStamped>("/aruco/pose", 10, &Manager::arucoPoseCallback, manager);
+
+    // The controller consumes the final relative pose. Default to the EKF output,
+    // but keep it parameterized so bag/debug sessions can still remap to raw ArUco
+    // deliberately when needed.
+    std::string controller_pose_topic;
+    nh->param<std::string>("controller_pose_topic", controller_pose_topic, "/ekf/pose");
+    pose_sub = nh->subscribe<geometry_msgs::PoseStamped>(controller_pose_topic, 10,
+                                                        &Manager::arucoPoseCallback, manager);
+    ROS_INFO_STREAM("Controller pose input topic: " << controller_pose_topic);
+
     parameters_sub = nh->subscribe<iris_land::controllers_gain>("/PID/parameters", 1, &Manager::parametersCallback, manager);
     status_pub = nh->advertise<std_msgs::String>("/controller/status", 10);
 
@@ -25,6 +34,7 @@ void ROSClient::Init(Manager *const manager, DroneControl *const drone_control)
     setpoint_pos_pub_ = nh->advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);
     velocity_pub = nh->advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 10);
     velocity_unstamped_pub = nh->advertise<geometry_msgs::Twist>("/mavros/setpoint_velocity/cmd_vel_unstamped", 10);
+    raw_velocity_pub = nh->advertise<geometry_msgs::TwistStamped>("/controller/raw_cmd_vel", 10);
 
     arming_client_ = nh->serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
     land_client_ = nh->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");

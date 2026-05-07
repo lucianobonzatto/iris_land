@@ -11,10 +11,16 @@ from scipy.spatial.transform import Rotation as R
 
 class ImageRepublisher:
     def __init__(self):
-        # tópicos da sua térmica e saídas
-        self.image_sub = rospy.Subscriber('/thermal_camera/image_raw', Image, self.image_callback)
-        self.image_pub = rospy.Publisher('/flinks/image', Image, queue_size=10)
-        self.pose_pub = rospy.Publisher('/aruco/pose', PoseStamped, queue_size=10)
+        # Thermal camera input and outputs. Pose must stay separate from
+        # stereo/RGB ArUco so the EKF can apply different noise/gating.
+        self.image_topic = rospy.get_param('~image_topic', '/thermal_camera/image_raw')
+        self.debug_image_topic = rospy.get_param('~debug_image_topic', '/flinks/image')
+        self.pose_topic = rospy.get_param('~pose_topic', '/thermal/pose')
+        self.frame_id = rospy.get_param('~frame_id', 'thermal_camera_frame')
+
+        self.image_sub = rospy.Subscriber(self.image_topic, Image, self.image_callback)
+        self.image_pub = rospy.Publisher(self.debug_image_topic, Image, queue_size=10)
+        self.pose_pub = rospy.Publisher(self.pose_topic, PoseStamped, queue_size=10)
 
         # intrínsecos/dist. (iguais ao seu arquivo)
         self.camera_matrix = np.array([[571.81579811,   0,          189.0118068],
@@ -26,11 +32,19 @@ class ImageRepublisher:
         self.parameters = aruco.DetectorParameters()
         self.bridge = CvBridge()
 
-        # matriz fixa de remapeamento de eixos (x'=-y, y'=-x, z'=+z)
-        # aplica-se tanto à translação quanto à orientação
-        self.R_fix = R.from_matrix(np.array([[0, -1,  0],
-                                             [-1, 0,  0],
-                                             [0,  0,  1]], dtype=float))
+        # Optional proper rotation from thermal optical frame into the frame
+        # published on pose_topic. The previous x'=-y, y'=-x, z'=+z mapping
+        # has determinant -1 (reflection), which is not a valid ROS rotation.
+        default_R_fix = [[0, -1, 0],
+                         [1,  0, 0],
+                         [0,  0, 1]]
+        R_fix_matrix = np.array(rospy.get_param('~axis_remap_matrix', default_R_fix), dtype=float)
+        det = np.linalg.det(R_fix_matrix)
+        if not np.allclose(R_fix_matrix @ R_fix_matrix.T, np.eye(3), atol=1e-3) or not np.isclose(det, 1.0, atol=1e-3):
+            rospy.logerr(f"Invalid thermal axis_remap_matrix: determinant={det:.3f}. It must be a proper rotation with det=+1.")
+            rospy.signal_shutdown("Invalid thermal axis remap")
+        self.R_fix = R.from_matrix(R_fix_matrix)
+        rospy.loginfo(f"Publishing thermal poses on {self.pose_topic} in frame {self.frame_id}")
 
     def image_callback(self, msg):
         # conversão fiel ao seu pipeline
@@ -44,7 +58,7 @@ class ImageRepublisher:
         # detecção ArUco
         corners, ids, _ = aruco.detectMarkers(image_thr, self.dictionary, parameters=self.parameters)
         n_detected = len(corners)
-        print(f"Markers detectados: {n_detected} - IDs: {ids.flatten() if ids is not None else 'Nenhum'}")
+        rospy.loginfo_throttle(1.0, f"Thermal markers detected: {n_detected} - IDs: {ids.flatten() if ids is not None else 'none'}")
 
         # inicializa visualização
         image_viz = image_thr.copy()
@@ -79,9 +93,8 @@ class ImageRepublisher:
 
                     # publica PoseStamped já no frame remapeado
                     pose_msg = PoseStamped()
-                    pose_msg.header.stamp = rospy.Time.now()
-                    # opcional, mas recomendado: deixe claro o frame já alinhado
-                    pose_msg.header.frame_id = "thermal_aligned"
+                    pose_msg.header.stamp = msg.header.stamp if not msg.header.stamp.is_zero() else rospy.Time.now()
+                    pose_msg.header.frame_id = self.frame_id
 
                     pose_msg.pose.position.x = float(t_new[0])  # x' = -y (original)
                     pose_msg.pose.position.y = float(t_new[1])  # y' = -x (original)
@@ -93,11 +106,11 @@ class ImageRepublisher:
                     pose_msg.pose.orientation.w = float(quat[3])
 
                     self.pose_pub.publish(pose_msg)
-                    print(f"Publicado pose (ID 682): tvec_orig={tvec}, tvec_new={t_new}, quat_new={quat}")
+                    rospy.loginfo_throttle(1.0, f"Thermal pose ID 682: t={t_new}, q={quat}")
             else:
-                print("Nenhum marker ID 682 detectado neste frame.")
+                rospy.logdebug_throttle(2.0, "No thermal marker ID 682 detected")
         else:
-            print("Nenhum marker detectado.")
+            rospy.logdebug_throttle(2.0, "No thermal marker detected")
 
         # publica imagem de visualização
         republished_msg = self.bridge.cv2_to_imgmsg(image_viz, encoding='rgb8')
