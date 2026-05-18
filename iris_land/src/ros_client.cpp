@@ -34,7 +34,11 @@ void ROSClient::Init(Manager *const manager, DroneControl *const drone_control)
     setpoint_pos_pub_ = nh->advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);
     velocity_pub = nh->advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 10);
     velocity_unstamped_pub = nh->advertise<geometry_msgs::Twist>("/mavros/setpoint_velocity/cmd_vel_unstamped", 10);
-    raw_velocity_pub = nh->advertise<geometry_msgs::TwistStamped>("/controller/raw_cmd_vel", 10);
+    raw_velocity_pub = nh->advertise<geometry_msgs::TwistStamped>(
+    "/controller/raw_cmd_vel", 10);
+
+    body_velocity_pub = nh->advertise<geometry_msgs::TwistStamped>(
+    "/controller/body_cmd_vel", 10);
 
     arming_client_ = nh->serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
     land_client_ = nh->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");

@@ -161,34 +161,36 @@ void Manager::AWAITING_MODE_action(std::stringstream& ss)
 
 void Manager::send_velocity(double x_linear, double y_linear, double z_linear, double angular)
 {
-    // Controller x/y is now a correction in the landing-pad/world frame because
-    // it is computed directly from /ekf/pose, whose position is expressed in
-    // the landpad frame. DroneControl::cmd_vel() expects a drone/body-frame
-    // linear command and rotates it into MAVROS local/world before publishing.
-    // Therefore we convert landpad/world x/y -> drone/body x/y here, using the
-    // same MAVROS local pose yaw that DroneControl::cmd_vel() will use for the
-    // forward body->world rotation.
-    const double yaw_world_drone = get_yaw(drone_control->local_position_.pose.orientation);
-    const double c = std::cos(yaw_world_drone);
-    const double s = std::sin(yaw_world_drone);
+    ros::Time stamp = ros::Time::now();
 
-    const double x_body =  c * x_linear + s * y_linear;
-    const double y_body = -s * x_linear + c * y_linear;
-
-    // Publish the exact body-frame command passed into DroneControl::cmd_vel().
-    // Bag this together with /mavros/setpoint_velocity/cmd_vel to verify that
-    // cmd_vel() rotates it into the intended MAVROS local/world command.
     geometry_msgs::TwistStamped raw_cmd;
-    raw_cmd.header.stamp = ros::Time::now();
-    raw_cmd.header.frame_id = "drone_body_cmd_input_to_cmd_vel";
-    raw_cmd.twist.linear.x = x_body;
-    raw_cmd.twist.linear.y = y_body;
+    raw_cmd.header.stamp = stamp;
+    raw_cmd.header.frame_id = aruco_pose.header.frame_id.empty()
+                                  ? "landpad"
+                                  : aruco_pose.header.frame_id;
+    raw_cmd.twist.linear.x = x_linear;
+    raw_cmd.twist.linear.y = y_linear;
     raw_cmd.twist.linear.z = z_linear;
     raw_cmd.twist.angular.z = angular;
     ROS_client->raw_velocity_pub.publish(raw_cmd);
 
+    const double yaw_landpad_drone = get_yaw(aruco_pose.pose.orientation);
+    const double c = std::cos(yaw_landpad_drone);
+    const double s = std::sin(yaw_landpad_drone);
+
+    const double x_body =  c * x_linear + s * y_linear;
+    const double y_body = -s * x_linear + c * y_linear;
+
+    geometry_msgs::TwistStamped body_cmd;
+    body_cmd.header.stamp = stamp;
+    body_cmd.header.frame_id = "drone_body_cmd_input_to_cmd_vel";
+    body_cmd.twist.linear.x = x_body;
+    body_cmd.twist.linear.y = y_body;
+    body_cmd.twist.linear.z = z_linear;
+    body_cmd.twist.angular.z = angular;
+    ROS_client->body_velocity_pub.publish(body_cmd);
+
     drone_control->cmd_vel(x_body, y_body, z_linear, angular);
-    // ROS_INFO("SEND VELOCITY BODY: x: %f y: %f z: %f yaw: %f", x_body, y_body, z_linear, angular);
 }
 
 void Manager::arucoPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
