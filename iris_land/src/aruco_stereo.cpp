@@ -137,7 +137,7 @@ struct Config
     bool enablePerformance = false; // Nothing
 
     // Calibration file path
-    std::string calibrationFile = "/home/berger/catkin_ws/src/iris_land/iris_land/config/stereo_camera_params_1600_600.yml";
+    std::string calibrationFile = "/home/jetson/catkin_ws/src/iris_land/iris_land/config/stereo_camera_params_1600_600.yml";
 };
 
 // MarkerTransform helper struct

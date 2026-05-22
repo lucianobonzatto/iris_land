@@ -12,12 +12,12 @@ windows:
          - sleep 1; rosrun iris_land aruco_stereo #modo debug para visualização eixos rviz
         #- sleep 1; rosrun seekcamera_ros get_seekthermal.py #abre a camera termica
         #- sleep 1; rosrun iris_land aruco_node.py #executa pacote aruco da camera termica
-        #- sleep 1; roslaunch uwb_tracking_ros uwb_tracking_dwm1001.launch #executa pacote do modulo uwb
+         - sleep 1; roslaunch uwb_tracking_ros uwb_tracking_dwm1001.launch #executa pacote do modulo uwb
   - ekf:
       layout: tiled
       panes:
         #- sleep 8; roslaunch drone_ekf ekf.launch
-        - sleep 8; roslaunch drone_ekf ekf.launch enable_frame_diagnostics:=true diagnostics_csv_path:=/tmp/controller_frame_diag.csv
+         - sleep 8; roslaunch drone_ekf ekf.launch enable_frame_diagnostics:=true diagnostics_csv_path:=/tmp/controller_frame_diag.csv
 
   - manager:
       layout: tiled
