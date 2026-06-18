@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <std_msgs/String.h>
 #include <cv_bridge/cv_bridge.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
@@ -102,6 +103,9 @@ struct MatchedMarker
     double avgSideLength = 0.0;
     double avgDiagonalLength = 0.0;
     double diagonalRatio = 0.0;
+    double pixelSpan = 0.0;
+    double minPixelSpanRequired = 0.0;
+    double maxReliableRange = 0.0;
 
     bool valid = false;
     MarkerStatus status = MarkerStatus::UNKNOWN;
@@ -128,7 +132,7 @@ struct Config
     int cornerRefinementWinSize = 7;
     int cornerRefinementMaxIterations = 50;
     float cornerRefinementMinAccuracy = 0.005f;
-    float minPixelSpan = 90.0f;  // Minimum marker diagonal in pixels for reliable PnP
+    float minPixelSpan = 40.0f;  // Fallback minimum marker diagonal in pixels for reliable PnP
 
     // Debug levels - controlled by command line only
     bool enableVisualization = true;
@@ -177,7 +181,7 @@ public:
     void run()
     {
         ROS_INFO("Stereo ArUco Detector Node is running...");
-        ROS_INFO("Monitoring marker IDs: 363 (15cm), 682 (8cm), 417 (25cm)");
+        ROS_INFO("Monitoring marker IDs: 363 (15cm), 682 (8cm), 417 (24.5cm)");
         ros::spin();
     }
 
@@ -198,6 +202,7 @@ private:
     ros::Publisher debug_image_pub_;
     ros::Publisher debug_left_pub_;
     ros::Publisher debug_right_pub_;
+    ros::Publisher marker_quality_pub_;
 
     // Per-marker individual publishers
     std::map<int, ros::Publisher> per_marker_pose_pubs_;
@@ -212,6 +217,7 @@ private:
     // Marker configuration - ID filtering and sizes
     std::set<int> allowedMarkerIds_;
     std::map<int, float> markerSizes_;
+    std::map<int, float> markerMaxReliableRanges_;
 
     // Transform matrices for different marker IDs
     std::map<int, cv::Mat> TM_Landpad_To_Aruco_;
@@ -298,6 +304,8 @@ private:
     // Private member functions
     void initializeParameters()
     {
+        pnh_.param<std::string>("calibration_file", config_.calibrationFile, config_.calibrationFile);
+
         if (!config_.enablePerformance)
         {
             ROS_INFO("\n");
@@ -312,7 +320,7 @@ private:
                 ROS_INFO("Debug mode: MINIMAL");
 
             ROS_INFO("Visualization: %s", config_.enableVisualization ? "ENABLED" : "DISABLED");
-            ROS_INFO("Marker sizes: 363(15cm), 682(8cm), 417(25cm)");
+            ROS_INFO("Marker sizes: 363(15cm), 682(8cm), 417(24.5cm)");
             ROS_INFO("Reprojection threshold: %.1f px", config_.reprojErrorThreshold);
             ROS_INFO("Calibration file: %s", config_.calibrationFile.c_str());
             ROS_INFO("=============================================\n");
@@ -330,6 +338,7 @@ private:
 
         // Publishers
         pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/aruco/pose", 10);
+        marker_quality_pub_ = nh_.advertise<std_msgs::String>("/aruco/debug/marker_quality", 50);
 
         // Per-marker publishers for individual analysis
         for (int id : allowedMarkerIds_)
@@ -355,7 +364,28 @@ private:
         allowedMarkerIds_ = {363, 682, 417};
         markerSizes_[363] = 0.15f;  // 15 cm
         markerSizes_[682] = 0.08f;  // 8 cm (CORRECTED from 0.088f)
-        markerSizes_[417] = 0.245f; // 25 cm
+        markerSizes_[417] = 0.245f; // 24.5 cm
+
+        // Desired maximum operating ranges, used to derive per-marker pixel-span
+        // gates with span_px ~= marker_size * focal_length * sqrt(2) / range_m.
+        markerMaxReliableRanges_[417] = 3.0f;
+        markerMaxReliableRanges_[363] = 0.8f;
+        markerMaxReliableRanges_[682] = 0.5f;
+
+        double minPixelSpanParam = config_.minPixelSpan;
+        double range417 = markerMaxReliableRanges_[417];
+        double range363 = markerMaxReliableRanges_[363];
+        double range682 = markerMaxReliableRanges_[682];
+
+        pnh_.param("min_pixel_span_fallback", minPixelSpanParam, minPixelSpanParam);
+        pnh_.param("marker_417_max_reliable_range", range417, range417);
+        pnh_.param("marker_363_max_reliable_range", range363, range363);
+        pnh_.param("marker_682_max_reliable_range", range682, range682);
+
+        config_.minPixelSpan = static_cast<float>(minPixelSpanParam);
+        markerMaxReliableRanges_[417] = static_cast<float>(range417);
+        markerMaxReliableRanges_[363] = static_cast<float>(range363);
+        markerMaxReliableRanges_[682] = static_cast<float>(range682);
 
         dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
         parameters_ = cv::aruco::DetectorParameters::create();
@@ -369,7 +399,12 @@ private:
         parameters_->adaptiveThreshWinSizeMax = 23;
         parameters_->adaptiveThreshWinSizeStep = 10;
 
-        ROS_INFO("ArUco settings initialized for marker IDs: 363 (15cm), 682 (8cm), 417 (25cm)");
+        ROS_INFO("ArUco settings initialized for marker IDs: 363 (15cm), 682 (8cm), 417 (24.5cm)");
+        ROS_INFO("Pixel-span gate ranges: 417<=%.2fm, 363<=%.2fm, 682<=%.2fm (fallback %.1f px diagonal)",
+                 markerMaxReliableRanges_[417],
+                 markerMaxReliableRanges_[363],
+                 markerMaxReliableRanges_[682],
+                 config_.minPixelSpan);
     }
 
     void initializeStereoSettings()
@@ -612,11 +647,20 @@ private:
             // Process the stereo pair
             geometry_msgs::PoseStamped pose_msg;
             cv::Mat debug_image;
+            ros::Time measurementStamp = left_msg->header.stamp;
+            if (measurementStamp.isZero())
+            {
+                measurementStamp = right_msg->header.stamp;
+            }
+            if (measurementStamp.isZero())
+            {
+                measurementStamp = ros::Time::now();
+            }
 
-            if (detectMarkers(left_cv->image, right_cv->image, pose_msg, debug_image))
+            if (detectMarkers(left_cv->image, right_cv->image, pose_msg, debug_image, measurementStamp))
             {
                 // Publish best single marker on /aruco/pose (backward compat, not used by EKF)
-                pose_msg.header.stamp = ros::Time::now();
+                pose_msg.header.stamp = measurementStamp;
                 pose_msg.header.frame_id = "stereo_camera_frame";
                 pose_pub_.publish(pose_msg);
             }
@@ -654,7 +698,8 @@ private:
     }
 
     bool detectMarkers(const cv::Mat &leftImage, const cv::Mat &rightImage,
-                       geometry_msgs::PoseStamped &pose_msg, cv::Mat &debug_image)
+                       geometry_msgs::PoseStamped &pose_msg, cv::Mat &debug_image,
+                       const ros::Time &measurementStamp)
     {
         // Convert to grayscale if needed
         cv::Mat grayLeft, grayRight;
@@ -738,22 +783,32 @@ private:
 
             float apparentSize = getApparentSize(marker.leftCorners);
             float markerSize = markerSizes_.count(marker.id) ? markerSizes_[marker.id] : config_.markerSize;
-            float maxRange = markerSize * focalLength * std::sqrt(2.0f) / config_.minPixelSpan;
+            float minPixelSpan = config_.minPixelSpan;
+            if (markerMaxReliableRanges_.count(marker.id) && markerMaxReliableRanges_[marker.id] > 0.0f)
+            {
+                float targetRange = markerMaxReliableRanges_[marker.id];
+                float derivedThreshold = markerSize * focalLength * std::sqrt(2.0f) / targetRange;
+                minPixelSpan = std::max(config_.minPixelSpan, derivedThreshold);
+            }
+            float maxRange = markerSize * focalLength * std::sqrt(2.0f) / minPixelSpan;
+            marker.pixelSpan = apparentSize;
+            marker.minPixelSpanRequired = minPixelSpan;
+            marker.maxReliableRange = maxRange;
 
-            if (apparentSize < config_.minPixelSpan)
+            if (apparentSize < minPixelSpan)
             {
                 marker.valid = false;
                 marker.status = MarkerStatus::PIXEL_SPAN_TOO_SMALL;
                 if (config_.enableDebug)
                 {
                     ROS_INFO("  Marker %d rejected: %.1f px < %.1f px minimum (max reliable range: %.2fm)",
-                            marker.id, apparentSize, config_.minPixelSpan, maxRange);
+                            marker.id, apparentSize, minPixelSpan, maxRange);
                 }
             }
             else if (config_.enableDebugTrace)
             {
                 ROS_INFO("  Marker %d pixel span: %.1f px (min: %.1f, max range: %.2fm)",
-                        marker.id, apparentSize, config_.minPixelSpan, maxRange);
+                        marker.id, apparentSize, minPixelSpan, maxRange);
             }
         }
 
@@ -791,6 +846,7 @@ private:
         for (const auto &marker : matched)
         {
             statusCounts_[marker.status]++;
+            publishMarkerQuality(marker, measurementStamp);
 
             if (marker.valid)
             {
@@ -861,7 +917,7 @@ private:
                 if (per_marker_pose_pubs_.count(marker.id))
                 {
                     geometry_msgs::PoseStamped individual_msg;
-                    individual_msg.header.stamp = ros::Time::now();
+                    individual_msg.header.stamp = measurementStamp;
                     individual_msg.header.frame_id = "stereo_camera_frame";
                     individual_msg.pose.position.x = position[0];
                     individual_msg.pose.position.y = position[1];
@@ -1570,6 +1626,65 @@ private:
         return maxDist;
     }
 
+    void publishMarkerQuality(const MatchedMarker &marker, const ros::Time &stamp)
+    {
+        if (!marker_quality_pub_)
+        {
+            return;
+        }
+
+        bool hasRange = false;
+        double range = 0.0;
+        if (!marker.tvec.empty())
+        {
+            range = marker.tvec.at<double>(2);
+            hasRange = std::isfinite(range);
+        }
+
+        std::ostringstream ss;
+        ss << std::fixed << std::setprecision(4);
+        ss << "{"
+           << "\"stamp\":" << stamp.toSec() << ","
+           << "\"marker_id\":" << marker.id << ","
+           << "\"accepted\":" << (marker.valid ? "true" : "false") << ","
+           << "\"status\":\"" << statusToString(marker.status) << "\","
+           << "\"pixel_span_diag\":" << marker.pixelSpan << ",";
+        if (std::isfinite(marker.minPixelSpanRequired) && marker.minPixelSpanRequired > 0.0)
+        {
+            ss << "\"min_pixel_span_diag\":" << marker.minPixelSpanRequired << ",";
+        }
+        else
+        {
+            ss << "\"min_pixel_span_diag\":null,";
+        }
+        if (std::isfinite(marker.maxReliableRange) && marker.maxReliableRange > 0.0)
+        {
+            ss << "\"max_reliable_range_m\":" << marker.maxReliableRange << ",";
+        }
+        else
+        {
+            ss << "\"max_reliable_range_m\":null,";
+        }
+        if (hasRange)
+        {
+            ss << "\"range_m\":" << range << ",";
+        }
+        else
+        {
+            ss << "\"range_m\":null,";
+        }
+        ss
+           << "\"reprojection_error_px\":" << marker.reprojectionError << ","
+           << "\"left_reprojection_error_px\":" << marker.leftReprojectionError << ","
+           << "\"right_reprojection_error_px\":" << marker.rightReprojectionError << ","
+           << "\"joint_pnp_converged\":" << (marker.jointPnPConverged ? "true" : "false")
+           << "}";
+
+        std_msgs::String msg;
+        msg.data = ss.str();
+        marker_quality_pub_.publish(msg);
+    }
+
     std::vector<cv::Point3f> createMarkerModel(float markerSize)
     {
         float halfSize = markerSize / 2.0f;
@@ -1745,6 +1860,7 @@ int main(int argc, char **argv)
                       << "  --debug          Debug mode (final results only)\n"
                       << "  --debug-trace    Debug trace mode (full detailed output)\n"
                       << "  --no-viz         Disable visualization\n"
+                      << "  --marker <id>    Process only one ArUco ID\n"
                       << "  --help           Show this help\n";
             return 0;
         }
@@ -1752,37 +1868,37 @@ int main(int argc, char **argv)
 
     try
     {
-        StereoArucoDetectorNode node;
+        Config cfg;
         if (filterMarkerId != -1)
         {
-            // Override allowed markers to only the requested one
-            node.config_.singleMarkerFilter = filterMarkerId;
+            cfg.singleMarkerFilter = filterMarkerId;
             ROS_INFO("Single marker filter active: ID %d", filterMarkerId);
         }
 
         // Apply command line overrides
         if (enablePerformance)
         {
-            node.config_.enablePerformance = true;
-            node.config_.enableDebug = false;
-            node.config_.enableDebugTrace = false;
-            node.config_.enableVisualization = false;
+            cfg.enablePerformance = true;
+            cfg.enableDebug = false;
+            cfg.enableDebugTrace = false;
+            cfg.enableVisualization = false;
         }
         else if (enableDebugTrace)
         {
-            node.config_.enableDebugTrace = true;
-            node.config_.enableDebug = true; // Trace includes debug
+            cfg.enableDebugTrace = true;
+            cfg.enableDebug = true; // Trace includes debug
         }
         else if (enableDebug)
         {
-            node.config_.enableDebug = true;
+            cfg.enableDebug = true;
         }
 
         if (forceNoViz)
         {
-            node.config_.enableVisualization = false;
+            cfg.enableVisualization = false;
         }
 
+        StereoArucoDetectorNode node(cfg);
         node.run();
     }
     catch (const std::exception &e)

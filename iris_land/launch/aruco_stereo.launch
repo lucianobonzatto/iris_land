@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="config_file" default="$(find iris_land)/config/aruco_detector.yaml"/>
+    <arg name="calibration_file" default="$(find iris_land)/config/stereo_camera_params_1600_600.yml"/>
+    <arg name="debug" default="true"/>
+    <arg name="debug_trace" default="false"/>
+    <arg name="performance" default="false"/>
+    <arg name="visualization" default="false"/>
+    <arg name="marker" default="-1"/>
+
+    <group ns="stereo_aruco_detector_node">
+        <rosparam command="load" file="$(arg config_file)"/>
+        <param name="calibration_file" value="$(arg calibration_file)"/>
+    </group>
+
+    <arg name="debug_arg" value="$(eval '--debug' if arg('debug') == 'true' else '')"/>
+    <arg name="trace_arg" value="$(eval '--debug-trace' if arg('debug_trace') == 'true' else '')"/>
+    <arg name="performance_arg" value="$(eval '--performance' if arg('performance') == 'true' else '')"/>
+    <arg name="viz_arg" value="$(eval '' if arg('visualization') == 'true' else '--no-viz')"/>
+    <arg name="marker_arg" value="$(eval '' if int(arg('marker')) &lt; 0 else '--marker ' + arg('marker'))"/>
+
+    <node name="stereo_aruco_detector_node" pkg="iris_land" type="aruco_stereo" output="screen"
+          args="$(arg performance_arg) $(arg trace_arg) $(arg debug_arg) $(arg viz_arg) $(arg marker_arg)"/>
+</launch>
