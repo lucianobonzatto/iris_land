@@ -21,6 +21,7 @@
 #include <sstream>
 #include <limits>
 #include <set>
+#include <vector>
 
 // Enhanced marker status with detailed failure points
 enum class MarkerStatus
@@ -134,7 +135,7 @@ struct Config
     float cornerRefinementMinAccuracy = 0.005f;
     float minPixelSpan = 40.0f;  // Fallback minimum marker diagonal in pixels for reliable PnP
 
-    // Debug levels - controlled by command line only
+    // Debug levels - controlled by ROS params and optional command-line flags
     bool enableVisualization = true;
     bool enableDebug = false;       // Final results only
     bool enableDebugTrace = false;  // Everything detailed
@@ -302,9 +303,86 @@ private:
     }
 
     // Private member functions
+    void readBoolParamAliases(const std::vector<std::string>& names, bool& value)
+    {
+        for (const auto& name : names)
+        {
+            bool paramValue;
+            if (pnh_.getParam(name, paramValue))
+            {
+                value = paramValue;
+                return;
+            }
+        }
+    }
+
+    void readIntParamAliases(const std::vector<std::string>& names, int& value)
+    {
+        for (const auto& name : names)
+        {
+            int paramValue;
+            if (pnh_.getParam(name, paramValue))
+            {
+                value = paramValue;
+                return;
+            }
+        }
+    }
+
+    void readDoubleParamAliases(const std::vector<std::string>& names, float& value)
+    {
+        for (const auto& name : names)
+        {
+            double paramValue;
+            if (pnh_.getParam(name, paramValue))
+            {
+                value = static_cast<float>(paramValue);
+                return;
+            }
+        }
+    }
+
+    void readStringParamAliases(const std::vector<std::string>& names, std::string& value)
+    {
+        for (const auto& name : names)
+        {
+            std::string paramValue;
+            if (pnh_.getParam(name, paramValue) && !paramValue.empty())
+            {
+                value = paramValue;
+                return;
+            }
+        }
+    }
+
     void initializeParameters()
     {
-        pnh_.param<std::string>("calibration_file", config_.calibrationFile, config_.calibrationFile);
+        readStringParamAliases({"calibration_file", "calibrationFile"}, config_.calibrationFile);
+        readBoolParamAliases({"enable_visualization", "enableVisualization"}, config_.enableVisualization);
+        readBoolParamAliases({"enable_debug", "enableDebug"}, config_.enableDebug);
+        readBoolParamAliases({"enable_debug_trace", "enableDebugTrace"}, config_.enableDebugTrace);
+        readBoolParamAliases({"enable_performance", "enablePerformance"}, config_.enablePerformance);
+        readIntParamAliases({"single_marker_filter", "singleMarkerFilter"}, config_.singleMarkerFilter);
+        readDoubleParamAliases({"fallback_marker_size", "markerSize"}, config_.markerSize);
+        readDoubleParamAliases({"reprojection_error_threshold", "reprojErrorThreshold"}, config_.reprojErrorThreshold);
+        readDoubleParamAliases({"huber_delta", "huberDelta"}, config_.huberDelta);
+        readIntParamAliases({"joint_pnp_max_iterations", "jointPnPMaxIterations"}, config_.jointPnPMaxIterations);
+        readDoubleParamAliases({"convergence_threshold", "convergenceThreshold"}, config_.convergenceThreshold);
+        readIntParamAliases({"corner_refinement_win_size", "cornerRefinementWinSize"}, config_.cornerRefinementWinSize);
+        readIntParamAliases({"corner_refinement_max_iterations", "cornerRefinementMaxIterations"}, config_.cornerRefinementMaxIterations);
+        readDoubleParamAliases({"corner_refinement_min_accuracy", "cornerRefinementMinAccuracy"}, config_.cornerRefinementMinAccuracy);
+        readDoubleParamAliases({"min_pixel_span_fallback", "minPixelSpan"}, config_.minPixelSpan);
+
+        if (config_.enablePerformance)
+        {
+            config_.enableDebug = false;
+            config_.enableDebugTrace = false;
+            config_.enableVisualization = false;
+        }
+        else if (config_.enableDebugTrace)
+        {
+            config_.enableDebug = true;
+        }
 
         if (!config_.enablePerformance)
         {
@@ -320,8 +398,18 @@ private:
                 ROS_INFO("Debug mode: MINIMAL");
 
             ROS_INFO("Visualization: %s", config_.enableVisualization ? "ENABLED" : "DISABLED");
+            if (config_.singleMarkerFilter >= 0)
+                ROS_INFO("Single marker filter: %d", config_.singleMarkerFilter);
+            else
+                ROS_INFO("Single marker filter: disabled");
             ROS_INFO("Marker sizes: 363(15cm), 682(8cm), 417(24.5cm)");
             ROS_INFO("Reprojection threshold: %.1f px", config_.reprojErrorThreshold);
+            ROS_INFO("Huber delta: %.2f px", config_.huberDelta);
+            ROS_INFO("Joint PnP max iterations: %d", config_.jointPnPMaxIterations);
+            ROS_INFO("Corner refinement: win=%d, max_iter=%d, min_accuracy=%.4f",
+                     config_.cornerRefinementWinSize,
+                     config_.cornerRefinementMaxIterations,
+                     config_.cornerRefinementMinAccuracy);
             ROS_INFO("Calibration file: %s", config_.calibrationFile.c_str());
             ROS_INFO("=============================================\n");
         }

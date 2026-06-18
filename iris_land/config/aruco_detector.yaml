@@ -6,7 +6,24 @@
 
 calibration_file: '/home/jetson/catkin_ws/src/iris_land/iris_land/config/stereo_camera_params_1600_600.yml'
 
-min_pixel_span_fallback: 40.0
+# Runtime/debug behavior.
+enable_visualization: false
+enable_debug: true
+enable_debug_trace: false
+enable_performance: false
+single_marker_filter: -1
+
+# Detector and PnP tuning.
+fallback_marker_size: 0.08
+reprojection_error_threshold: 4.0
+huber_delta: 1.5
+joint_pnp_max_iterations: 50
+convergence_threshold: 1.0e-6
+corner_refinement_win_size: 7
+corner_refinement_max_iterations: 50
+corner_refinement_min_accuracy: 0.005
+
+min_pixel_span_fallback: 60.0
 
 # Largest marker: long-range acquisition and tracking.
 marker_417_max_reliable_range: 3.0
