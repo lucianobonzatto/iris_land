@@ -4,7 +4,7 @@
 # derives each marker threshold from:
 #   min_diag_px = marker_size_m * focal_px * sqrt(2) / max_reliable_range_m
 
-calibration_file: '/home/jetson/catkin_ws/src/iris_land/iris_land/config/stereo_camera_params_1600_600.yml'
+calibration_file: '$(find iris_land)/config/stereo_camera_params_1600_600.yml'
 
 # Runtime/debug behavior.
 enable_visualization: false
