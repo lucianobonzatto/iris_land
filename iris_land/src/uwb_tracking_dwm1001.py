@@ -24,10 +24,16 @@ class dwm1001_localizer:
         
         self.topics = {}
         self.topics_kf = {}
-        self.kalman_list = [] 
+        self.kalman_filters = {}
+        self.tag_list_index = {}
 
         self.multipleTags = MultiTags()
         self.pub_tags = rospy.Publisher("/dwm1001/multiTags", MultiTags, queue_size=100) 
+        self.pub_follow = rospy.Publisher(
+            "/dwm1001/id_uwb_map/pose_kf",
+            PoseStamped,
+            queue_size=10
+        )
                 
         self.dwm_port = rospy.get_param('~port')
         self.verbose = rospy.get_param('~verbose', True)
@@ -78,19 +84,18 @@ class dwm1001_localizer:
                             t_pose_xyz = np.array(t_pose_list) 
                             t_pose_xyz.shape = (len(t_pose_xyz), 1)   
 
-                        if tag_macID not in self.kalman_list:   
-                            self.kalman_list.append(tag_macID)
+                        if tag_id not in self.kalman_filters:
                             A = np.zeros((6,6))
                             H = np.zeros((3, 6))  
-                            self.kalman_list[tag_id] = kf(A, H, tag_macID) 
+                            self.kalman_filters[tag_id] = kf(A, H, tag_macID) 
                         
-                        if self.kalman_list[tag_id].isKalmanInitialized == False:  
+                        if self.kalman_filters[tag_id].isKalmanInitialized == False:  
                             A, B, H, Q, R, P_0, x_0  = initConstVelocityKF() 
-                            self.kalman_list[tag_id].assignSystemParameters(A, B, H, Q, R, P_0, x_0)  
-                            self.kalman_list[tag_id].isKalmanInitialized = True                            
+                            self.kalman_filters[tag_id].assignSystemParameters(A, B, H, Q, R, P_0, x_0)  
+                            self.kalman_filters[tag_id].isKalmanInitialized = True                            
                    
-                        self.kalman_list[tag_id].performKalmanFilter(t_pose_xyz, 0)  
-                        t_pose_vel_kf = self.kalman_list[tag_id].x_m  
+                        self.kalman_filters[tag_id].performKalmanFilter(t_pose_xyz, 0)  
+                        t_pose_vel_kf = self.kalman_filters[tag_id].x_m  
                         t_pose_kf = t_pose_vel_kf[0:3]  
                         self.publishTagPoseKF(tag_id, "uwb_map", t_pose_kf)
                         
@@ -140,17 +145,19 @@ class dwm1001_localizer:
             tag.orientation_x = ps.pose.orientation.x
             tag.orientation_y = ps.pose.orientation.y
             tag.orientation_z = ps.pose.orientation.z
-            tag.orientation_z = ps.pose.orientation.w
+            if hasattr(tag, 'orientation_w'):
+                tag.orientation_w = ps.pose.orientation.w
 
             if tag_id not in self.topics:
                 self.topics[tag_id] = rospy.Publisher("/dwm1001/id_" + tag_macID + "/pose", PoseStamped, queue_size=10)
+                self.tag_list_index[tag_id] = len(self.multipleTags.TagsList)
                 self.multipleTags.TagsList.append(tag) 
             
             if(np.isnan(raw_pose_xzy).any()): 
                 pass
             else:
                 self.topics[tag_id].publish(ps) 
-                self.multipleTags.TagsList[int(tag_id)]= tag
+                self.multipleTags.TagsList[self.tag_list_index[tag_id]] = tag
 
             self.pub_tags.publish(self.multipleTags)    
                         
@@ -172,12 +179,6 @@ class dwm1001_localizer:
         if id_int not in self.topics_kf:
             self.topics_kf[id_int] = rospy.Publisher(
                 "/dwm1001/id_" + str(id_str) + "/pose_kf",
-                PoseStamped,
-                queue_size=10
-            )
-            # 🔹 Publisher extra fixo para o follow
-            self.pub_follow = rospy.Publisher(
-                "/dwm1001/id_uwb_map/pose_kf",
                 PoseStamped,
                 queue_size=10
             )
@@ -206,4 +207,3 @@ if __name__ == '__main__':
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
-

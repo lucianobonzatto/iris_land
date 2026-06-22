@@ -3,6 +3,34 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <cmath>
 
+namespace
+{
+double positive_limit_or_default(double value, double fallback)
+{
+    return (std::isfinite(value) && value > 0.0) ? value : fallback;
+}
+
+double clamp_symmetric(double value, double limit)
+{
+    if (value > limit)
+        return limit;
+    if (value < -limit)
+        return -limit;
+    return value;
+}
+
+void clamp_planar_norm(double &x, double &y, double limit)
+{
+    const double norm = std::hypot(x, y);
+    if (norm > limit && norm > 1e-9)
+    {
+        const double scale = limit / norm;
+        x *= scale;
+        y *= scale;
+    }
+}
+}
+
 Manager::Manager()
 {
 }
@@ -13,8 +41,8 @@ Manager::~Manager()
 
 void Manager::Init(ROSClient *rosClient, DroneControl *droneControl)
 {
-    parameters.linear_vel = 0.1;
-    parameters.angular_vel = 0.1;
+    parameters.linear_vel = 1.0;
+    parameters.angular_vel = 1.0;
 
     ROS_client = rosClient;
     drone_control = droneControl;
@@ -174,23 +202,33 @@ void Manager::send_velocity(double x_linear, double y_linear, double z_linear, d
     raw_cmd.twist.angular.z = angular;
     ROS_client->raw_velocity_pub.publish(raw_cmd);
 
+    const double linear_limit = positive_limit_or_default(parameters.linear_vel, 1.0);
+    const double angular_limit = positive_limit_or_default(parameters.angular_vel, 1.0);
+
+    double x_limited = x_linear;
+    double y_limited = y_linear;
+    clamp_planar_norm(x_limited, y_limited, linear_limit);
+    const double z_limited = clamp_symmetric(z_linear, linear_limit);
+    const double angular_limited = clamp_symmetric(angular, angular_limit);
+
     const double yaw_landpad_drone = get_yaw(aruco_pose.pose.orientation);
     const double c = std::cos(yaw_landpad_drone);
     const double s = std::sin(yaw_landpad_drone);
 
-    const double x_body =  c * x_linear + s * y_linear;
-    const double y_body = -s * x_linear + c * y_linear;
+    double x_body =  c * x_limited + s * y_limited;
+    double y_body = -s * x_limited + c * y_limited;
+    clamp_planar_norm(x_body, y_body, linear_limit);
 
     geometry_msgs::TwistStamped body_cmd;
     body_cmd.header.stamp = stamp;
     body_cmd.header.frame_id = "drone_body_cmd_input_to_cmd_vel";
     body_cmd.twist.linear.x = x_body;
     body_cmd.twist.linear.y = y_body;
-    body_cmd.twist.linear.z = z_linear;
-    body_cmd.twist.angular.z = angular;
+    body_cmd.twist.linear.z = z_limited;
+    body_cmd.twist.angular.z = angular_limited;
     ROS_client->body_velocity_pub.publish(body_cmd);
 
-    drone_control->cmd_vel(x_body, y_body, z_linear, angular);
+    drone_control->cmd_vel(x_body, y_body, z_limited, angular_limited);
 }
 
 void Manager::arucoPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)

@@ -10,11 +10,13 @@ Follow_Controller::Follow_Controller()
     PID::Builder builder;
     builder.setDt(0.05);
     builder.setOutMax(1);
+    builder.setOutMin(-1);
     builder.setConditionalIntegration(true);
 
     PID::Builder builder_theta;
     builder_theta.setDt(0.05);
     builder_theta.setOutMax(1);
+    builder_theta.setOutMin(-1);
     builder_theta.setConditionalIntegration(true);
     builder_theta.setAngularInput(true); // Braun: only theta needs this
 
