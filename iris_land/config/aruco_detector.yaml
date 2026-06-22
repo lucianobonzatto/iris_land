@@ -23,13 +23,13 @@ corner_refinement_win_size: 7
 corner_refinement_max_iterations: 50
 corner_refinement_min_accuracy: 0.005
 
-min_pixel_span_fallback: 28.0
+min_pixel_span_fallback: 40.0
 
 # Largest marker: long-range acquisition and tracking.
 marker_417_max_reliable_range: 4.0
 
 # Medium marker: usable at 2-3 m with higher EKF noise than marker 417.
-marker_363_max_reliable_range: 3.0
+marker_363_max_reliable_range: 2.5
 
 # Small marker: final alignment/low altitude only.
-marker_682_max_reliable_range: 1.5
+marker_682_max_reliable_range: 1.0
