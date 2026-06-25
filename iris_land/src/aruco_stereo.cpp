@@ -100,10 +100,6 @@ struct MatchedMarker
     double jointPnPInitialError = 0.0;
     double jointPnPFinalError = 0.0;
 
-    bool geometryValidationPassed = false;
-    double avgSideLength = 0.0;
-    double avgDiagonalLength = 0.0;
-    double diagonalRatio = 0.0;
     double pixelSpan = 0.0;
     double minPixelSpanRequired = 0.0;
     double maxReliableRange = 0.0;
@@ -199,10 +195,7 @@ private:
     typedef message_filters::Synchronizer<SyncPolicy> Synchronizer;
     std::shared_ptr<Synchronizer> sync_;
 
-    ros::Publisher pose_pub_;
     ros::Publisher debug_image_pub_;
-    ros::Publisher debug_left_pub_;
-    ros::Publisher debug_right_pub_;
     ros::Publisher marker_quality_pub_;
 
     // Per-marker individual publishers
@@ -425,7 +418,6 @@ private:
         sync_->registerCallback(boost::bind(&StereoArucoDetectorNode::imageCallback, this, _1, _2));
 
         // Publishers
-        pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/aruco/pose", 10);
         marker_quality_pub_ = nh_.advertise<std_msgs::String>("/aruco/debug/marker_quality", 50);
 
         // Per-marker publishers for individual analysis
@@ -439,8 +431,6 @@ private:
         if (config_.enableVisualization)
         {
             debug_image_pub_ = nh_.advertise<sensor_msgs::Image>("/aruco/image", 10);
-            debug_left_pub_ = nh_.advertise<sensor_msgs::Image>("/aruco/debug/left_undistorted", 10);
-            debug_right_pub_ = nh_.advertise<sensor_msgs::Image>("/aruco/debug/right_undistorted", 10);
         }
 
         ROS_INFO("Topics initialized.");
@@ -745,13 +735,7 @@ private:
                 measurementStamp = ros::Time::now();
             }
 
-            if (detectMarkers(left_cv->image, right_cv->image, pose_msg, debug_image, measurementStamp))
-            {
-                // Publish best single marker on /aruco/pose (backward compat, not used by EKF)
-                pose_msg.header.stamp = measurementStamp;
-                pose_msg.header.frame_id = "stereo_camera_frame";
-                pose_pub_.publish(pose_msg);
-            }
+            detectMarkers(left_cv->image, right_cv->image, pose_msg, debug_image, measurementStamp);
 
             // Publish debug images if visualization is enabled
             if (config_.enableVisualization && !debug_image.empty())
@@ -1904,88 +1888,9 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "stereo_aruco_detector_node");
 
-    // Enhanced command line argument parsing
-    bool forceNoViz = false;
-    bool enableDebug = false;
-    bool enableDebugTrace = false;
-    bool enablePerformance = false;
-    int filterMarkerId = -1; // ← MUST be declared here, before the loop
-
-    for (int i = 1; i < argc; i++)
-    {
-        std::string arg = argv[i];
-        if (arg == "--performance")
-        {
-            enablePerformance = true;
-            ROS_INFO("Command line: Performance mode ENABLED (no debug output)");
-        }
-        else if (arg == "--debug")
-        {
-            enableDebug = true;
-            ROS_INFO("Command line: Debug mode ENABLED (final results only)");
-        }
-        else if (arg == "--debug-trace")
-        {
-            enableDebugTrace = true;
-            ROS_INFO("Command line: Debug trace mode ENABLED (full detailed output)");
-        }
-        else if (arg == "--no-viz")
-        {
-            forceNoViz = true;
-            ROS_INFO("Command line: Visualization DISABLED");
-        }
-        else if (arg == "--marker" && i + 1 < argc)
-        {
-            filterMarkerId = std::stoi(argv[i + 1]);
-            i++; // skip next arg
-            ROS_INFO("Command line: SINGLE MARKER MODE - only processing marker %d",
-                     filterMarkerId);
-        }
-        else if (arg == "--help")
-        {
-            std::cout << "Usage: " << argv[0] << " [options]\n"
-                      << "  --performance    Performance mode (no debug output)\n"
-                      << "  --debug          Debug mode (final results only)\n"
-                      << "  --debug-trace    Debug trace mode (full detailed output)\n"
-                      << "  --no-viz         Disable visualization\n"
-                      << "  --marker <id>    Process only one ArUco ID\n"
-                      << "  --help           Show this help\n";
-            return 0;
-        }
-    }
-
     try
     {
         Config cfg;
-        if (filterMarkerId != -1)
-        {
-            cfg.singleMarkerFilter = filterMarkerId;
-            ROS_INFO("Single marker filter active: ID %d", filterMarkerId);
-        }
-
-        // Apply command line overrides
-        if (enablePerformance)
-        {
-            cfg.enablePerformance = true;
-            cfg.enableDebug = false;
-            cfg.enableDebugTrace = false;
-            cfg.enableVisualization = false;
-        }
-        else if (enableDebugTrace)
-        {
-            cfg.enableDebugTrace = true;
-            cfg.enableDebug = true; // Trace includes debug
-        }
-        else if (enableDebug)
-        {
-            cfg.enableDebug = true;
-        }
-
-        if (forceNoViz)
-        {
-            cfg.enableVisualization = false;
-        }
-
         StereoArucoDetectorNode node(cfg);
         node.run();
     }

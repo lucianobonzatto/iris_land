@@ -193,10 +193,7 @@ private:
     typedef message_filters::Synchronizer<SyncPolicy> Synchronizer;
     std::shared_ptr<Synchronizer> sync_;
 
-    ros::Publisher pose_pub_;
     ros::Publisher debug_image_pub_;
-    ros::Publisher debug_left_pub_;
-    ros::Publisher debug_right_pub_;
 
     // Configuration and calibration
     StereoCalibration stereoCalib_;
@@ -316,14 +313,9 @@ void debugStereoCalibration() {
         sync_.reset(new Synchronizer(SyncPolicy(10), left_image_sub_, right_image_sub_));
         sync_->registerCallback(boost::bind(&StereoArucoDetectorNode::imageCallback, this, _1, _2));
 
-        // Publishers
-        pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/aruco/pose", 10);
-
         if (config_.enableVisualization)
         {
             debug_image_pub_ = nh_.advertise<sensor_msgs::Image>("/aruco/image", 10);
-            debug_left_pub_ = nh_.advertise<sensor_msgs::Image>("/aruco/debug/left_undistorted", 10);
-            debug_right_pub_ = nh_.advertise<sensor_msgs::Image>("/aruco/debug/right_undistorted", 10);
         }
 
         ROS_INFO("Topics initialized.");
@@ -594,23 +586,15 @@ void debugStereoCalibration() {
         geometry_msgs::PoseStamped pose_msg;
         cv::Mat debug_image;
 
-        if (detectMarkers(left_cv->image, right_cv->image, pose_msg, debug_image))
+        if (detectMarkers(left_cv->image, right_cv->image, pose_msg, debug_image) && config_.enableDebug)
         {
-            // Publish pose
-            pose_msg.header.stamp = ros::Time::now();
-            pose_msg.header.frame_id = "stereo_camera_frame";
-            pose_pub_.publish(pose_msg);
-
-            if (config_.enableDebug)
-            {
-                ROS_INFO("\n");
-                ROS_INFO(" PUBLISHED LANDPAD POSE:");
-                ROS_INFO("  Position: [%7.3f, %7.3f, %7.3f] meters",
-                         pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z);
-                ROS_INFO("  Quaternion: [%6.3f, %6.3f, %6.3f, %6.3f]",
-                         pose_msg.pose.orientation.x, pose_msg.pose.orientation.y,
-                         pose_msg.pose.orientation.z, pose_msg.pose.orientation.w);
-            }
+            ROS_INFO("\n");
+            ROS_INFO(" DETECTED LANDPAD POSE:");
+            ROS_INFO("  Position: [%7.3f, %7.3f, %7.3f] meters",
+                     pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z);
+            ROS_INFO("  Quaternion: [%6.3f, %6.3f, %6.3f, %6.3f]",
+                     pose_msg.pose.orientation.x, pose_msg.pose.orientation.y,
+                     pose_msg.pose.orientation.z, pose_msg.pose.orientation.w);
         }
 
         // Publish debug images if visualization is enabled

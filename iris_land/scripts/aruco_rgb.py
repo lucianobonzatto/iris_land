@@ -22,7 +22,6 @@ class ImageReader:
     def _initialize_topics(self):
         self.image_sub = rospy.Subscriber('/iris/usb_cam/image_raw', Image, self.image_callback)
         self.image_pub = rospy.Publisher('/aruco/image', Image, queue_size=10)
-        self.pose_pub = rospy.Publisher('/aruco/pose', PoseStamped, queue_size=10)
 
     def _initialize_aruco_settings(self):
         self.camera_matrix = np.array(
@@ -75,17 +74,11 @@ class ImageReader:
     def image_callback(self, msg):
         # print("---")
         image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough').copy()
-        pose_msg, image = self.position_detect(image)
+        _pose_msg, image = self.position_detect(image)
 
         # image message creation
         image_msg = self.bridge.cv2_to_imgmsg(image, encoding='bgr8')
         self.image_pub.publish(image_msg)
-
-        # pose message creation
-        if pose_msg is not None:
-            pose_msg.header.stamp = rospy.Time.now()
-            pose_msg.header.frame_id = "camera_frame"
-            self.pose_pub.publish(pose_msg)
 
     def position_detect(self, image):
         pose_msg = None
