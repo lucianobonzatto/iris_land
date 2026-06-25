@@ -1,24 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="config_file" default="$(find iris_land)/config/aruco_detector.yaml"/>
-
-    <!-- Resolved dynamically from the installed/source location of iris_land. -->
-    <arg name="calibration_file" default="$(find iris_land)/config/stereo_camera_params_1600_600.yml"/>
-    <arg name="debug" default=""/>
-    <arg name="debug_trace" default=""/>
-    <arg name="performance" default=""/>
-    <arg name="visualization" default=""/>
-    <arg name="marker" default=""/>
-
+    <!-- Edit config/aruco_detector.yaml for detector, calibration, and debug settings. -->
     <node name="stereo_aruco_detector_node" pkg="iris_land" type="aruco_stereo" output="screen">
-        <rosparam command="load" file="$(arg config_file)" subst_value="true"/>
-
-        <!-- Launch-time calibration path. Defaults to the package-local calibration file. -->
-        <param name="calibration_file" type="str" value="$(arg calibration_file)"/>
-        <param if="$(eval arg('debug') != '')" name="enable_debug" type="bool" value="$(arg debug)"/>
-        <param if="$(eval arg('debug_trace') != '')" name="enable_debug_trace" type="bool" value="$(arg debug_trace)"/>
-        <param if="$(eval arg('performance') != '')" name="enable_performance" type="bool" value="$(arg performance)"/>
-        <param if="$(eval arg('visualization') != '')" name="enable_visualization" type="bool" value="$(arg visualization)"/>
-        <param if="$(eval arg('marker') != '')" name="single_marker_filter" type="int" value="$(arg marker)"/>
+        <rosparam command="load" file="$(find iris_land)/config/aruco_detector.yaml" subst_value="true"/>
     </node>
 </launch>
