@@ -11,6 +11,8 @@ enable_visualization: false
 enable_debug: true
 enable_debug_trace: false
 enable_performance: false
+debug_clear_screen: true
+debug_dashboard_period: 0.5
 single_marker_filter: -1
 
 # Detector and PnP tuning.

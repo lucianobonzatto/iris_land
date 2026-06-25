@@ -90,9 +90,9 @@ struct MatchedMarker
     cv::Mat rawRightRvec, rawRightTvec;
 
     // Detailed error metrics
-    double reprojectionError;
-    double leftReprojectionError;
-    double rightReprojectionError;
+    double reprojectionError = std::numeric_limits<double>::quiet_NaN();
+    double leftReprojectionError = std::numeric_limits<double>::quiet_NaN();
+    double rightReprojectionError = std::numeric_limits<double>::quiet_NaN();
 
     // Processing stage info
     bool jointPnPConverged = false;
@@ -100,13 +100,29 @@ struct MatchedMarker
     double jointPnPInitialError = 0.0;
     double jointPnPFinalError = 0.0;
 
-    double pixelSpan = 0.0;
-    double minPixelSpanRequired = 0.0;
-    double maxReliableRange = 0.0;
+    double pixelSpan = std::numeric_limits<double>::quiet_NaN();
+    double minPixelSpanRequired = std::numeric_limits<double>::quiet_NaN();
+    double maxReliableRange = std::numeric_limits<double>::quiet_NaN();
 
     bool valid = false;
     MarkerStatus status = MarkerStatus::UNKNOWN;
     std::string detailedFailureReason;
+};
+
+struct MarkerDashboardRow
+{
+    int id = -1;
+    bool valid = false;
+    bool published = false;
+    bool hasPosition = false;
+    cv::Vec3f position = cv::Vec3f(0.0f, 0.0f, 0.0f);
+    double reprojectionError = std::numeric_limits<double>::quiet_NaN();
+    double leftReprojectionError = std::numeric_limits<double>::quiet_NaN();
+    double rightReprojectionError = std::numeric_limits<double>::quiet_NaN();
+    double pixelSpan = std::numeric_limits<double>::quiet_NaN();
+    double minPixelSpanRequired = std::numeric_limits<double>::quiet_NaN();
+    double range = std::numeric_limits<double>::quiet_NaN();
+    std::string status;
 };
 
 struct Config
@@ -133,9 +149,11 @@ struct Config
 
     // Debug levels - controlled by ROS params and optional command-line flags
     bool enableVisualization = true;
-    bool enableDebug = false;       // Final results only
+    bool enableDebug = false;       // Compact live dashboard
     bool enableDebugTrace = false;  // Everything detailed
     bool enablePerformance = false; // Nothing
+    bool debugClearScreen = true;
+    float debugDashboardPeriod = 0.5f;
 
     // Calibration file path
     std::string calibrationFile = "/home/jetson/catkin_ws/src/iris_land/iris_land/config/stereo_camera_params_1600_600.yml";
@@ -171,7 +189,14 @@ public:
         initializeStereoSettings();
         initializeTransformMatrices();
 
+        dashboardTimer_ = nh_.createWallTimer(
+            ros::WallDuration(std::max(0.1f, config_.debugDashboardPeriod)),
+            &StereoArucoDetectorNode::dashboardTimerCallback,
+            this
+        );
+
         ROS_INFO("Stereo ArUco Detector Node initialized successfully.");
+        renderDebugDashboard(true);
     }
 
     // Public run method
@@ -224,6 +249,15 @@ private:
     int totalMarkers_;
     int validMarkers_;
     std::map<MarkerStatus, int> statusCounts_;
+    std::vector<MarkerDashboardRow> lastDashboardRows_;
+    size_t lastLeftDetections_ = 0;
+    size_t lastRightDetections_ = 0;
+    size_t lastMatchedMarkers_ = 0;
+    size_t lastPublishedMarkers_ = 0;
+    ros::Time lastMeasurementStamp_;
+    ros::WallTime lastDashboardWall_;
+    ros::WallTimer dashboardTimer_;
+    std::string lastDetectorStatus_ = "waiting for stereo images";
 
     void debugIndividualMarkerTransform(int markerId)
     {
@@ -355,10 +389,12 @@ private:
         readBoolParamAliases({"enable_debug", "enableDebug"}, config_.enableDebug);
         readBoolParamAliases({"enable_debug_trace", "enableDebugTrace"}, config_.enableDebugTrace);
         readBoolParamAliases({"enable_performance", "enablePerformance"}, config_.enablePerformance);
+        readBoolParamAliases({"debug_clear_screen", "debugClearScreen"}, config_.debugClearScreen);
         readIntParamAliases({"single_marker_filter", "singleMarkerFilter"}, config_.singleMarkerFilter);
         readDoubleParamAliases({"fallback_marker_size", "markerSize"}, config_.markerSize);
         readDoubleParamAliases({"reprojection_error_threshold", "reprojErrorThreshold"}, config_.reprojErrorThreshold);
         readDoubleParamAliases({"huber_delta", "huberDelta"}, config_.huberDelta);
+        readDoubleParamAliases({"debug_dashboard_period", "debugDashboardPeriod"}, config_.debugDashboardPeriod);
         readIntParamAliases({"joint_pnp_max_iterations", "jointPnPMaxIterations"}, config_.jointPnPMaxIterations);
         readDoubleParamAliases({"convergence_threshold", "convergenceThreshold"}, config_.convergenceThreshold);
         readIntParamAliases({"corner_refinement_win_size", "cornerRefinementWinSize"}, config_.cornerRefinementWinSize);
@@ -386,11 +422,14 @@ private:
             else if (config_.enableDebugTrace)
                 ROS_INFO("Debug mode: TRACE (full detailed output)");
             else if (config_.enableDebug)
-                ROS_INFO("Debug mode: STANDARD (final results only)");
+                ROS_INFO("Debug mode: DASHBOARD (compact live status)");
             else
                 ROS_INFO("Debug mode: MINIMAL");
 
             ROS_INFO("Visualization: %s", config_.enableVisualization ? "ENABLED" : "DISABLED");
+            ROS_INFO("Dashboard: %s, period %.2fs",
+                     config_.debugClearScreen ? "clear-screen" : "append",
+                     config_.debugDashboardPeriod);
             if (config_.singleMarkerFilter >= 0)
                 ROS_INFO("Single marker filter: %d", config_.singleMarkerFilter);
             else
@@ -705,6 +744,130 @@ private:
         }
     }
 
+    std::string fmtDouble(double value, int precision = 2) const
+    {
+        if (!std::isfinite(value))
+        {
+            return "n/a";
+        }
+        std::ostringstream ss;
+        ss << std::fixed << std::setprecision(precision) << value;
+        return ss.str();
+    }
+
+    std::string fmtVec3(const cv::Vec3f &value, int precision = 3) const
+    {
+        std::ostringstream ss;
+        ss << "[" << fmtDouble(value[0], precision)
+           << " " << fmtDouble(value[1], precision)
+           << " " << fmtDouble(value[2], precision) << "]";
+        return ss.str();
+    }
+
+    std::string jsonDoubleOrNull(double value, int precision = 4) const
+    {
+        if (!std::isfinite(value))
+        {
+            return "null";
+        }
+        std::ostringstream ss;
+        ss << std::fixed << std::setprecision(precision) << value;
+        return ss.str();
+    }
+
+    void dashboardTimerCallback(const ros::WallTimerEvent&)
+    {
+        renderDebugDashboard();
+    }
+
+    void renderDebugDashboard(bool force = false)
+    {
+        if (!config_.enableDebug || config_.enableDebugTrace || config_.enablePerformance)
+        {
+            return;
+        }
+
+        ros::WallTime now = ros::WallTime::now();
+        if (!force && lastDashboardWall_.toSec() > 0.0 &&
+            (now - lastDashboardWall_).toSec() < config_.debugDashboardPeriod)
+        {
+            return;
+        }
+        lastDashboardWall_ = now;
+
+        std::ostringstream ss;
+        if (config_.debugClearScreen)
+        {
+            ss << "\033[2J\033[H";
+        }
+
+        ss << "STEREO ARUCO DEBUG\n";
+        ss << "frame " << frameCounter_
+           << " | stamp " << fmtDouble(lastMeasurementStamp_.toSec(), 3)
+           << " | status " << lastDetectorStatus_ << "\n";
+        ss << "detect left=" << lastLeftDetections_
+           << " right=" << lastRightDetections_
+           << " matched=" << lastMatchedMarkers_
+           << " published=" << lastPublishedMarkers_ << "\n";
+        ss << "gates  reproj<=" << fmtDouble(config_.reprojErrorThreshold, 2)
+           << "px | fallback span>=" << fmtDouble(config_.minPixelSpan, 1)
+           << "px | marker ranges 417<=" << fmtDouble(markerMaxReliableRanges_[417], 2)
+           << "m 363<=" << fmtDouble(markerMaxReliableRanges_[363], 2)
+           << "m 682<=" << fmtDouble(markerMaxReliableRanges_[682], 2) << "m\n";
+        ss << "totals frames=" << frameCounter_
+           << " markers=" << totalMarkers_
+           << " valid=" << validMarkers_
+           << " (" << fmtDouble(totalMarkers_ > 0 ? 100.0 * validMarkers_ / totalMarkers_ : 0.0, 1)
+           << "%)\n";
+        ss << "markers\n";
+
+        if (lastDashboardRows_.empty())
+        {
+            ss << "  waiting for matched stereo markers\n";
+        }
+        else
+        {
+            for (const auto &row : lastDashboardRows_)
+            {
+                ss << "  " << (row.valid ? "OK " : "REJ")
+                   << " id " << std::setw(3) << row.id
+                   << " pub " << (row.published ? "yes" : " no")
+                   << " pos " << (row.hasPosition ? fmtVec3(row.position) : "[n/a]")
+                   << " err L/R/A "
+                   << fmtDouble(row.leftReprojectionError, 2) << "/"
+                   << fmtDouble(row.rightReprojectionError, 2) << "/"
+                   << fmtDouble(row.reprojectionError, 2) << "px"
+                   << " span " << fmtDouble(row.pixelSpan, 1)
+                   << "/" << fmtDouble(row.minPixelSpanRequired, 1) << "px"
+                   << " range " << fmtDouble(row.range, 2) << "m"
+                   << " | " << row.status << "\n";
+            }
+        }
+
+        if (!statusCounts_.empty())
+        {
+            ss << "rejects";
+            bool any = false;
+            for (const auto &status_count : statusCounts_)
+            {
+                if (status_count.first == MarkerStatus::OK || status_count.second <= 0)
+                {
+                    continue;
+                }
+                any = true;
+                ss << " | " << statusToString(status_count.first)
+                   << "=" << status_count.second;
+            }
+            if (!any)
+            {
+                ss << " none";
+            }
+            ss << "\n";
+        }
+
+        std::cout << ss.str() << std::flush;
+    }
+
     void imageCallback(const sensor_msgs::ImageConstPtr &left_msg,
                        const sensor_msgs::ImageConstPtr &right_msg)
     {
@@ -753,8 +916,9 @@ private:
                 ROS_INFO("------------------------------------------------------------\n");
             }
 
-            // Print statistics every 100 frames
-            if (frameCounter_ % 100 == 0 && config_.enableDebug)
+            // Detailed cumulative statistics are useful in trace mode. Standard
+            // debug keeps the screen on the compact dashboard.
+            if (frameCounter_ % 100 == 0 && config_.enableDebugTrace)
             {
                 printStatistics();
             }
@@ -817,9 +981,17 @@ private:
 
         detectArUcoMarkers(undistortedLeft, leftCorners, leftIds);
         detectArUcoMarkers(undistortedRight, rightCorners, rightIds);
+        lastMeasurementStamp_ = measurementStamp;
+        lastLeftDetections_ = leftIds.size();
+        lastRightDetections_ = rightIds.size();
+        lastMatchedMarkers_ = 0;
+        lastPublishedMarkers_ = 0;
+        lastDashboardRows_.clear();
 
         if (leftIds.empty() || rightIds.empty())
         {
+            lastDetectorStatus_ = "no marker detected in one or both cameras";
+            renderDebugDashboard();
             if (config_.enableDebugTrace)
                 ROS_INFO("No markers detected in one or both cameras");
             return false;
@@ -842,10 +1014,13 @@ private:
 
         if (matched.empty())
         {
+            lastDetectorStatus_ = "no valid stereo marker matches";
+            renderDebugDashboard();
             if (config_.enableDebugTrace)
                 ROS_INFO("No valid matched markers found");
             return false;
         }
+        lastMatchedMarkers_ = matched.size();
 
         // Pixel span gate: reject markers that are too small for reliable PnP
         float focalLength = stereoCalib_.leftCameraMatrix.at<double>(0, 0);
@@ -871,7 +1046,7 @@ private:
             {
                 marker.valid = false;
                 marker.status = MarkerStatus::PIXEL_SPAN_TOO_SMALL;
-                if (config_.enableDebug)
+                if (config_.enableDebugTrace)
                 {
                     ROS_INFO("  Marker %d rejected: %.1f px < %.1f px minimum (max reliable range: %.2fm)",
                             marker.id, apparentSize, minPixelSpan, maxRange);
@@ -911,7 +1086,7 @@ private:
         }
 
         // Process results and publish per-marker poses
-        std::vector<std::string> markerResults;
+        std::vector<MarkerDashboardRow> dashboardRows;
         bool anyValidPublished = false;
         double bestReprojError = std::numeric_limits<double>::max();
 
@@ -920,6 +1095,20 @@ private:
             statusCounts_[marker.status]++;
             publishMarkerQuality(marker, measurementStamp);
 
+            MarkerDashboardRow row;
+            row.id = marker.id;
+            row.valid = marker.valid;
+            row.status = statusToString(marker.status);
+            row.reprojectionError = marker.reprojectionError;
+            row.leftReprojectionError = marker.leftReprojectionError;
+            row.rightReprojectionError = marker.rightReprojectionError;
+            row.pixelSpan = marker.pixelSpan;
+            row.minPixelSpanRequired = marker.minPixelSpanRequired;
+            if (!marker.tvec.empty())
+            {
+                row.range = marker.tvec.at<double>(2);
+            }
+
             if (marker.valid)
             {
                 validMarkers_++;
@@ -927,7 +1116,14 @@ private:
                 // Apply transform to get landpad pose
                 cv::Vec3f position, orientation;
                 if (!applyMarkerTransform(marker, position, orientation))
+                {
+                    row.valid = false;
+                    row.status = "Transform failed";
+                    dashboardRows.push_back(row);
                     continue;
+                }
+                row.position = position;
+                row.hasPosition = true;
 
                 // === Build rotation matrix and full quaternion conversion ===
                 cv::Mat indivRotMat;
@@ -1001,6 +1197,7 @@ private:
 
                     per_marker_pose_pubs_[marker.id].publish(individual_msg);
                     anyValidPublished = true;
+                    row.published = true;
 
                     // Track best marker for optional averaged topic
                     if (marker.reprojectionError < bestReprojError)
@@ -1009,13 +1206,6 @@ private:
                         pose_msg.pose = individual_msg.pose;
                     }
                 }
-
-                // Store result for debug summary
-                char result[256];
-                sprintf(result, "Marker %d: [%7.3f, %7.3f, %7.3f] (reproj: %.2fpx, span: %.0fpx)",
-                        marker.id, position[0], position[1], position[2],
-                        marker.reprojectionError, getApparentSize(marker.leftCorners));
-                markerResults.push_back(std::string(result));
 
                 // Draw pose visualization if enabled
                 if (config_.enableVisualization && !debug_image.empty())
@@ -1038,26 +1228,26 @@ private:
                     ROS_INFO("  Marker %d: FAILED (%s)", marker.id, statusToString(marker.status));
                 }
             }
+            dashboardRows.push_back(row);
         }
+
+        lastDashboardRows_ = dashboardRows;
+        lastPublishedMarkers_ = 0;
+        for (const auto &row : lastDashboardRows_)
+        {
+            if (row.published)
+            {
+                lastPublishedMarkers_++;
+            }
+        }
+        lastDetectorStatus_ = anyValidPublished ? "publishing per-marker poses" : "no valid marker poses";
+        renderDebugDashboard(!anyValidPublished);
 
         if (!anyValidPublished)
         {
             if (config_.enableDebugTrace)
                 ROS_INFO("No valid marker poses published");
             return false;
-        }
-
-        // Debug summary
-        if (config_.enableDebug)
-        {
-            ROS_INFO("\n");
-            ROS_INFO("--- PER-MARKER POSE ESTIMATES (no averaging) ---");
-            for (const auto &result : markerResults)
-            {
-                ROS_INFO("  %s", result.c_str());
-            }
-            ROS_INFO("  Published %zu individual marker poses", markerResults.size());
-            ROS_INFO("------------------------------------------------");
         }
 
         return true;
@@ -1360,7 +1550,7 @@ private:
                 // Final error validation
                 calculateFinalErrors(marker, currentMarkerModel);
 
-                if (config_.enableDebug)
+                if (config_.enableDebugTrace)
                 {
                     ROS_INFO("    Marker %d errors: L=%.2fpx R=%.2fpx Avg=%.2fpx (threshold=%.1fpx)",
                             marker.id, marker.leftReprojectionError, 
@@ -1705,12 +1895,10 @@ private:
             return;
         }
 
-        bool hasRange = false;
-        double range = 0.0;
+        double range = std::numeric_limits<double>::quiet_NaN();
         if (!marker.tvec.empty())
         {
             range = marker.tvec.at<double>(2);
-            hasRange = std::isfinite(range);
         }
 
         std::ostringstream ss;
@@ -1719,36 +1907,14 @@ private:
            << "\"stamp\":" << stamp.toSec() << ","
            << "\"marker_id\":" << marker.id << ","
            << "\"accepted\":" << (marker.valid ? "true" : "false") << ","
-           << "\"status\":\"" << statusToString(marker.status) << "\","
-           << "\"pixel_span_diag\":" << marker.pixelSpan << ",";
-        if (std::isfinite(marker.minPixelSpanRequired) && marker.minPixelSpanRequired > 0.0)
-        {
-            ss << "\"min_pixel_span_diag\":" << marker.minPixelSpanRequired << ",";
-        }
-        else
-        {
-            ss << "\"min_pixel_span_diag\":null,";
-        }
-        if (std::isfinite(marker.maxReliableRange) && marker.maxReliableRange > 0.0)
-        {
-            ss << "\"max_reliable_range_m\":" << marker.maxReliableRange << ",";
-        }
-        else
-        {
-            ss << "\"max_reliable_range_m\":null,";
-        }
-        if (hasRange)
-        {
-            ss << "\"range_m\":" << range << ",";
-        }
-        else
-        {
-            ss << "\"range_m\":null,";
-        }
-        ss
-           << "\"reprojection_error_px\":" << marker.reprojectionError << ","
-           << "\"left_reprojection_error_px\":" << marker.leftReprojectionError << ","
-           << "\"right_reprojection_error_px\":" << marker.rightReprojectionError << ","
+           << "\"status\":\"" << statusToString(marker.status) << "\"," 
+           << "\"pixel_span_diag\":" << jsonDoubleOrNull(marker.pixelSpan) << ","
+           << "\"min_pixel_span_diag\":" << jsonDoubleOrNull(marker.minPixelSpanRequired) << ","
+           << "\"max_reliable_range_m\":" << jsonDoubleOrNull(marker.maxReliableRange) << ","
+           << "\"range_m\":" << jsonDoubleOrNull(range) << ","
+           << "\"reprojection_error_px\":" << jsonDoubleOrNull(marker.reprojectionError) << ","
+           << "\"left_reprojection_error_px\":" << jsonDoubleOrNull(marker.leftReprojectionError) << ","
+           << "\"right_reprojection_error_px\":" << jsonDoubleOrNull(marker.rightReprojectionError) << ","
            << "\"joint_pnp_converged\":" << (marker.jointPnPConverged ? "true" : "false")
            << "}";
 
