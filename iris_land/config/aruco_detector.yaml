@@ -11,6 +11,9 @@ enable_visualization: false
 enable_debug: true
 enable_debug_trace: false
 enable_performance: false
+# Publish one JSON timing record per stereo pair on /aruco/debug/timing.
+# This remains enabled in performance mode because it is the profiler input.
+enable_timing_profile: true
 debug_clear_screen: true
 debug_dashboard_period: 0.5
 single_marker_filter: -1

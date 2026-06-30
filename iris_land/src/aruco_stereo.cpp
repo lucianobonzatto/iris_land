@@ -125,6 +125,46 @@ struct MarkerDashboardRow
     std::string status;
 };
 
+// One record per synchronized stereo pair. Durations use steady_clock so they
+// are immune to ROS/sim-time jumps; cross-node boundary stamps use ros::Time.
+struct FrameTimingProfile
+{
+    uint32_t sequence = 0;
+    double measurementStamp = 0.0;
+    double leftStamp = 0.0;
+    double rightStamp = 0.0;
+    double callbackStartStamp = 0.0;
+    double callbackCompleteStamp = 0.0;
+    double leftSubscriberReceiptStamp = 0.0;
+    double rightSubscriberReceiptStamp = 0.0;
+    double sourceToCallbackMs = 0.0;
+    double stereoStampSkewMs = 0.0;
+    double leftSyncWaitMs = 0.0;
+    double rightSyncWaitMs = 0.0;
+    double syncDispatchMs = 0.0;
+    double cvBridgeMs = 0.0;
+    double grayscaleMs = 0.0;
+    double rectifyMs = 0.0;
+    double visualizationPrepareMs = 0.0;
+    double detectLeftMs = 0.0;
+    double detectRightMs = 0.0;
+    double stereoMatchMs = 0.0;
+    double pixelGateMs = 0.0;
+    double rawPoseMs = 0.0;
+    double stereoPnPMs = 0.0;
+    double resultAndPosePublishMs = 0.0;
+    double detectorTotalMs = 0.0;
+    double debugImagePublishMs = 0.0;
+    double callbackTotalMs = 0.0;
+    size_t leftDetections = 0;
+    size_t rightDetections = 0;
+    size_t matchedMarkers = 0;
+    size_t publishedMarkers = 0;
+    bool detectorReturnedPose = false;
+    std::string status = "not_started";
+    std::map<int, double> markerPosePublishCompleteStamps;
+};
+
 struct Config
 {
     // Marker parameters
@@ -152,6 +192,7 @@ struct Config
     bool enableDebug = false;       // Compact live dashboard
     bool enableDebugTrace = false;  // Everything detailed
     bool enablePerformance = false; // Nothing
+    bool enableTimingProfile = true;
     bool debugClearScreen = true;
     float debugDashboardPeriod = 0.5f;
 
@@ -219,9 +260,18 @@ private:
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> SyncPolicy;
     typedef message_filters::Synchronizer<SyncPolicy> Synchronizer;
     std::shared_ptr<Synchronizer> sync_;
+    uint32_t lastLeftReceiptSequence_ = 0;
+    uint32_t lastRightReceiptSequence_ = 0;
+    bool haveLeftReceipt_ = false;
+    bool haveRightReceipt_ = false;
+    ros::Time lastLeftReceiptStamp_;
+    ros::Time lastRightReceiptStamp_;
+    std::chrono::steady_clock::time_point lastLeftReceiptWall_;
+    std::chrono::steady_clock::time_point lastRightReceiptWall_;
 
     ros::Publisher debug_image_pub_;
     ros::Publisher marker_quality_pub_;
+    ros::Publisher timing_profile_pub_;
 
     // Per-marker individual publishers
     std::map<int, ros::Publisher> per_marker_pose_pubs_;
@@ -389,6 +439,7 @@ private:
         readBoolParamAliases({"enable_debug", "enableDebug"}, config_.enableDebug);
         readBoolParamAliases({"enable_debug_trace", "enableDebugTrace"}, config_.enableDebugTrace);
         readBoolParamAliases({"enable_performance", "enablePerformance"}, config_.enablePerformance);
+        readBoolParamAliases({"enable_timing_profile", "enableTimingProfile"}, config_.enableTimingProfile);
         readBoolParamAliases({"debug_clear_screen", "debugClearScreen"}, config_.debugClearScreen);
         readIntParamAliases({"single_marker_filter", "singleMarkerFilter"}, config_.singleMarkerFilter);
         readDoubleParamAliases({"fallback_marker_size", "markerSize"}, config_.markerSize);
@@ -447,17 +498,46 @@ private:
         }
     }
 
+    void leftImageReceiptCallback(const sensor_msgs::ImageConstPtr& msg)
+    {
+        lastLeftReceiptSequence_ = msg->header.seq;
+        lastLeftReceiptStamp_ = ros::Time::now();
+        lastLeftReceiptWall_ = std::chrono::steady_clock::now();
+        haveLeftReceipt_ = true;
+    }
+
+    void rightImageReceiptCallback(const sensor_msgs::ImageConstPtr& msg)
+    {
+        lastRightReceiptSequence_ = msg->header.seq;
+        lastRightReceiptStamp_ = ros::Time::now();
+        lastRightReceiptWall_ = std::chrono::steady_clock::now();
+        haveRightReceipt_ = true;
+    }
+
     void initializeTopics()
     {
         // Setup synchronized subscribers for stereo images
         left_image_sub_.subscribe(nh_, "/stereo/left/image_raw", 1);
         right_image_sub_.subscribe(nh_, "/stereo/right/image_raw", 1);
 
+        // Register these before the synchronizer so each subscriber-delivery
+        // timestamp is captured before the synchronized callback is dispatched.
+        left_image_sub_.registerCallback(
+            boost::bind(&StereoArucoDetectorNode::leftImageReceiptCallback, this, _1)
+        );
+        right_image_sub_.registerCallback(
+            boost::bind(&StereoArucoDetectorNode::rightImageReceiptCallback, this, _1)
+        );
+
         sync_.reset(new Synchronizer(SyncPolicy(10), left_image_sub_, right_image_sub_));
         sync_->registerCallback(boost::bind(&StereoArucoDetectorNode::imageCallback, this, _1, _2));
 
         // Publishers
         marker_quality_pub_ = nh_.advertise<std_msgs::String>("/aruco/debug/marker_quality", 50);
+        if (config_.enableTimingProfile)
+        {
+            timing_profile_pub_ = nh_.advertise<std_msgs::String>("/aruco/debug/timing", 100);
+        }
 
         // Per-marker publishers for individual analysis
         for (int id : allowedMarkerIds_)
@@ -868,9 +948,125 @@ private:
         std::cout << ss.str() << std::flush;
     }
 
+    static double elapsedMs(const std::chrono::steady_clock::time_point& start,
+                            const std::chrono::steady_clock::time_point& end)
+    {
+        return std::chrono::duration<double, std::milli>(end - start).count();
+    }
+
+    void publishFrameTiming(const FrameTimingProfile& timing)
+    {
+        if (!config_.enableTimingProfile || !timing_profile_pub_)
+        {
+            return;
+        }
+
+        std::ostringstream ss;
+        ss << std::fixed << std::setprecision(9)
+           << "{"
+           << "\"stamp\":" << timing.measurementStamp << ","
+           << "\"sequence\":" << timing.sequence << ","
+           << "\"left_stamp\":" << timing.leftStamp << ","
+           << "\"right_stamp\":" << timing.rightStamp << ","
+           << "\"callback_start_stamp\":" << timing.callbackStartStamp << ","
+           << "\"callback_complete_stamp\":" << timing.callbackCompleteStamp << ","
+           << "\"left_subscriber_receipt_stamp\":" << timing.leftSubscriberReceiptStamp << ","
+           << "\"right_subscriber_receipt_stamp\":" << timing.rightSubscriberReceiptStamp << ","
+           << "\"source_to_callback_ms\":" << timing.sourceToCallbackMs << ","
+           << "\"stereo_stamp_skew_ms\":" << timing.stereoStampSkewMs << ","
+           << "\"left_sync_wait_ms\":" << timing.leftSyncWaitMs << ","
+           << "\"right_sync_wait_ms\":" << timing.rightSyncWaitMs << ","
+           << "\"sync_dispatch_ms\":" << timing.syncDispatchMs << ","
+           << "\"cv_bridge_ms\":" << timing.cvBridgeMs << ","
+           << "\"grayscale_ms\":" << timing.grayscaleMs << ","
+           << "\"rectify_ms\":" << timing.rectifyMs << ","
+           << "\"visualization_prepare_ms\":" << timing.visualizationPrepareMs << ","
+           << "\"detect_left_ms\":" << timing.detectLeftMs << ","
+           << "\"detect_right_ms\":" << timing.detectRightMs << ","
+           << "\"stereo_match_ms\":" << timing.stereoMatchMs << ","
+           << "\"pixel_gate_ms\":" << timing.pixelGateMs << ","
+           << "\"raw_pose_ms\":" << timing.rawPoseMs << ","
+           << "\"stereo_pnp_ms\":" << timing.stereoPnPMs << ","
+           << "\"result_and_pose_publish_ms\":" << timing.resultAndPosePublishMs << ","
+           << "\"detector_total_ms\":" << timing.detectorTotalMs << ","
+           << "\"debug_image_publish_ms\":" << timing.debugImagePublishMs << ","
+           << "\"callback_total_ms\":" << timing.callbackTotalMs << ","
+           << "\"left_detections\":" << timing.leftDetections << ","
+           << "\"right_detections\":" << timing.rightDetections << ","
+           << "\"matched_markers\":" << timing.matchedMarkers << ","
+           << "\"published_markers\":" << timing.publishedMarkers << ","
+           << "\"detector_returned_pose\":"
+           << (timing.detectorReturnedPose ? "true" : "false") << ","
+           << "\"status\":\"" << timing.status << "\","
+           << "\"marker_pose_publish_complete_stamps\":{";
+
+        bool first = true;
+        for (const auto& item : timing.markerPosePublishCompleteStamps)
+        {
+            if (!first)
+            {
+                ss << ",";
+            }
+            first = false;
+            ss << "\"" << item.first << "\":" << item.second;
+        }
+        ss << "}}";
+
+        std_msgs::String msg;
+        msg.data = ss.str();
+        timing_profile_pub_.publish(msg);
+    }
+
     void imageCallback(const sensor_msgs::ImageConstPtr &left_msg,
                        const sensor_msgs::ImageConstPtr &right_msg)
     {
+        FrameTimingProfile timing;
+        const auto callbackStartWall = std::chrono::steady_clock::now();
+        const ros::Time callbackStartStamp = ros::Time::now();
+        timing.sequence = left_msg->header.seq;
+        timing.leftStamp = left_msg->header.stamp.toSec();
+        timing.rightStamp = right_msg->header.stamp.toSec();
+        timing.callbackStartStamp = callbackStartStamp.toSec();
+        const bool matchingLeftReceipt =
+            haveLeftReceipt_ && lastLeftReceiptSequence_ == left_msg->header.seq;
+        const bool matchingRightReceipt =
+            haveRightReceipt_ && lastRightReceiptSequence_ == right_msg->header.seq;
+        if (matchingLeftReceipt)
+        {
+            timing.leftSubscriberReceiptStamp = lastLeftReceiptStamp_.toSec();
+            timing.leftSyncWaitMs = elapsedMs(lastLeftReceiptWall_, callbackStartWall);
+        }
+        if (matchingRightReceipt)
+        {
+            timing.rightSubscriberReceiptStamp = lastRightReceiptStamp_.toSec();
+            timing.rightSyncWaitMs = elapsedMs(lastRightReceiptWall_, callbackStartWall);
+        }
+        if (matchingLeftReceipt && matchingRightReceipt)
+        {
+            const auto latestReceiptWall =
+                (lastLeftReceiptWall_ > lastRightReceiptWall_)
+                ? lastLeftReceiptWall_ : lastRightReceiptWall_;
+            timing.syncDispatchMs = elapsedMs(latestReceiptWall, callbackStartWall);
+        }
+        if (!left_msg->header.stamp.isZero() && !right_msg->header.stamp.isZero())
+        {
+            timing.stereoStampSkewMs =
+                std::abs((left_msg->header.stamp - right_msg->header.stamp).toSec()) * 1000.0;
+        }
+
+        ros::Time measurementStamp = left_msg->header.stamp;
+        if (measurementStamp.isZero())
+        {
+            measurementStamp = right_msg->header.stamp;
+        }
+        if (measurementStamp.isZero())
+        {
+            measurementStamp = callbackStartStamp;
+        }
+        timing.measurementStamp = measurementStamp.toSec();
+        timing.sourceToCallbackMs =
+            (callbackStartStamp - measurementStamp).toSec() * 1000.0;
+
         try
         {
             if (config_.enableDebugTrace)
@@ -882,29 +1078,32 @@ private:
             }
 
             // Convert ROS images to OpenCV
+            const auto cvBridgeStart = std::chrono::steady_clock::now();
             cv_bridge::CvImagePtr left_cv = cv_bridge::toCvCopy(left_msg, sensor_msgs::image_encodings::BGR8);
             cv_bridge::CvImagePtr right_cv = cv_bridge::toCvCopy(right_msg, sensor_msgs::image_encodings::BGR8);
+            const auto cvBridgeEnd = std::chrono::steady_clock::now();
+            timing.cvBridgeMs = elapsedMs(cvBridgeStart, cvBridgeEnd);
 
             // Process the stereo pair
             geometry_msgs::PoseStamped pose_msg;
             cv::Mat debug_image;
-            ros::Time measurementStamp = left_msg->header.stamp;
-            if (measurementStamp.isZero())
-            {
-                measurementStamp = right_msg->header.stamp;
-            }
-            if (measurementStamp.isZero())
-            {
-                measurementStamp = ros::Time::now();
-            }
-
-            detectMarkers(left_cv->image, right_cv->image, pose_msg, debug_image, measurementStamp);
+            const auto detectorStart = std::chrono::steady_clock::now();
+            timing.detectorReturnedPose = detectMarkers(
+                left_cv->image, right_cv->image, pose_msg, debug_image,
+                measurementStamp, timing
+            );
+            const auto detectorEnd = std::chrono::steady_clock::now();
+            timing.detectorTotalMs = elapsedMs(detectorStart, detectorEnd);
 
             // Publish debug images if visualization is enabled
             if (config_.enableVisualization && !debug_image.empty())
             {
+                const auto debugPublishStart = std::chrono::steady_clock::now();
                 sensor_msgs::ImagePtr debug_msg = cv_bridge::CvImage(left_msg->header, "bgr8", debug_image).toImageMsg();
                 debug_image_pub_.publish(debug_msg);
+                timing.debugImagePublishMs = elapsedMs(
+                    debugPublishStart, std::chrono::steady_clock::now()
+                );
             }
 
             frameCounter_++;
@@ -922,22 +1121,33 @@ private:
             {
                 printStatistics();
             }
+            timing.status = lastDetectorStatus_;
         }
         catch (cv_bridge::Exception &e)
         {
+            timing.status = "cv_bridge_exception";
             ROS_ERROR("cv_bridge exception: %s", e.what());
         }
         catch (cv::Exception &e)
         {
+            timing.status = "opencv_exception";
             ROS_ERROR("OpenCV exception: %s", e.what());
         }
+
+        timing.callbackCompleteStamp = ros::Time::now().toSec();
+        timing.callbackTotalMs = elapsedMs(
+            callbackStartWall, std::chrono::steady_clock::now()
+        );
+        publishFrameTiming(timing);
     }
 
     bool detectMarkers(const cv::Mat &leftImage, const cv::Mat &rightImage,
                        geometry_msgs::PoseStamped &pose_msg, cv::Mat &debug_image,
-                       const ros::Time &measurementStamp)
+                       const ros::Time &measurementStamp,
+                       FrameTimingProfile &timing)
     {
         // Convert to grayscale if needed
+        const auto grayscaleStart = std::chrono::steady_clock::now();
         cv::Mat grayLeft, grayRight;
         if (leftImage.channels() == 3)
         {
@@ -956,13 +1166,21 @@ private:
         {
             grayRight = rightImage.clone();
         }
+        timing.grayscaleMs = elapsedMs(
+            grayscaleStart, std::chrono::steady_clock::now()
+        );
 
         // Undistort images using pre-computed maps
+        const auto rectifyStart = std::chrono::steady_clock::now();
         cv::Mat undistortedLeft, undistortedRight;
         cv::remap(grayLeft, undistortedLeft, mapx1_, mapy1_, cv::INTER_LINEAR);
         cv::remap(grayRight, undistortedRight, mapx2_, mapy2_, cv::INTER_LINEAR);
+        timing.rectifyMs = elapsedMs(
+            rectifyStart, std::chrono::steady_clock::now()
+        );
 
         // Create debug image if visualization is enabled
+        const auto visualizationStart = std::chrono::steady_clock::now();
         if (config_.enableVisualization)
         {
             if (leftImage.channels() == 3)
@@ -974,19 +1192,29 @@ private:
                 cv::cvtColor(undistortedLeft, debug_image, cv::COLOR_GRAY2BGR);
             }
         }
+        timing.visualizationPrepareMs = elapsedMs(
+            visualizationStart, std::chrono::steady_clock::now()
+        );
 
         // Detect ArUco markers
         std::vector<std::vector<cv::Point2f>> leftCorners, rightCorners;
         std::vector<int> leftIds, rightIds;
 
+        const auto detectLeftStart = std::chrono::steady_clock::now();
         detectArUcoMarkers(undistortedLeft, leftCorners, leftIds);
+        const auto detectLeftEnd = std::chrono::steady_clock::now();
         detectArUcoMarkers(undistortedRight, rightCorners, rightIds);
+        const auto detectRightEnd = std::chrono::steady_clock::now();
+        timing.detectLeftMs = elapsedMs(detectLeftStart, detectLeftEnd);
+        timing.detectRightMs = elapsedMs(detectLeftEnd, detectRightEnd);
         lastMeasurementStamp_ = measurementStamp;
         lastLeftDetections_ = leftIds.size();
         lastRightDetections_ = rightIds.size();
         lastMatchedMarkers_ = 0;
         lastPublishedMarkers_ = 0;
         lastDashboardRows_.clear();
+        timing.leftDetections = leftIds.size();
+        timing.rightDetections = rightIds.size();
 
         if (leftIds.empty() || rightIds.empty())
         {
@@ -1010,7 +1238,11 @@ private:
         }
 
         // Match markers between views and filter by allowed IDs
+        const auto stereoMatchStart = std::chrono::steady_clock::now();
         std::vector<MatchedMarker> matched = matchAndFilterMarkers(leftCorners, leftIds, rightCorners, rightIds);
+        timing.stereoMatchMs = elapsedMs(
+            stereoMatchStart, std::chrono::steady_clock::now()
+        );
 
         if (matched.empty())
         {
@@ -1021,8 +1253,10 @@ private:
             return false;
         }
         lastMatchedMarkers_ = matched.size();
+        timing.matchedMarkers = matched.size();
 
         // Pixel span gate: reject markers that are too small for reliable PnP
+        const auto pixelGateStart = std::chrono::steady_clock::now();
         float focalLength = stereoCalib_.leftCameraMatrix.at<double>(0, 0);
         for (auto& marker : matched)
         {
@@ -1058,6 +1292,9 @@ private:
                         marker.id, apparentSize, minPixelSpan, maxRange);
             }
         }
+        timing.pixelGateMs = elapsedMs(
+            pixelGateStart, std::chrono::steady_clock::now()
+        );
 
         totalMarkers_ += matched.size();
 
@@ -1068,7 +1305,11 @@ private:
         }
 
         // Calculate raw single camera poses first (for debugging)
+        const auto rawPoseStart = std::chrono::steady_clock::now();
         calculateRawSingleCameraPoses(matched, undistortedLeft, undistortedRight);
+        timing.rawPoseMs = elapsedMs(
+            rawPoseStart, std::chrono::steady_clock::now()
+        );
 
         if (config_.enableDebugTrace)
         {
@@ -1077,7 +1318,11 @@ private:
         }
 
         // Estimate poses using enhanced stereo algorithm
+        const auto stereoPnPStart = std::chrono::steady_clock::now();
         estimatePose(matched);
+        timing.stereoPnPMs = elapsedMs(
+            stereoPnPStart, std::chrono::steady_clock::now()
+        );
 
         if (config_.enableDebugTrace)
         {
@@ -1086,6 +1331,7 @@ private:
         }
 
         // Process results and publish per-marker poses
+        const auto resultStart = std::chrono::steady_clock::now();
         std::vector<MarkerDashboardRow> dashboardRows;
         bool anyValidPublished = false;
         double bestReprojError = std::numeric_limits<double>::max();
@@ -1196,6 +1442,8 @@ private:
                     individual_msg.pose.orientation.w = (norm > 0) ? w / norm : 1;
 
                     per_marker_pose_pubs_[marker.id].publish(individual_msg);
+                    timing.markerPosePublishCompleteStamps[marker.id] =
+                        ros::Time::now().toSec();
                     anyValidPublished = true;
                     row.published = true;
 
@@ -1242,6 +1490,10 @@ private:
         }
         lastDetectorStatus_ = anyValidPublished ? "publishing per-marker poses" : "no valid marker poses";
         renderDebugDashboard(!anyValidPublished);
+        timing.resultAndPosePublishMs = elapsedMs(
+            resultStart, std::chrono::steady_clock::now()
+        );
+        timing.publishedMarkers = lastPublishedMarkers_;
 
         if (!anyValidPublished)
         {
