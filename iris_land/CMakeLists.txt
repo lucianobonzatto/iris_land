@@ -16,8 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
-set(OpenCV_DIR "/usr/local/lib/cmake/opencv4" CACHE PATH "Path to OpenCV cmake config" FORCE)
-
 find_package(OpenCV 4.5.4 REQUIRED
   COMPONENTS
     core
@@ -26,8 +24,63 @@ find_package(OpenCV 4.5.4 REQUIRED
     highgui
     videoio
     calib3d
-    aruco
 )
+
+# Some Ubuntu/Jetson OpenCV 4.5.4 packages install the C++ ArUco header and
+# library without advertising "aruco" as a CMake component. Requiring that
+# component makes configuration fail even though ArUco is usable. Verify the
+# real compile/link capability instead, and add the standalone library when
+# OpenCV_LIBS does not already contain it (for example via opencv_world).
+include(CheckCXXSourceCompiles)
+set(CMAKE_REQUIRED_INCLUDES ${OpenCV_INCLUDE_DIRS})
+set(CMAKE_REQUIRED_LIBRARIES ${OpenCV_LIBS})
+check_cxx_source_compiles(
+  "
+  #include <opencv2/aruco.hpp>
+  int main()
+  {
+    cv::Ptr<cv::aruco::Dictionary> dictionary =
+        cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
+    return dictionary ? 0 : 1;
+  }
+  "
+  OPENCV_ARUCO_LINKS_FROM_EXPORTED_LIBS
+)
+
+if(NOT OPENCV_ARUCO_LINKS_FROM_EXPORTED_LIBS)
+  find_library(IRIS_OPENCV_ARUCO_LIBRARY NAMES opencv_aruco)
+  if(IRIS_OPENCV_ARUCO_LIBRARY)
+    list(APPEND OpenCV_LIBS ${IRIS_OPENCV_ARUCO_LIBRARY})
+    set(CMAKE_REQUIRED_LIBRARIES ${OpenCV_LIBS})
+    check_cxx_source_compiles(
+      "
+      #include <opencv2/aruco.hpp>
+      int main()
+      {
+        cv::Ptr<cv::aruco::Dictionary> dictionary =
+            cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
+        return dictionary ? 0 : 1;
+      }
+      "
+      OPENCV_ARUCO_LINKS_WITH_STANDALONE_LIBRARY
+    )
+  endif()
+endif()
+
+if(NOT OPENCV_ARUCO_LINKS_FROM_EXPORTED_LIBS AND
+   NOT OPENCV_ARUCO_LINKS_WITH_STANDALONE_LIBRARY)
+  message(FATAL_ERROR
+    "OpenCV ${OpenCV_VERSION} was found, but its C++ ArUco module cannot be "
+    "compiled and linked. Install the OpenCV-contrib development package "
+    "matching the OpenCV used by ROS/cv_bridge (commonly "
+    "'libopencv-contrib-dev'), or rebuild OpenCV 4.5.4 with opencv_contrib. "
+    "A Python cv2.aruco installation alone is not sufficient for this C++ node."
+  )
+endif()
+
+unset(CMAKE_REQUIRED_INCLUDES)
+unset(CMAKE_REQUIRED_LIBRARIES)
+list(REMOVE_DUPLICATES OpenCV_LIBS)
 
 message(STATUS "========== OpenCV Configuration ==========")
 message(STATUS "OpenCV Version: ${OpenCV_VERSION}")

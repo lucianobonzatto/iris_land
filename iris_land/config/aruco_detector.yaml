@@ -12,7 +12,7 @@ calibration_file: '$(find iris_land)/config/stereo_camera_params_1600_600.yml'
 #                /stereo/left/image_raw with SOLVEPNP_IPPE_SQUARE.
 # Both modes publish poses in the LEFT-camera reference frame, which is the
 # frame currently consumed by drone_ekf.transforms.T_cam_to_drone.
-pose_estimation_mode: 'stereo'
+pose_estimation_mode: 'monocular'
 
 # Runtime/debug behavior.
 # Master flight switch. When true, it overrides the optional flags below and
