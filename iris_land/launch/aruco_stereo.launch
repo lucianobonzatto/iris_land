@@ -1,6 +1,13 @@
 <?xml version="1.0"?>
 <launch>
     <!-- Edit config/aruco_detector.yaml for detector, calibration, and debug settings. -->
+    <!-- Shared copy lets the already-running stereo camera publisher honor
+         pose_estimation_mode and flight_optimized from this same YAML. -->
+    <rosparam command="load"
+              file="$(find iris_land)/config/aruco_detector.yaml"
+              ns="/aruco_runtime"
+              subst_value="true"/>
+
     <node name="stereo_aruco_detector_node" pkg="iris_land" type="aruco_stereo" output="screen">
         <rosparam command="load" file="$(find iris_land)/config/aruco_detector.yaml" subst_value="true"/>
     </node>

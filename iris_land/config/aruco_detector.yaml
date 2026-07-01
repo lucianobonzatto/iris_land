@@ -6,11 +6,30 @@
 
 calibration_file: '$(find iris_land)/config/stereo_camera_params_1600_600.yml'
 
+# Pose pipeline:
+#   stereo     = current sequential left -> right -> left refinement
+#   monocular  = OpenCV 4.5.4 ArUco single-marker pose estimation using only
+#                /stereo/left/image_raw with SOLVEPNP_IPPE_SQUARE.
+# Both modes publish poses in the LEFT-camera reference frame, which is the
+# frame currently consumed by drone_ekf.transforms.T_cam_to_drone.
+pose_estimation_mode: 'stereo'
+
 # Runtime/debug behavior.
+# Master flight switch. When true, it overrides the optional flags below and
+# disables visualization, dashboards, trace logs, detector/camera timing JSON,
+# marker-quality JSON, and stereo-only raw monocular comparison poses. Pose
+# topics remain on.
+flight_optimized: false
 enable_visualization: false
 enable_debug: true
 enable_debug_trace: false
+# Backwards-compatible alias for flight_optimized.
 enable_performance: false
+# Publish per-frame JSON on /aruco/debug/timing and /stereo/debug/timing.
+enable_timing_profile: true
+enable_marker_quality: true
+# Stereo diagnostic only; calculates two additional single-camera poses.
+enable_raw_pose_diagnostics: true
 debug_clear_screen: true
 debug_dashboard_period: 0.5
 single_marker_filter: -1
@@ -24,6 +43,14 @@ convergence_threshold: 1.0e-6
 corner_refinement_win_size: 7
 corner_refinement_max_iterations: 50
 corner_refinement_min_accuracy: 0.005
+
+# Planar markers can produce a second, flipped pose with similar reprojection
+# error. IPPE_SQUARE reduces that ambiguity; this temporal gate additionally
+# rejects an implausibly large rotation jump while observations are continuous.
+# Rotation matrices are compared, so q and -q are treated as the same pose.
+reject_orientation_flips: true
+orientation_flip_threshold_deg: 100.0
+orientation_history_timeout_sec: 0.5
 
 min_pixel_span_fallback: 50.0
 

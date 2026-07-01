@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 set(OpenCV_DIR "/usr/local/lib/cmake/opencv4" CACHE PATH "Path to OpenCV cmake config" FORCE)
 
-find_package(OpenCV 4.2 REQUIRED
+find_package(OpenCV 4.5.4 REQUIRED
   COMPONENTS
     core
     imgproc
@@ -26,6 +26,7 @@ find_package(OpenCV 4.2 REQUIRED
     highgui
     videoio
     calib3d
+    aruco
 )
 
 message(STATUS "========== OpenCV Configuration ==========")
