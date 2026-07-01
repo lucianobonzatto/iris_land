@@ -239,7 +239,7 @@ public:
                                 validMarkers_(0),
                                 config_(cfg)
     {
-        ROS_INFO("Initializing Stereo ArUco Detector Node...");
+        ROS_INFO("Initializing ArUco Detector Node...");
 
         initializeParameters();
         initializeArucoSettings();
@@ -256,14 +256,16 @@ public:
             );
         }
 
-        ROS_INFO("Stereo ArUco Detector Node initialized successfully.");
+        ROS_INFO("ArUco Detector Node initialized successfully in %s mode.",
+                 config_.poseEstimationMode.c_str());
         renderDebugDashboard(true);
     }
 
     // Public run method
     void run()
     {
-        ROS_INFO("Stereo ArUco Detector Node is running...");
+        ROS_INFO("ArUco Detector Node is running in %s mode.",
+                 config_.poseEstimationMode.c_str());
         ROS_INFO("Monitoring marker IDs: 363 (15cm), 682 (8cm), 417 (24.5cm)");
         ros::spin();
     }
@@ -303,7 +305,6 @@ private:
     // ArUco detection
     cv::Ptr<cv::aruco::Dictionary> dictionary_;
     cv::Ptr<cv::aruco::DetectorParameters> parameters_;
-    cv::Ptr<cv::aruco::EstimateParameters> poseEstimateParameters_;
 
     // Marker configuration - ID filtering and sizes
     std::set<int> allowedMarkerIds_;
@@ -460,6 +461,25 @@ private:
     {
         readStringParamAliases({"calibration_file", "calibrationFile"}, config_.calibrationFile);
         readStringParamAliases({"pose_estimation_mode", "poseEstimationMode"}, config_.poseEstimationMode);
+        // The camera publisher also reads this shared parameter. Prefer it when
+        // available so the camera and detector cannot silently enter opposite
+        // modes (for example, camera left-only while detector waits for stereo).
+        std::string sharedPoseEstimationMode;
+        if (nh_.getParam("/aruco_runtime/pose_estimation_mode",
+                         sharedPoseEstimationMode) &&
+            !sharedPoseEstimationMode.empty())
+        {
+            if (sharedPoseEstimationMode != config_.poseEstimationMode)
+            {
+                ROS_WARN(
+                    "Pose-mode parameter mismatch: private='%s', shared='%s'. "
+                    "Using shared /aruco_runtime value for camera/detector consistency.",
+                    config_.poseEstimationMode.c_str(),
+                    sharedPoseEstimationMode.c_str()
+                );
+            }
+            config_.poseEstimationMode = sharedPoseEstimationMode;
+        }
         readBoolParamAliases({"enable_visualization", "enableVisualization"}, config_.enableVisualization);
         readBoolParamAliases({"enable_debug", "enableDebug"}, config_.enableDebug);
         readBoolParamAliases({"enable_debug_trace", "enableDebugTrace"}, config_.enableDebugTrace);
@@ -542,7 +562,8 @@ private:
         if (!config_.enablePerformance)
         {
             ROS_INFO("\n");
-            ROS_INFO("=== STEREO ARUCO DETECTOR CONFIGURATION ===");
+            ROS_INFO("=== ARUCO DETECTOR CONFIGURATION (%s) ===",
+                     config_.poseEstimationMode.c_str());
             if (config_.enablePerformance)
                 ROS_INFO("Debug mode: PERFORMANCE (no output)");
             else if (config_.enableDebugTrace)
@@ -626,6 +647,10 @@ private:
             sync_->registerCallback(
                 boost::bind(&StereoArucoDetectorNode::imageCallback, this, _1, _2)
             );
+            ROS_INFO(
+                "Pose input mode STEREO: synchronized subscriptions to "
+                "/stereo/left/image_raw and /stereo/right/image_raw"
+            );
         }
         else
         {
@@ -634,6 +659,10 @@ private:
             monocular_image_sub_ = nh_.subscribe(
                 "/stereo/left/image_raw", 1,
                 &StereoArucoDetectorNode::monocularImageCallback, this
+            );
+            ROS_INFO(
+                "Pose input mode MONOCULAR: subscription to "
+                "/stereo/left/image_raw only"
             );
         }
 
@@ -696,11 +725,6 @@ private:
 
         dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
         parameters_ = cv::aruco::DetectorParameters::create();
-        poseEstimateParameters_ = cv::aruco::EstimateParameters::create();
-        // OpenCV 4.5.4 exposes this through the ArUco pose API. IPPE_SQUARE is
-        // specialized for a planar square marker and matches createMarkerModel().
-        poseEstimateParameters_->solvePnPMethod = cv::SOLVEPNP_IPPE_SQUARE;
-        poseEstimateParameters_->useExtrinsicGuess = false;
 
         // Setup detection parameters
         parameters_->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
@@ -996,13 +1020,24 @@ private:
             ss << "\033[2J\033[H";
         }
 
-        ss << "STEREO ARUCO DEBUG\n";
+        ss << (config_.poseEstimationMode == "monocular"
+                   ? "MONOCULAR ARUCO DEBUG\n"
+                   : "STEREO ARUCO DEBUG\n");
+        ss << "mode " << config_.poseEstimationMode
+           << " | input "
+           << (config_.poseEstimationMode == "monocular"
+                   ? "/stereo/left/image_raw"
+                   : "synchronized left + right")
+           << "\n";
         ss << "frame " << frameCounter_
            << " | stamp " << fmtDouble(lastMeasurementStamp_.toSec(), 3)
            << " | status " << lastDetectorStatus_ << "\n";
-        ss << "detect left=" << lastLeftDetections_
-           << " right=" << lastRightDetections_
-           << " matched=" << lastMatchedMarkers_
+        ss << "detect left=" << lastLeftDetections_;
+        if (config_.poseEstimationMode == "stereo")
+        {
+            ss << " right=" << lastRightDetections_;
+        }
+        ss << " candidates=" << lastMatchedMarkers_
            << " published=" << lastPublishedMarkers_ << "\n";
         ss << "gates  reproj<=" << fmtDouble(config_.reprojErrorThreshold, 2)
            << "px | fallback span>=" << fmtDouble(config_.minPixelSpan, 1)
@@ -1018,7 +1053,9 @@ private:
 
         if (lastDashboardRows_.empty())
         {
-            ss << "  waiting for matched stereo markers\n";
+            ss << (config_.poseEstimationMode == "monocular"
+                       ? "  waiting for an allowed marker in the left image\n"
+                       : "  waiting for matched stereo markers\n");
         }
         else
         {
@@ -1517,7 +1554,8 @@ private:
         if (config_.enableDebugTrace)
         {
             ROS_INFO("\n");
-            ROS_INFO("--- RAW POSE ESTIMATION ---");
+            ROS_INFO("--- POSE ESTIMATION INPUTS (%s) ---",
+                     monocular ? "MONOCULAR LEFT" : "STEREO");
         }
 
         // Raw left/right poses are diagnostic-only in stereo mode. Monocular
@@ -1534,7 +1572,8 @@ private:
         if (config_.enableDebugTrace)
         {
             ROS_INFO("\n");
-            ROS_INFO("--- STEREO POSE REFINEMENT ---");
+            ROS_INFO("--- %s POSE ESTIMATION ---",
+                     monocular ? "MONOCULAR LEFT" : "STEREO REFINED");
         }
 
         // Estimate poses in the selected mode. Both paths publish poses in the
@@ -1758,9 +1797,7 @@ private:
             cameraMatrix,
             cv::Mat(),
             rvecs,
-            tvecs,
-            cv::noArray(),
-            poseEstimateParameters_
+            tvecs
         );
         if (rvecs.empty() || tvecs.empty() || tvecs[0][2] <= 0.0)
         {

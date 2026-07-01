@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
 
     bool runtime_flight_optimized = private_flight_optimized;
     bool runtime_timing_profile_enabled = enable_timing_profile;
+    std::string last_reported_pose_estimation_mode;
     auto refresh_runtime_config = [&]() {
         bool shared_flight_optimized = false;
         bool shared_timing_profile_enabled = true;
@@ -57,6 +58,16 @@ int main(int argc, char** argv) {
         );
         if (pose_estimation_mode != "monocular") {
             pose_estimation_mode = "stereo";
+        }
+        if (pose_estimation_mode != last_reported_pose_estimation_mode) {
+            ROS_INFO(
+                "Camera publisher pose mode: %s (%s)",
+                pose_estimation_mode.c_str(),
+                pose_estimation_mode == "monocular"
+                    ? "publishing left image only"
+                    : "publishing left and right images"
+            );
+            last_reported_pose_estimation_mode = pose_estimation_mode;
         }
     };
     refresh_runtime_config();
@@ -92,7 +103,7 @@ int main(int argc, char** argv) {
     cv_right.encoding = "bgr8";
 
     ros::Rate loop_rate(fps);
-    ROS_INFO("Publicando imagens estéreo como sensor_msgs::Image");
+    ROS_INFO("Publishing camera images as sensor_msgs::Image");
     uint32_t frame_sequence = 0;
     ros::WallTime last_runtime_config_refresh;
 
