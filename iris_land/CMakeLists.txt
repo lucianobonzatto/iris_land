@@ -18,15 +18,11 @@ find_package(catkin REQUIRED COMPONENTS
 
 set(OpenCV_DIR "/usr/local/lib/cmake/opencv4" CACHE PATH "Path to OpenCV cmake config" FORCE)
 
-find_package(OpenCV 4.2 REQUIRED
-  COMPONENTS
-    core
-    imgproc
-    imgcodecs
-    highgui
-    videoio
-    calib3d
-)
+# Preserve the original deployment behavior: use the complete OpenCV library
+# set exported by the selected installation instead of requiring individual
+# components. Some Jetson OpenCV packages provide ArUco but do not advertise it
+# as a discoverable CMake component.
+find_package(OpenCV REQUIRED)
 
 message(STATUS "========== OpenCV Configuration ==========")
 message(STATUS "OpenCV Version: ${OpenCV_VERSION}")
@@ -69,7 +65,7 @@ catkin_package(
     tf2_ros
     cv_bridge
     image_transport
-    message_runtime
+  message_runtime
 )
 
 link_directories(/usr/local/lib)

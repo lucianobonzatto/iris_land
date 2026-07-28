@@ -1,37 +1,183 @@
-# Stereo ArUco detector tuning.
+# =============================================================================
+# ArUco detector configuration
 #
-# Pixel span is the marker diagonal in pixels, not the side length. The detector
-# derives each marker threshold from:
-#   min_diag_px = marker_size_m * focal_px * sqrt(2) / max_reliable_range_m
+# OVERRIDE ORDER (highest priority first)
+#   1. flight_optimized OR enable_performance
+#      Either one forces every optional debug/diagnostic output OFF.
+#   2. pose_estimation_mode
+#      Selects which mode-specific pose estimator is used.
+#   3. Individual debug, detector, estimator, and acceptance-gate settings.
+#
+# Operational marker pose topics remain enabled in optimized mode.
+# Changing comments/order in this file does not change runtime behavior.
+# =============================================================================
 
+# -----------------------------------------------------------------------------
+# 1. CAMERA CALIBRATION AND POSE MODE
+# -----------------------------------------------------------------------------
+
+# BOTH MODES: loads left/right calibration and image dimensions.
+# MONOCULAR: only the left intrinsics/distortion affect pose estimation.
+# STEREO: left/right intrinsics and stereo extrinsics are used.
 calibration_file: '$(find iris_land)/config/stereo_camera_params_1600_600.yml'
 
-# Runtime/debug behavior.
-enable_visualization: false
-enable_debug: true
-enable_debug_trace: false
+# Allowed values:
+#   'stereo'    - detect both views; sequential left -> right -> left refinement.
+#   'monocular' - detect and estimate pose from /stereo/left/image_raw only,
+#                 using the ArUco pose API available in the installed OpenCV.
+#
+# BOTH MODES publish in the LEFT-camera reference frame consumed by:
+#   drone_ekf.transforms.T_cam_to_drone
+pose_estimation_mode: 'stereo'
+
+# -----------------------------------------------------------------------------
+# 2. MASTER FLIGHT/PROCESSING OVERRIDES
+# -----------------------------------------------------------------------------
+
+# MASTER SWITCH.
+# true  -> forces all optional fields in section 3 OFF, regardless of their
+#          configured values. Detection, estimation, acceptance gates, and
+#          operational pose publication remain active.
+# false -> section 3 fields are honored individually.
+flight_optimized: false
+
+# LEGACY ALIAS for flight_optimized.
+# true on either field activates the same complete optimized behavior.
+# Normally leave this false and use flight_optimized as the canonical switch.
 enable_performance: false
+
+# -----------------------------------------------------------------------------
+# 3. OPTIONAL OBSERVABILITY AND DEBUG OUTPUTS
+#
+# All fields in this section are overridden OFF when either master switch above
+# is true. Unless explicitly marked STEREO ONLY, they apply to both modes.
+# These fields do not change pose mathematics, but can change CPU/ROS load.
+# -----------------------------------------------------------------------------
+
+# BOTH MODES: publish annotated image /aruco/image.
+enable_visualization: false
+
+# BOTH MODES: compact terminal dashboard.
+# Ignored as a dashboard when enable_debug_trace is true.
+enable_debug: true
+
+# BOTH MODES: detailed line-by-line ROS logging.
+# true internally enables debug collection but suppresses the compact dashboard.
+enable_debug_trace: false
+
+# BOTH MODES: publish detector and camera timing JSON:
+#   /aruco/debug/timing and /stereo/debug/timing
+enable_timing_profile: true
+
+# BOTH MODES: publish per-marker acceptance/quality JSON:
+#   /aruco/debug/marker_quality
+enable_marker_quality: true
+
+# STEREO ONLY: calculate additional left-only and right-only poses for
+# comparison. These poses are diagnostic and never replace the stereo result.
+# MONOCULAR: ignored because the production pose is already left-camera-only.
+enable_raw_pose_diagnostics: true
+
+# DASHBOARD ONLY: ignored unless enable_debug=true and enable_debug_trace=false.
 debug_clear_screen: true
 debug_dashboard_period: 0.5
+
+# -----------------------------------------------------------------------------
+# 4. MARKER SELECTION AND PHYSICAL SIZE -- BOTH MODES
+# -----------------------------------------------------------------------------
+
+# -1 accepts all supported IDs. Any non-negative value accepts only that ID.
+# Current supported IDs are 86, 417, 363, and 682.
 single_marker_filter: -1
 
-# Detector and PnP tuning.
+# Used only for an allowed marker ID without a marker-specific size.
+# Current supported IDs have hardcoded sizes, so this is presently a fallback.
+# Pose translation scales directly with the configured physical marker size.
 fallback_marker_size: 0.08
+
+# -----------------------------------------------------------------------------
+# 5. SHARED DETECTOR/CORNER TUNING -- BOTH MODES
+#
+# These fields change corners returned by detectMarkers and therefore can
+# directly influence pose accuracy, detection stability, and CPU load.
+# -----------------------------------------------------------------------------
+
+# Subpixel search half-window in pixels. Larger can help blurred corners but
+# costs more and may move toward unrelated nearby edges.
+corner_refinement_win_size: 7
+
+# Maximum subpixel-refinement iterations.
+corner_refinement_max_iterations: 50
+
+# Refinement convergence tolerance. Smaller is stricter and may cost more CPU.
+corner_refinement_min_accuracy: 0.005
+
+# -----------------------------------------------------------------------------
+# 6. SHARED POSE-QUALITY GATE -- BOTH MODES
+#
+# This gate accepts/rejects an estimated pose; it does not alter the pose solver.
+# -----------------------------------------------------------------------------
+
+# Maximum robust reprojection score. Lower is stricter.
 reprojection_error_threshold: 4.0
+
+# Huber-loss transition for corner residuals. Lower values reduce the influence
+# of a large outlier; higher values make large residuals contribute more.
 huber_delta: 1.5
+
+# -----------------------------------------------------------------------------
+# 7. STEREO-ONLY POSE OPTIMIZER
+#
+# MONOCULAR ignores both fields because its pose is produced directly by the
+# installed OpenCV ArUco single-marker pose API.
+# -----------------------------------------------------------------------------
+
 joint_pnp_max_iterations: 50
 convergence_threshold: 1.0e-6
-corner_refinement_win_size: 7
-corner_refinement_max_iterations: 50
-corner_refinement_min_accuracy: 0.005
+
+# -----------------------------------------------------------------------------
+# 8. TEMPORAL ORIENTATION-CONTINUITY GATE -- BOTH MODES
+#
+# Applied after pose estimation and reprojection validation. Planar markers can
+# produce an alternative orientation with similar reprojection error.
+# Rotation matrices are compared, so quaternion q and -q are the same pose.
+# -----------------------------------------------------------------------------
+
+# false bypasses this complete gate; the threshold/timeout below are then unused.
+reject_orientation_flips: true
+
+# Reject when the full 3-D rotation jump from the last accepted pose of the
+# same marker exceeds this angle. Valid range: (0, 180] degrees.
+orientation_flip_threshold_deg: 100.0
+
+# Compare only while the previous accepted observation is this recent.
+# After a longer gap, the next pose is accepted as a new temporal baseline.
+orientation_history_timeout_sec: 0.5
+
+# -----------------------------------------------------------------------------
+# 9. PIXEL-SIZE/RANGE GATE -- BOTH MODES
+#
+# Pixel span means marker DIAGONAL, not side length.
+# For each configured marker:
+#   derived_min_diag_px =
+#       marker_size_m * left_focal_px * sqrt(2) / max_reliable_range_m
+#   effective_min_diag_px =
+#       max(min_pixel_span_fallback, derived_min_diag_px)
+#
+# A smaller max_reliable_range is stricter. A larger value permits smaller,
+# farther detections. These fields gate acceptance; they do not detect markers.
+# -----------------------------------------------------------------------------
 
 min_pixel_span_fallback: 50.0
 
 # Largest marker: long-range acquisition and tracking.
+marker_86_max_reliable_range: 4.5
+
+# Large marker: long-range acquisition and tracking.
 marker_417_max_reliable_range: 3.2
 
-# Medium marker: usable at 2-3 m with higher EKF noise than marker 417.
+# Medium marker: intermediate-range tracking.
 marker_363_max_reliable_range: 1.5
 
-# Small marker: final alignment/low altitude only.
-marker_682_max_reliable_range: 0.9 
+# Small marker: final alignment/low-altitude tracking.
+marker_682_max_reliable_range: 0.9
